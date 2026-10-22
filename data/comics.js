@@ -258,17 +258,15 @@ window.COMICS = [
     tags: [],
   },
   {
-    id: "17",
-    title: "17",
-    artist: "시현",
+    id: "16",
+    title: "16",
+    artist: "예나",
     date: "2026-10-23",
-    cover: "images/comics/17/332_1_1_1791391092263.png.DSKyCzI4XK.png",
+    cover: "images/comics/16/125_1_1_3386__20261016032754.png.Si4H9dKaME.png",
     pages: [
-      "images/comics/17/332_1_1_1791391092263.png.DSKyCzI4XK.png",
-      "images/comics/17/332_2_1_1791391092424.png.oy5copATjI.png",
-      "images/comics/17/332_3_1_1791391092502.png.T19dD4X62X.png",
+      "images/comics/16/125_1_1_3386__20261016032754.png.Si4H9dKaME.png",
     ],
-    characters: ["sihyeon-lanhwa","sihyeon-dong","harin-dobu"],
+    characters: ["yena-jangcheongil","yeonwoo-hyeonrang","harin-mun"],
     tags: [],
   },
 ];
