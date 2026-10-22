@@ -245,4 +245,16 @@ window.COMICS = [
     characters: ["yena-gangchun","sieun-e","sieun-f","harin-mun"],
     tags: [],
   },
+  {
+    id: "18",
+    title: "18",
+    artist: "시현",
+    date: "2026-10-23",
+    cover: "images/comics/18/529_1_1_1788884345183.jpg._QXSVeYEZk.jpg",
+    pages: [
+      "images/comics/18/529_1_1_1788884345183.jpg._QXSVeYEZk.jpg",
+    ],
+    characters: ["sieun-e","harin-mun"],
+    tags: [],
+  },
 ];
