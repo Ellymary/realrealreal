@@ -314,4 +314,16 @@ window.COMICS = [
     characters: ["sihyeon-lanhwa","sihyeon-dong"],
     tags: [],
   },
+  {
+    id: "13",
+    title: "13",
+    artist: "예나",
+    date: "2026-10-23",
+    cover: "images/comics/13/122_1_1_3386__20261016035556.png.eYBP_qPLBO.png",
+    pages: [
+      "images/comics/13/122_1_1_3386__20261016035556.png.eYBP_qPLBO.png",
+    ],
+    characters: ["yena-chi","sihyeon-trans-f"],
+    tags: [],
+  },
 ];
