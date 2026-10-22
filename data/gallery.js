@@ -44,4 +44,12 @@ window.GALLERY = [
     characters: ["sieun-vanilla"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1zPMCeOSORtP61VrO7YCqZMr1K8NnCla0/view?usp=drive_link",
+    title: "22",
+    artist: "연우",
+    date: "2026-10-23",
+    characters: ["yena-jiruciel","yena-jiien","sihyeon-dong"],
+    tags: [],
+  },
 ];
