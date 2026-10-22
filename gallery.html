@@ -85,16 +85,16 @@
   function render() {
     const byQ = all.filter((it) => App.matches(it, q));
     const nI = byQ.filter((it) => it.kind === "image").length, nC = byQ.length - nI;
-    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화 " + nC]]
+    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화·시리즈 " + nC]]
       .map(([k, label]) => '<button class="chip' + (type === k ? " on" : "") + '" data-type="' + k + '">' + label + "</button>").join("");
     shown = byQ.filter((it) => !type || it.kind === type);
     imgs = shown.filter((it) => it.kind === "image");
     const terms = q.split(/\s+/).filter(Boolean);
     $("active").innerHTML = terms.map((t) => '<button class="chip" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
-    $("count").textContent = shown.length + "개 (그림 " + imgs.length + " · 만화 " + (shown.length - imgs.length) + ")";
+    $("count").textContent = shown.length + "개 (그림 " + imgs.length + " · 만화/시리즈 " + (shown.length - imgs.length) + ")";
     $("grid").innerHTML = shown.length
       ? shown.map((it) => it.kind === "comic"
-          ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">만화 ' + (it.pages || []).length + "p</span></a>"
+          ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">' + (it.series ? "시리즈 " : "만화 ") + (it.pages || []).length + "p</span></a>"
           : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + "</button>").join("")
       : '<p class="empty">' + (all.length ? "검색 결과가 없어요." : "아직 그림/만화가 없어요. data/gallery.js, data/comics.js 에 추가해 주세요!") + "</p>";
     $("side").innerHTML = App.sidebarHTML(shown);

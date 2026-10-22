@@ -29,11 +29,12 @@
   <div class="chips" id="mode">
     <button class="chip on" type="button" data-mode="image">그림 (여러 장을 각각)</button>
     <button class="chip" type="button" data-mode="comic">만화 (여러 장 = 한 편)</button>
+    <button class="chip" type="button" data-mode="series">그림 시리즈 (여러 장 = 한 묶음)</button>
   </div>
 
   <div class="form" id="main-form">
     <div class="form" id="comic-box" hidden style="margin:0">
-      <label>만화 제목<input id="c-title"></label>
+      <label>제목 (만화/시리즈)<input id="c-title"></label>
       <label>만화 id (영어/숫자만, 다른 만화와 겹치면 안 됨)<input id="c-id" value="comic-1"></label>
       <label>올릴 폴더<input id="c-folder" value="images/comics/comic-1/"></label>
       <label>설명 (선택)<textarea id="c-desc" rows="2"></textarea></label>
@@ -112,6 +113,8 @@
   // ───────────── 그림별 줄 ─────────────
   let rows = []; // { name, url, file, title, chars, tags }
   let mode = "image";
+  const isSet = () => mode === "comic" || mode === "series"; // 만화/시리즈는 여러 장 = 한 묶음
+  const setName = () => (mode === "series" ? "시리즈" : "만화");
   let lastEntries = ""; // 지금 올릴 코드 (비어 있으면 올릴 게 없음)
   let busy = false;
   const existingComics = new Set((window.COMICS || []).map((c) => c.id));
@@ -160,7 +163,7 @@
 
   // 올릴 파일 목록: 실제 파일이 있는 줄만 (파일 없이 만든 줄은 이미 올라가 있다고 보고 코드에만 넣어요)
   function uploadList() {
-    const base = normFolder(mode === "comic" ? $("c-folder").value : $("folder").value);
+    const base = normFolder(isSet() ? $("c-folder").value : $("folder").value);
     return rows.filter((r) => r.file && r.name.trim()).map((r) => ({ path: base + r.name.trim(), file: r.file }));
   }
 
@@ -170,8 +173,8 @@
     const sharedTags = splitList($("tags").value);
     const unknown = [];
     lastEntries = "";
-    $("paste-target").textContent = mode === "comic" ? "data/comics.js" : "data/gallery.js";
-    if (mode === "comic") {
+    $("paste-target").textContent = isSet() ? "data/comics.js" : "data/gallery.js";
+    if (isSet()) {
       const names = rows.map((r) => r.name.trim()).filter(Boolean);
       const cf = normFolder($("c-folder").value);
       const id = $("c-id").value.trim();
@@ -191,6 +194,7 @@
       ].concat(names.map((n) => "      " + J(cf + n) + ","), ["    ],",
         "    characters: " + J(shared) + ",",
         "    tags: " + J(sharedTags) + ","]);
+      if (mode === "series") lines.push("    series: true,");
       if ($("c-desc").value.trim()) lines.push("    desc: " + J($("c-desc").value.trim()) + ",");
       lines.push("  },");
       lastEntries = lines.join("\n");
@@ -229,12 +233,13 @@
   function setMode(m) {
     mode = m;
     document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
-    $("comic-box").hidden = m !== "comic";
-    $("folder-wrap").hidden = m === "comic";
-    $("rows").classList.toggle("comic-mode", m === "comic");
-    $("rows-h").textContent = m === "comic" ? "페이지 순서" : "그림별 설정";
-    $("rows-hint").hidden = m === "comic";
-    $("addrow").textContent = m === "comic" ? "+ 파일 없이 페이지 한 줄 추가" : "+ 파일 없이 한 줄 추가";
+    const set = m === "comic" || m === "series";
+    $("comic-box").hidden = !set;
+    $("folder-wrap").hidden = set;
+    $("rows").classList.toggle("comic-mode", set);
+    $("rows-h").textContent = set ? "페이지 순서" : "그림별 설정";
+    $("rows-hint").hidden = set;
+    $("addrow").textContent = set ? "+ 파일 없이 페이지 한 줄 추가" : "+ 파일 없이 한 줄 추가";
     build();
   }
   $("mode").addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (b) setMode(b.dataset.mode); });
@@ -375,15 +380,15 @@
     $("pub-log").textContent = "";
     if (!cfg) { say("먼저 위의 'GitHub 연결'에서 토큰 연결 필요.", true); $("gh").open = true; return; }
     if (!lastEntries) { say("올릴 그림(또는 만화 페이지)이 없음.", true); return; }
-    if (mode === "comic") {
+    if (isSet()) {
       const id = $("c-id").value.trim();
       if (!/^[A-Za-z0-9_-]+$/.test(id)) { say("만화 id 는 영어/숫자/-/_ 만 가능.", true); return; }
       if (existingComics.has(id)) { say("이미 있는 만화 id: " + id, true); return; }
       if (!$("c-title").value.trim() && !confirm("만화 제목이 비어 있음. 그대로 올릴까?")) return;
     }
     const uploads = uploadList();
-    const dataPath = mode === "comic" ? "data/comics.js" : "data/gallery.js";
-    const key = mode === "comic" ? "COMICS" : "GALLERY";
+    const dataPath = isSet() ? "data/comics.js" : "data/gallery.js";
+    const key = isSet() ? "COMICS" : "GALLERY";
     busy = true; $("publish").disabled = true; say("올리는 중. 창 닫지 말기…");
     try {
       step("저장소 확인 중…");
@@ -394,7 +399,7 @@
       step("data 파일 읽는 중…");
       const text = await gh(cfg, "GET", "contents/" + enc(dataPath) + "?ref=" + encodeURIComponent(cfg.branch), null, true);
       const current = evalData(text, key);
-      if (mode === "comic" && current.some((c) => c && c.id === $("c-id").value.trim())) throw new Error("이미 있는 만화 id. 다른 id 로 변경 필요.");
+      if (isSet() && current.some((c) => c && c.id === $("c-id").value.trim())) throw new Error("이미 있는 만화 id. 다른 id 로 변경 필요.");
 
       if (uploads.length) {
         const tr = await gh(cfg, "GET", "git/trees/" + baseTree + "?recursive=1");
@@ -422,11 +427,11 @@
 
       step("저장하는 중…");
       const tree = await gh(cfg, "POST", "git/trees", { base_tree: baseTree, tree: items });
-      const message = mode === "comic" ? "만화 추가: " + ($("c-title").value.trim() || $("c-id").value.trim()) : "그림 " + imageCount + "장 추가";
+      const message = isSet() ? setName() + " 추가: " + ($("c-title").value.trim() || $("c-id").value.trim()) : "그림 " + imageCount + "장 추가";
       const commit = await gh(cfg, "POST", "git/commits", { message, tree: tree.sha, parents: [headSha] });
       await gh(cfg, "PATCH", "git/refs/heads/" + enc(cfg.branch), { sha: commit.sha });
 
-      if (mode === "comic") existingComics.add($("c-id").value.trim());
+      if (isSet()) existingComics.add($("c-id").value.trim());
       rows = []; drawRows();
       say("✔ 올라감. 1~2분 뒤 사이트에 반영됨. (" + message + ")");
     } catch (e) {
