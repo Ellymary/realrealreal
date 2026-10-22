@@ -269,4 +269,21 @@ window.COMICS = [
     characters: ["yena-jangcheongil","yeonwoo-hyeonrang","harin-mun"],
     tags: [],
   },
+  {
+    id: "15",
+    title: "15",
+    artist: "예나",
+    date: "2026-10-23",
+    cover: "images/comics/15/157_1_1_1791658246579.jpg.dQACxouNII.jpg",
+    pages: [
+      "images/comics/15/157_1_1_1791658246579.jpg.dQACxouNII.jpg",
+      "images/comics/15/157_2_1_1791658246769.png.KKlHc0RHz7.png",
+      "images/comics/15/157_3_1_1791658246978.jpg.3BCDdo7xlQ.jpg",
+      "images/comics/15/157_4_1_1791658247120.jpg.3CVZ8PjBxo.jpg",
+      "images/comics/15/157_5_1_1791658247275.jpg.rD4dmRzFWu.jpg",
+      "images/comics/15/157_6_1_1791658247531.jpg.jBmUEDFpe2.jpg",
+    ],
+    characters: ["yena-gangchun","yena-kail"],
+    tags: [],
+  },
 ];
