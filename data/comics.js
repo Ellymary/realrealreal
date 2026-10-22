@@ -170,4 +170,20 @@ window.COMICS = [
     characters: ["yena-jiruciel","yena-jiien"],
     tags: [],
   },
+  {
+    id: "23",
+    title: "23",
+    artist: "시은",
+    date: "2026-10-23",
+    cover: "images/comics/23/151_1_1_Notes_261015_023831.jpg.DaqcQ61YW7.jpg",
+    pages: [
+      "images/comics/23/151_1_1_Notes_261015_023831.jpg.DaqcQ61YW7.jpg",
+      "images/comics/23/151_2_1_Notes_261015_023831_1.jpg.ecCXTM1pQo.jpg",
+      "images/comics/23/151_3_1_Notes_261015_023831_2.jpg.Mi56knaE0X.jpg",
+      "images/comics/23/151_5_1_Notes_261015_023914.jpg.EUMIn_TeWo.jpg",
+      "images/comics/23/151_4_1_Notes_261015_023831_3.jpg.WKcvBbey0O.jpg",
+    ],
+    characters: ["sieun-macao","sihyeon-lanhwa","sihyeon-dong"],
+    tags: [],
+  },
 ];
