@@ -481,3 +481,23 @@ a.rel-name:hover { text-decoration: underline; }
 
 /* 영상 (갤러리 창) */
 .lb-video { width: min(92vw, 960px); aspect-ratio: 16 / 9; max-height: 80vh; border: 0; background: #000; border-radius: 8px; }
+
+/* 놀이터 버튼 목록 */
+.play-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+.play-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--line); background: var(--panel); transition: .15s; }
+.play-card:hover { border-color: var(--accent); background: var(--panel2); }
+.play-ic { font-size: 28px; line-height: 1; }
+.play-tx { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.play-tx small { color: var(--muted); }
+
+/* 길드 심리테스트 */
+.quiz-box, .quiz-result { padding: 22px; border: 1px solid var(--line); background: var(--panel); }
+.quiz-result { border-color: var(--mc, var(--accent)); }
+.quiz-bar { height: 6px; background: var(--panel2); margin-bottom: 10px; }
+.quiz-bar span { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.quiz-q { margin: 6px 0 18px; font-size: 22px; line-height: 1.5; }
+.quiz-opts { display: flex; flex-direction: column; gap: 10px; }
+.quiz-opt { text-align: left; padding: 14px 16px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; cursor: pointer; line-height: 1.5; }
+.quiz-opt:hover, .quiz-opt:focus-visible { border-color: var(--accent); background: var(--panel2); }
+.quiz-gname { margin: 2px 0 6px; font-size: 40px; color: var(--mc, var(--accent)); }
+.quiz-sc { color: var(--muted); font-size: 13px; margin-bottom: 8px; }

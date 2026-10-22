@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>길드 심리테스트</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap narrow">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title" id="title"></h1>
+  <div id="quiz"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/guildquiz.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc } = App;
+  const Q = window.GUILD_QUIZ;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "길드 심리테스트");
+  $("title").textContent = Q.title;
+
+  const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const para = (s) => String(s || "").split(/\n+/).map((t) => "<p>" + esc(t) + "</p>").join("");
+
+  let idx = 0, score = {}, last = null, opts = [];
+
+  function start() {
+    idx = 0; score = {}; last = null;
+    $("quiz").innerHTML =
+      '<div class="quiz-box"><p>' + esc(Q.intro) + '</p><button class="btn btn-primary" id="go" type="button">시작하기</button></div>';
+    $("go").addEventListener("click", ask);
+  }
+
+  function ask() {
+    const q = Q.questions[idx];
+    opts = shuffle(q.a);   // 보기 순서는 매번 랜덤
+    $("quiz").innerHTML =
+      '<div class="quiz-bar"><span style="width:' + (idx / Q.questions.length * 100) + '%"></span></div>' +
+      '<p class="muted small">' + (idx + 1) + " / " + Q.questions.length + "</p>" +
+      '<h2 class="quiz-q">' + esc(q.q) + "</h2>" +
+      '<div class="quiz-opts">' + opts.map((o, i) => '<button class="quiz-opt" type="button" data-i="' + i + '">' + esc(o.t) + "</button>").join("") + "</div>";
+  }
+
+  function pick(i) {
+    const g = opts[i].g;
+    score[g] = (score[g] || 0) + 1;
+    last = g;
+    idx++;
+    idx < Q.questions.length ? ask() : finish();
+  }
+
+  function finish() {
+    const ids = Object.keys(Q.results);
+    const top = Math.max(...ids.map((id) => score[id] || 0));
+    let tied = ids.filter((id) => (score[id] || 0) === top);
+    const win = tied.length === 1 ? tied[0] : tied.includes(last) ? last : tied[Math.floor(Math.random() * tied.length)]; // 동점이면 마지막 질문 답
+    const r = Q.results[win];
+    const g = App.guildById(win) || { name: win, color: "#98a2b6" };
+    const chars = App.charsOfGuild(g);
+    $("quiz").innerHTML =
+      '<div class="quiz-result" style="--mc:' + esc(g.color) + '">' +
+        '<p class="muted small">당신에게 어울리는 길드는</p>' +
+        '<h2 class="quiz-gname">' + esc(g.name) + "</h2>" +
+        '<div class="quiz-sc">' + ids.map((id) => esc((App.guildById(id) || { name: id }).name) + " " + (score[id] || 0)).join(" · ") + "</div>" +
+        "<h3 class='side-h'>당신은</h3>" + para(r.you) +
+        "<h3 class='side-h'>이 길드는</h3>" + para(r.about) +
+        (chars.length ? '<h3 class="side-h">' + esc(g.name) + ' 소속 캐릭터</h3><div class="cards">' + chars.map(App.charCard).join("") + "</div>" : "") +
+        '<p style="margin-top:20px"><a class="btn" href="guild.html?id=' + encodeURIComponent(g.id || win) + '">' + esc(g.name) + ' 길드 보러 가기</a> ' +
+        '<button class="btn" id="again" type="button">다시 하기</button></p>' +
+      "</div>";
+    $("again").addEventListener("click", start);
+    window.scrollTo(0, 0);
+  }
+
+  $("quiz").addEventListener("click", (e) => { const b = e.target.closest(".quiz-opt"); if (b) pick(+b.dataset.i); });
+  start();
+</script>
+</body>
+</html>

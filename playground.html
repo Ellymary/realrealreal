@@ -12,14 +12,14 @@
 <main class="wrap">
   <h1 class="page-title">놀이터</h1>
 
-  <!-- ▼▼ 여기부터 내용을 넣을 자리예요 (게임 · 퀴즈 · 체크리스트) ▼▼ -->
-  <div class="blank-slot">준비 중이에요</div>
-  <!-- ▲▲ 여기까지 ▲▲ -->
+  <p class="muted">게임 · 퀴즈 · 심리테스트. 눌러서 들어가요. (새 놀이는 data/playground.js 에 한 줄만 추가하면 버튼이 생겨요)</p>
+  <div class="play-grid" id="play-grid"></div>
 
 </main>
 <footer class="site-footer" id="site-footer"></footer>
 
 <script src="data/site.js"></script>
+<script src="data/playground.js"></script>
 <script src="data/guilds.js"></script>
 <script src="data/characters.js"></script>
 <script src="data/gallery.js"></script>
@@ -28,6 +28,13 @@
 <script src="app.js"></script>
 <script src="data/music.js"></script>
 <script src="player.js"></script>
-<script>App.nav("playground", "놀이터");</script>
+<script>
+  App.nav("playground", "놀이터");
+  const items = window.PLAYGROUND || [];
+  document.getElementById("play-grid").innerHTML = items.length
+    ? items.map((it) => '<a class="play-card" href="' + App.esc(it.href) + '"><span class="play-ic">' + App.esc(it.icon || "▶") + '</span><span class="play-tx"><b>' +
+        App.esc(it.title) + "</b><small>" + App.esc(it.desc || "") + "</small></span></a>").join("")
+    : '<div class="blank-slot">준비 중이에요</div>';
+</script>
 </body>
 </html>
