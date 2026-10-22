@@ -231,4 +231,18 @@ window.COMICS = [
     characters: ["yena-jiruciel","yena-jiien","yeonwoo-ethan"],
     tags: [],
   },
+  {
+    id: "19",
+    title: "19",
+    artist: "하린",
+    date: "2026-10-23",
+    cover: "images/comics/19/619_1_1_82E7865C-2007-4144-8F3B-07149010819A.jpg.lgV65JH_aP.jpg",
+    pages: [
+      "images/comics/19/619_1_1_82E7865C-2007-4144-8F3B-07149010819A.jpg.lgV65JH_aP.jpg",
+      "images/comics/19/619_2_1_67FC3531-1D5D-4585-9702-96EB134D4879.jpg.3qDZT2RCLV.jpg",
+      "images/comics/19/619_3_1_88E493D7-316A-47DA-8A47-53C136EBFE7D.jpg._X1tKXhEBq.jpg",
+    ],
+    characters: ["yena-gangchun","sieun-e","sieun-f","harin-mun"],
+    tags: [],
+  },
 ];
