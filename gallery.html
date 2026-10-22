@@ -84,17 +84,19 @@
 
   function render() {
     const byQ = all.filter((it) => App.matches(it, q));
-    // 시리즈(series: true)는 "그림" 쪽으로 세요. 눌러서 열면 시리즈 뷰어(comic.html)가 열려요.
-    const isImg = (it) => it.kind === "image" || !!it.series;
-    const nI = byQ.filter(isImg).length, nC = byQ.length - nI;
-    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화 " + nC]]
+    // 칸 나누기: 그림(시리즈 포함) / 영상 / 만화
+    const cat = (it) => (App.videoOf(it) ? "video" : it.kind === "comic" && !it.series ? "comic" : "image");
+    const n = { image: 0, video: 0, comic: 0 };
+    byQ.forEach((it) => n[cat(it)]++);
+    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + n.image], ["video", "영상 " + n.video], ["comic", "만화 " + n.comic]]
       .map(([k, label]) => '<button class="chip' + (type === k ? " on" : "") + '" data-type="' + k + '">' + label + "</button>").join("");
-    shown = byQ.filter((it) => !type || (type === "image" ? isImg(it) : !isImg(it)));
+    shown = byQ.filter((it) => !type || cat(it) === type);
     imgs = shown.filter((it) => it.kind === "image");
     const terms = q.split(/\s+/).filter(Boolean);
     $("active").innerHTML = terms.map((t) => '<button class="chip" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
-    const nShownImg = shown.filter(isImg).length;
-    $("count").textContent = shown.length + "개 (그림 " + nShownImg + " · 만화 " + (shown.length - nShownImg) + ")";
+    const sn = { image: 0, video: 0, comic: 0 };
+    shown.forEach((it) => sn[cat(it)]++);
+    $("count").textContent = shown.length + "개 (그림 " + sn.image + " · 영상 " + sn.video + " · 만화 " + sn.comic + ")";
     $("grid").innerHTML = shown.length
       ? shown.map((it) => it.kind === "comic"
           ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">' + (it.series ? "시리즈 " : "만화 ") + (it.pages || []).length + "p</span></a>"
@@ -119,7 +121,7 @@
       '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
       App.tagsOf(it).map((t) => '<button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + "</button>").join("") + "</div>" +
       (chars.length ? '<h3 class="side-h">캐릭터 페이지</h3><div>' + chars.map((c) => '<a class="tag t-character" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join("") + "</div>" : "") +
-      '<p><a class="link" href="' + esc(vd ? vd.open : it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>' +
+      (vd ? "" : '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>') +
       '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";
     $("lb").hidden = false;
     document.body.style.overflow = "hidden";
