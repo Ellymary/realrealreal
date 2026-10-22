@@ -5,7 +5,11 @@
 //   마지막 질문(Q8)은 동점일 때 결과를 정하는 기준이에요.
 //   results   : 길드 id 별 결과 해설.  you = "당신은 …" 한 문단, about = "이 길드는 …" 한 문단
 window.GUILD_QUIZ = {
+  type: "guild",                       // guild: 결과가 길드 id (소속 캐릭터를 보여줘요) / ability: 결과에 name·color·match 를 직접 적어요
   title: "나는 어느 길드에 어울릴까?",
+  resultLabel: "당신에게 어울리는 길드는",
+  aboutLabel: "이 길드는",
+  charLabel: "소속 캐릭터",
   intro: "8개의 질문에 답하면 당신에게 어울리는 길드가 나와요. 너무 오래 고민하지 말고, 먼저 떠오르는 대로 골라요!",
   questions: [
     { q: "새로 열린 게이트에 투입됐어요. 가장 먼저 하는 일은?", a: [

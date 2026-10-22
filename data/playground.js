@@ -5,5 +5,6 @@
 //   href  : 들어갈 페이지 파일 (예: "guildquiz.html")
 //   icon  : (선택) 버튼에 크게 보일 이모지나 글자 하나
 window.PLAYGROUND = [
-  { title: "나는 어느 길드에 어울릴까?", desc: "심리테스트 · 8문제 · 전갈 / 비바람 / 백야", href: "guildquiz.html", icon: "🧪" },
+  { title: "나는 어느 길드에 어울릴까?", desc: "심리테스트 · 8문제 · 전갈 / 비바람 / 백야", href: "quiz.html?id=guild", icon: "🧪" },
+  { title: "내가 갖게 될 능력은?", desc: "심리테스트 · 8문제 · 6가지 능력 계열", href: "quiz.html?id=ability", icon: "✨" },
 ];
