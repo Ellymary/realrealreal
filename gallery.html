@@ -98,7 +98,7 @@
     $("grid").innerHTML = shown.length
       ? shown.map((it) => it.kind === "comic"
           ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">' + (it.series ? "시리즈 " : "만화 ") + (it.pages || []).length + "p</span></a>"
-          : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + "</button>").join("")
+          : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + (App.videoOf(it) ? '<span class="badge">▶ 영상</span>' : "") + "</button>").join("")
       : '<p class="empty">' + (all.length ? "검색 결과가 없어요." : "아직 그림/만화가 없어요. data/gallery.js, data/comics.js 에 추가해 주세요!") + "</p>";
     $("side").innerHTML = App.sidebarHTML(shown);
   }
@@ -108,7 +108,10 @@
     cur = (i + imgs.length) % imgs.length;
     const it = imgs[cur];
     const chars = (it.characters || []).map((id) => App.byId[id]).filter(Boolean);
-    $("lb-img").innerHTML = App.img(it.file, it.title);
+    const vd = App.videoOf(it);
+    $("lb-img").innerHTML = !vd ? App.img(it.file, it.title)
+      : vd.type === "drive" ? '<iframe class="lb-video" src="' + esc(vd.embed) + '" allow="autoplay; fullscreen" allowfullscreen></iframe>'
+      : '<video class="lb-video" src="' + esc(vd.src) + '" controls playsinline></video>';
     $("lb-info").innerHTML =
       "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
       '<p class="muted small">' + [App.artistsOf(it).length && "그림: " + App.artistsOf(it).join(", "), it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
@@ -116,12 +119,12 @@
       '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
       App.tagsOf(it).map((t) => '<button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + "</button>").join("") + "</div>" +
       (chars.length ? '<h3 class="side-h">캐릭터 페이지</h3><div>' + chars.map((c) => '<a class="tag t-character" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join("") + "</div>" : "") +
-      '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>' +
+      '<p><a class="link" href="' + esc(vd ? vd.open : it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>' +
       '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";
     $("lb").hidden = false;
     document.body.style.overflow = "hidden";
   }
-  function closeLb() { $("lb").hidden = true; document.body.style.overflow = ""; }
+  function closeLb() { $("lb").hidden = true; $("lb-img").innerHTML = ""; /* 영상 소리 멈추기 */ document.body.style.overflow = ""; }
 
   $("f").addEventListener("submit", (e) => { e.preventDefault(); setQ($("q").value); });
   $("types").addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) setType(b.dataset.type); });

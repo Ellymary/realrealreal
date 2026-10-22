@@ -25,6 +25,25 @@
     byId[c.id] = c;
   });
 
+  // ── 영상 ──  갤러리 항목에 video: "구글 드라이브 공유 링크" (또는 mp4 파일 경로) 를 쓰면 영상이 돼요
+  //   드라이브: 공유 → "링크가 있는 모든 사용자" 로 바꾼 뒤 링크를 붙여넣어요. 표지는 thumb 로 따로 지정하거나, 없으면 드라이브 미리보기를 써요.
+  function videoOf(it) {
+    const v = it && it.video ? String(it.video).trim() : "";
+    if (!v) return null;
+    if (/drive\.google\.com/.test(v)) {
+      const m = v.match(/\/file\/d\/([\w-]+)/) || v.match(/[?&]id=([\w-]+)/);
+      if (m) return { type: "drive", id: m[1], open: v, embed: "https://drive.google.com/file/d/" + m[1] + "/preview", thumb: "https://lh3.googleusercontent.com/d/" + m[1] + "=w480" };
+    }
+    if (/\.(mp4|webm|mov)$/i.test(v)) return { type: "file", open: v, src: v };
+    return null;
+  }
+  GALLERY.forEach((g) => {
+    const vd = videoOf(g);
+    if (!vd) return;
+    if (!g.file) g.file = "video:" + g.video;          // 다른 곳에서 그림을 구별하는 이름표
+    if (!g.thumb && vd.thumb) g.thumb = vd.thumb;
+  });
+
   // ── 그린 사람 ──
   //   artist: "시은"  /  artist: ["시은", "하린"] (공동)  /  artist: "" 또는 "없음" 또는 생략 (그린 사람 없음 → 태그도 안 생겨요)
   function artistsOf(item) {
@@ -364,7 +383,7 @@
 
   window.App = {
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
-    SITE, CHARS, GALLERY, COMICS, byId, artistsOf,
+    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf,
     esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
     GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,
