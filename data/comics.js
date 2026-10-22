@@ -257,4 +257,18 @@ window.COMICS = [
     characters: ["sieun-e","harin-mun"],
     tags: [],
   },
+  {
+    id: "17",
+    title: "17",
+    artist: "시현",
+    date: "2026-10-23",
+    cover: "images/comics/17/332_1_1_1791391092263.png.DSKyCzI4XK.png",
+    pages: [
+      "images/comics/17/332_1_1_1791391092263.png.DSKyCzI4XK.png",
+      "images/comics/17/332_2_1_1791391092424.png.oy5copATjI.png",
+      "images/comics/17/332_3_1_1791391092502.png.T19dD4X62X.png",
+    ],
+    characters: ["sihyeon-lanhwa","sihyeon-dong","harin-dobu"],
+    tags: [],
+  },
 ];
