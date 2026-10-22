@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>길드</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap" id="main"></main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc } = App;
+  const g = App.guildById(App.param("id"));
+  App.nav("characters", g ? g.name : "길드");
+  const main = document.getElementById("main");
+
+  if (!g) {
+    main.innerHTML = '<p class="empty">길드를 찾을 수 없어요. <a class="link" href="index.html">홈으로</a></p>';
+  } else {
+    const cs = App.charsOfGuild(g);
+    const pics = App.GALLERY
+      .filter((it) => (it.characters || []).some((id) => App.byId[id] && App.guildOf(App.byId[id]) === g))
+      .sort(App.byDateDesc).slice(0, 12);
+    main.innerHTML =
+      '<div class="chips" style="margin-top:22px">' +
+        App.guildList().map((x) => '<a class="chip' + (x === g ? " on" : "") + '" href="guild.html?id=' + encodeURIComponent(x.id) + '">' + esc(x.name) + "</a>").join("") +
+      "</div>" +
+      '<section class="gbanner" style="--gc:' + g.color + '"><h1>' + esc(g.name) + '</h1><div class="muted">캐릭터 ' + cs.length + "명</div>" +
+        (g.summary ? '<p class="lead">' + App.fmt(g.summary) + "</p>" : "") +
+        App.text(g.desc) +
+        (!g.summary && !g.desc ? '<p class="muted">아직 소개가 없어요. data/guilds.js 에서 채워 주세요.</p>' : "") +
+      "</section>" +
+      '<h2 class="sec-h">캐릭터 <small>' + cs.length + "</small></h2>" +
+      '<div class="cards">' + (cs.length ? cs.map((c) => App.charCard(c)).join("") : '<p class="empty">아직 이 길드 캐릭터가 없어요.</p>') + "</div>" +
+      (pics.length
+        ? '<h2 class="sec-h">이 길드 캐릭터가 나온 그림 <small>' + pics.length + '</small></h2><div class="grid">' +
+          pics.map((it) => '<a class="thumb" title="' + esc(it.title || "") + '" href="gallery.html?img=' + encodeURIComponent(it.file) + '">' + App.img(it.thumb || it.file, it.title) + "</a>").join("") + "</div>"
+        : "");
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>만화</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap" id="main"></main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc } = App;
+  const $ = (id) => document.getElementById(id);
+  const comic = App.COMICS.find((x) => x.id === App.param("id"));
+  App.nav("gallery", comic ? comic.title : "만화");
+  const main = $("main");
+
+  if (!comic) {
+    main.innerHTML = '<p class="empty">만화를 찾을 수 없어요. <a class="link" href="gallery.html?type=comic">갤러리로</a></p>';
+  } else {
+    const pages = comic.pages || [];
+    let mode = App.store.get("comicMode") === "scroll" ? "scroll" : "page";
+    let p = 0;
+    const chars = (comic.characters || []).map((id) => App.byId[id]).filter(Boolean);
+
+    main.innerHTML =
+      '<a class="back" href="gallery.html?type=comic">← 갤러리 (만화)</a>' +
+      '<div class="comic-head"><h1>' + esc(comic.title) + "</h1>" +
+      '<div class="muted small">' + [comic.artist && "그림: " + comic.artist, comic.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</div>" +
+      (comic.desc ? "<p>" + esc(comic.desc) + "</p>" : "") +
+      "<div>" + App.tagsOf(comic).map((t) => '<a class="tag t-' + t.type + '" href="gallery.html?type=comic&q=' + encodeURIComponent(t.text) + '">' + esc(t.show) + "</a>").join("") + "</div>" +
+      (chars.length ? '<div class="muted small" style="margin-top:6px">캐릭터: ' + chars.map((c) => '<a class="link" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join(", ") + "</div>" : "") +
+      "</div>" +
+      '<div class="viewer-bar"><button class="btn" data-m="page">페이지씩</button><button class="btn" data-m="scroll">세로 스크롤</button><span class="pg" id="pg"></span></div>' +
+      '<div id="view"></div>' +
+      '<div class="pager" id="pager"><button class="btn" data-d="-1">‹ 이전</button><button class="btn" data-d="1">다음 ›</button></div>';
+
+    function draw() {
+      document.querySelectorAll("[data-m]").forEach((b) => b.classList.toggle("on", b.dataset.m === mode));
+      $("pager").hidden = mode === "scroll";
+      if (!pages.length) { $("view").innerHTML = '<p class="empty">페이지가 없어요.</p>'; $("pg").textContent = ""; return; }
+      if (mode === "scroll") {
+        $("view").innerHTML = '<div class="scroll-view">' + pages.map((s, i) => App.img(s, comic.title + " " + (i + 1))).join("") + "</div>";
+        $("pg").textContent = pages.length + "페이지";
+      } else {
+        $("view").innerHTML = '<div class="page-view"><div class="stage">' + App.img(pages[p], comic.title + " " + (p + 1)) +
+          '<button class="zone zl" data-d="-1" aria-label="이전"></button><button class="zone zr" data-d="1" aria-label="다음"></button></div></div>';
+        $("pg").textContent = (p + 1) + " / " + pages.length;
+        if (pages[p + 1]) new Image().src = pages[p + 1];
+      }
+    }
+    function go(d) {
+      const n = Math.min(Math.max(p + d, 0), pages.length - 1);
+      if (n === p) return;
+      p = n; draw();
+      $("view").scrollIntoView({ block: "start" });
+    }
+    main.addEventListener("click", (e) => {
+      const m = e.target.closest("[data-m]");
+      if (m) { mode = m.dataset.m; App.store.set("comicMode", mode); draw(); return; }
+      const d = e.target.closest("[data-d]");
+      if (d) go(+d.dataset.d);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (mode !== "page") return;
+      if (e.key === "ArrowLeft") go(-1);
+      if (e.key === "ArrowRight") go(1);
+    });
+    draw();
+  }
+</script>
+</body>
+</html>

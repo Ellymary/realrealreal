@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>세계관</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <h1 class="page-title" id="title">세계관</h1>
+  <p class="muted" id="intro"></p>
+  <div class="doc">
+    <nav class="toc" id="toc"></nav>
+    <div class="doc-body" id="body"></div>
+  </div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const W = window.WORLD || { sections: [] };
+  const $ = (id) => document.getElementById(id);
+  App.nav("world", "세계관");
+  $("title").textContent = W.title || "세계관";
+  $("intro").textContent = W.intro || "";
+  $("toc").innerHTML = W.sections.map((s) => '<a href="#' + App.esc(s.id) + '">' + App.esc(s.title) + "</a>").join("");
+  $("body").innerHTML = W.sections.map((s) => '<section id="' + App.esc(s.id) + '"><h2>' + App.esc(s.title) + "</h2>" + App.text(s.body) + "</section>").join("");
+</script>
+</body>
+</html>

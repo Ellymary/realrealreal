@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>캐릭터</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap" id="main"></main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc } = App;
+  const c = App.byId[App.param("id")];
+  App.nav("characters", c ? c.label : "캐릭터");
+  const main = document.getElementById("main");
+
+  if (!c) {
+    main.innerHTML = '<p class="empty">캐릭터를 찾을 수 없어요. <a class="link" href="characters.html">목록으로</a></p>';
+  } else {
+    const pics = App.galleryOf(c.id).sort(App.byDateDesc);
+    const books = App.comicsOf(c.id);
+    const tag = encodeURIComponent(App.tagText(c.label));
+    const gd = App.guildOf(c);
+    main.innerHTML =
+      '<a class="back" href="guild.html?id=' + encodeURIComponent(gd.id) + '">← ' + esc(gd.name) + "</a>" +
+      '<div class="profile" style="--mc:' + gd.color + '">' +
+        '<div class="p-pic">' + App.avatar(c) + "</div>" +
+        '<div class="p-body">' +
+          "<h1>" + esc(c.name) + ' <a class="guild-chip" href="guild.html?id=' + encodeURIComponent(gd.id) + '">' + esc(gd.name) + '</a>' + (c.owner ? ' <span class="owner-tag">' + esc(c.owner) + "</span>" : "") + "</h1>" +
+          (c.quote ? '<blockquote class="quote"><p>' + App.text(c.quote).replace(/^<p>|<\/p>$/g, "") + "</p></blockquote>" : "") +
+          (c.summary ? '<p class="lead">' + App.fmt(c.summary) + "</p>" : (c.quote ? "" : '<p class="muted">아직 소개가 없어요. data/characters.js 에서 채워 주세요.</p>')) +
+          '<table class="info sheet">' + App.sheetRowsHTML(c) + "</table>" +
+          '<button type="button" class="btn sheet-btn" id="sheet-open">📄 캐릭터 시트</button>' +
+          (c.desc ? '<div class="desc">' + App.text(c.desc) + "</div>" : '<p class="muted">아래에 쓸 글이 아직 없어요. data/characters.js 의 desc 칸에 써 주세요.</p>') +
+          App.relationsHTML(c) +
+        "</div>" +
+      "</div>" +
+      '<h2 class="sec-h">그림 <small>' + pics.length + '</small>' + (pics.length ? '<a class="link" href="gallery.html?q=' + tag + '">갤러리에서 보기 →</a>' : "") + "</h2>" +
+      '<div class="grid">' +
+        (pics.length
+          ? pics.map((it) => '<a class="thumb" title="' + esc(it.title || "") + '" href="gallery.html?q=' + tag + "&img=" + encodeURIComponent(it.file) + '">' + App.img(it.thumb || it.file, it.title) + "</a>").join("")
+          : '<p class="empty">아직 이 캐릭터가 태그된 그림이 없어요.</p>') +
+      "</div>" +
+      (books.length
+        ? '<h2 class="sec-h">만화 <small>' + books.length + '</small></h2><div class="pgrid">' +
+          books.map((b) => '<a class="pcard" href="comic.html?id=' + encodeURIComponent(b.id) + '"><div class="cv">' + App.img(b.cover, b.title) + '</div><div class="body"><div class="nm">' + esc(b.title) + "</div></div></a>").join("") + "</div>"
+        : "");
+    document.getElementById("sheet-open").addEventListener("click", () => App.openSheet(c));
+  }
+</script>
+</body>
+</html>

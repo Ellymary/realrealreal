@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>홈</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <div class="guilds-main" id="guilds-main" style="margin-top:28px"></div>
+  <div class="guilds-sub" id="guilds-sub"></div>
+
+  <div class="quick">
+    <a href="world.html"><b>세계관</b><span>설정과 용어</span></a>
+    <a href="characters.html"><b>캐릭터</b><span id="n-chars"></span></a>
+    <a href="gallery.html"><b>갤러리</b><span id="n-gallery"></span></a>
+    <a href="playground.html"><b>놀이터</b><span>게임 · 퀴즈 · 체크리스트</span></a>
+    <a href="couple.html"><b>커플</b><span>둘만의 공간</span></a>
+  </div>
+
+  <h2 class="sec-h">최근 그림·만화 <a class="link" href="gallery.html">갤러리 전체 →</a></h2>
+  <div class="grid" id="recent"></div>
+
+  <h2 class="sec-h">멤버</h2>
+  <div class="members" id="members"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { SITE, CHARS, GALLERY, COMICS, esc } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("home");
+  $("n-chars").textContent = "캐릭터 " + CHARS.length + "명";
+  $("n-gallery").textContent = "그림 " + GALLERY.length + "장 · 만화 " + COMICS.length + "편";
+
+  // 길드: 주요 3개는 가운데에 크게, 나머지는 작게
+  const gl = App.guildList();
+  $("guilds-main").innerHTML = gl.filter((g) => g.main).map((g) => {
+    const cs = App.charsOfGuild(g);
+    return `<a class="gcard" style="--gc:${g.color}" href="guild.html?id=${encodeURIComponent(g.id)}">
+      <h2>${esc(g.name)}</h2>
+      <div class="num">캐릭터 ${cs.length}명</div>
+      <div class="sum">${App.fmt(g.summary || "")}</div>
+      <div class="names">${esc(cs.slice(0, 6).map((c) => c.label).join(" · "))}${cs.length > 6 ? " …" : ""}</div>
+    </a>`;
+  }).join("");
+  $("guilds-sub").innerHTML = gl.filter((g) => !g.main).map((g) =>
+    `<a class="gmini" style="--gc:${g.color}" href="guild.html?id=${encodeURIComponent(g.id)}"><b>${esc(g.name)}</b><span>캐릭터 ${App.charsOfGuild(g).length}명</span></a>`
+  ).join("");
+
+  $("members").innerHTML = SITE.members.map((m) => {
+    const n = CHARS.filter((c) => c.owner === m).length;
+    return `<a class="member" style="--mc:${App.color(m)}" href="characters.html?owner=${encodeURIComponent(m)}"><b>${esc(m)}</b><span>캐릭터 ${n}명</span></a>`;
+  }).join("");
+
+  const recent = App.galleryAll().slice(0, 8);
+  $("recent").innerHTML = recent.length
+    ? recent.map((it) => it.kind === "comic"
+        ? `<a class="thumb" href="comic.html?id=${encodeURIComponent(it.id)}" title="${esc(it.title || "")}">${App.img(it.thumb, it.title)}<span class="badge">만화</span></a>`
+        : `<a class="thumb" href="gallery.html?img=${encodeURIComponent(it.file)}" title="${esc(it.title || "")}">${App.img(it.thumb || it.file, it.title)}</a>`).join("")
+    : '<p class="empty">그림 올려줘</p>';
+</script>
+</body>
+</html>

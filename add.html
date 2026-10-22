@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>그림·만화 추가 도우미</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap narrow">
+  <h1 class="page-title">그림·만화 추가 도우미</h1>
+  <!-- ── GitHub 연결 (처음 한 번만) ── -->
+  <details class="gh-box" id="gh">
+    <summary><b>GitHub 연결</b> <span id="gh-state" class="muted small"></span></summary>
+    <div class="form" style="margin-top:12px">
+      <label>저장소 (아이디/저장소이름)<input id="gh-repo" placeholder="myname/hunter-world" autocomplete="off"></label>
+      <label>브랜치<input id="gh-branch" value="main" autocomplete="off"></label>
+      <label>토큰 (이 기기 브라우저에만 저장됨)<input id="gh-token" type="password" placeholder="github_pat_..." autocomplete="off"></label>
+      <div>
+        <button class="btn" id="gh-save" type="button">연결하기</button>
+        <button class="btn" id="gh-clear" type="button">연결 해제</button>
+      </div>
+      <p class="hint" id="gh-msg" style="margin:0"></p>
+    </div>
+  </details>
+
+  <div class="chips" id="mode">
+    <button class="chip on" type="button" data-mode="image">그림 (여러 장을 각각)</button>
+    <button class="chip" type="button" data-mode="comic">만화 (여러 장 = 한 편)</button>
+  </div>
+
+  <div class="form" id="main-form">
+    <div class="form" id="comic-box" hidden style="margin:0">
+      <label>만화 제목<input id="c-title"></label>
+      <label>만화 id (영어/숫자만, 다른 만화와 겹치면 안 됨)<input id="c-id" value="comic-1"></label>
+      <label>올릴 폴더<input id="c-folder" value="images/comics/comic-1/"></label>
+      <label>설명 (선택)<textarea id="c-desc" rows="2"></textarea></label>
+      <p class="hint" style="margin:0">고른 파일이 페이지가 됨. 처음엔 파일 이름 숫자 순서(1, 2, … 10)로 나열됨. 아래 "페이지 순서"에서 ↑ ↓ 로 변경 가능. 맨 위 페이지가 표지.</p>
+    </div>
+    <label>그림 파일들 (여러 장 선택 · 아래 칸에 끌어다 놓아도 됨)
+      <input id="pick" type="file" accept="image/*" multiple>
+    </label>
+    <div class="dropzone" id="drop">여기에 그림 파일을 끌어다 놓기</div>
+
+    <h2 class="sec-h" style="margin:8px 0 0">공통 설정 <small>고른 그림 전부에 적용됨</small></h2>
+    <label id="folder-wrap">올릴 폴더<input id="folder" value="images/gallery/"></label>
+    <label>그린 사람<select id="artist"></select></label>
+    <label>날짜<input id="date" type="date"></label>
+    <fieldset><legend>나온 캐릭터 (전부 같은 캐릭터일 때만 체크)</legend><div id="chars"></div></fieldset>
+    <label>공통 태그 (쉼표로 구분)<input id="tags" placeholder="단체, 일러"></label>
+  </div>
+
+  <h2 class="sec-h"><span id="rows-h">그림별 설정</span> <small id="n"></small></h2>
+  <p class="hint" id="rows-hint">제목은 파일 이름으로 자동 입력됨. 캐릭터가 그림마다 다르면 그 칸에 이름을 쉼표로 적음 (예: 루티, 바닐라). 공통 설정에 더해짐.</p>
+  <div id="rows" class="bulk-rows"></div>
+  <button class="btn" id="resort" type="button">파일 이름 순서로 다시 정렬</button>
+  <button class="btn" id="addrow" type="button">+ 파일 없이 한 줄 추가</button>
+
+  <h2 class="sec-h">올리기</h2>
+  <p class="hint" id="warn"></p>
+  <button class="btn btn-primary" id="publish" type="button">GitHub 에 바로 올리기</button>
+  <div class="pub-msg" id="pub-msg" role="status" aria-live="polite"></div>
+  <div class="pub-log" id="pub-log"></div>
+
+  <details class="gh-box" style="margin-top:22px">
+    <summary class="muted">코드로 보기 / 직접 붙여넣기 (연결 없이 쓸 때)</summary>
+    <pre class="out" id="out"></pre>
+    <button class="btn" id="copy" type="button">복사하기</button>
+    <p class="hint">복사한 코드를 GitHub 의 <b id="paste-target">data/gallery.js</b> 맨 아래 <b>];</b> 바로 위에 붙여넣고 저장해도 됨. (그림 파일은 따로 올려야 함.)</p>
+  </details>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { SITE, CHARS, esc } = App;
+  const $ = (id) => document.getElementById(id);
+  const J = (v) => JSON.stringify(v);
+  App.nav("", "그림·만화 추가 도우미");
+
+  // ───────────── 공통 설정 칸 ─────────────
+  $("artist").innerHTML = SITE.members.map((m) => "<option>" + esc(m) + "</option>").join("");
+  const groups = SITE.members.concat(CHARS.some((c) => !SITE.members.includes(c.owner)) ? ["기타"] : []);
+  $("chars").innerHTML = groups.map((m) =>
+    '<div class="own">' + esc(m) + "</div>" +
+    CHARS.filter((c) => (m === "기타" ? !SITE.members.includes(c.owner) : c.owner === m)).map((c) => '<label class="chk"><input type="checkbox" value="' + esc(c.id) + '"> ' + esc(c.label) + "</label>").join("")
+  ).join("");
+  const d = new Date();
+  $("date").value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+
+  // ───────────── 캐릭터 이름 → id (띄어쓰기·대소문자 무시) ─────────────
+  const norm = (s) => String(s).replace(/\s+/g, "").toLowerCase();
+  const nameMap = new Map();
+  CHARS.forEach((c) => {
+    [c.label, c.name, c.id].forEach((k) => {
+      const key = norm(k);
+      if (!nameMap.has(key)) nameMap.set(key, []);
+      if (!nameMap.get(key).includes(c.id)) nameMap.get(key).push(c.id);
+    });
+  });
+
+  // ───────────── 그림별 줄 ─────────────
+  let rows = []; // { name, url, file, title, chars, tags }
+  let mode = "image";
+  let lastEntries = ""; // 지금 올릴 코드 (비어 있으면 올릴 게 없음)
+  let busy = false;
+  const existingComics = new Set((window.COMICS || []).map((c) => c.id));
+  const byName = (a, b) => a.name.localeCompare(b.name, "ko", { numeric: true });
+  const stripExt = (n) => n.replace(/\.[^.\/]+$/, "");
+  const splitList = (s) => String(s).split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
+  const normFolder = (s) => s.trim().replace(/\/*$/, "/").replace(/^\/+/, "");
+
+  function addFiles(list) {
+    const known = new Set(rows.map((r) => r.name));
+    const fresh = [];
+    [...list].filter((f) => /^image\//.test(f.type) || /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(f.name)).forEach((f) => {
+      if (known.has(f.name)) return;
+      let url = "";
+      try { url = URL.createObjectURL(f); } catch (e) {}
+      fresh.push({ name: f.name, url, file: f, title: stripExt(f.name), chars: "", tags: "" });
+    });
+    fresh.sort(byName);
+    rows = rows.concat(fresh);
+    drawRows();
+  }
+
+  function drawRows() {
+    $("n").textContent = rows.length ? rows.length + "장" : "";
+    $("rows").innerHTML = rows.length
+      ? rows.map((r, i) =>
+          '<div class="bulk-row" data-i="' + i + '">' +
+            '<div class="bulk-pic">' + (r.url ? '<img src="' + esc(r.url) + '" alt="">' : "") + "</div>" +
+            '<div class="bulk-f">' +
+              (r.file
+                ? '<div class="small muted">' + esc(r.name) + "</div>"
+                : '<input data-k="name" placeholder="파일 이름 (이미 올라가 있는 파일, 예: 그림1.png)" value="' + esc(r.name) + '">') +
+              '<input data-k="title" placeholder="제목" value="' + esc(r.title) + '">' +
+              '<input data-k="chars" placeholder="이 그림의 캐릭터 (쉼표로)" value="' + esc(r.chars) + '">' +
+              '<input data-k="tags" placeholder="이 그림만의 태그 (쉼표로)" value="' + esc(r.tags) + '">' +
+            "</div>" +
+            '<div class="bulk-btns">' +
+              '<button class="btn" type="button" data-mv="-1" data-i2="' + i + '" aria-label="위로"' + (i === 0 ? " disabled" : "") + '>↑</button>' +
+              '<button class="btn" type="button" data-mv="1" data-i2="' + i + '" aria-label="아래로"' + (i === rows.length - 1 ? " disabled" : "") + '>↓</button>' +
+              '<button class="btn" type="button" data-del="' + i + '" aria-label="이 줄 지우기">✕</button>' +
+            "</div>" +
+          "</div>").join("")
+      : '<p class="empty">아직 고른 그림이 없어요.</p>';
+    build();
+  }
+
+  // 올릴 파일 목록: 실제 파일이 있는 줄만 (파일 없이 만든 줄은 이미 올라가 있다고 보고 코드에만 넣어요)
+  function uploadList() {
+    const base = normFolder(mode === "comic" ? $("c-folder").value : $("folder").value);
+    return rows.filter((r) => r.file && r.name.trim()).map((r) => ({ path: base + r.name.trim(), file: r.file }));
+  }
+
+  // ───────────── 코드 만들기 ─────────────
+  function build() {
+    const shared = [...document.querySelectorAll("#chars input:checked")].map((i) => i.value);
+    const sharedTags = splitList($("tags").value);
+    const unknown = [];
+    lastEntries = "";
+    $("paste-target").textContent = mode === "comic" ? "data/comics.js" : "data/gallery.js";
+    if (mode === "comic") {
+      const names = rows.map((r) => r.name.trim()).filter(Boolean);
+      const cf = normFolder($("c-folder").value);
+      const id = $("c-id").value.trim();
+      const w = [];
+      if (!/^[A-Za-z0-9_-]+$/.test(id)) w.push("만화 id 는 영어/숫자/-/_ 만 가능");
+      if (existingComics.has(id)) w.push("이미 있는 만화 id: " + id);
+      $("warn").textContent = w.length ? "⚠ " + w.join(" · ") : "";
+      if (!names.length) { $("out").textContent = "(만화 페이지 파일을 고르면 여기에 코드가 나옴)"; return; }
+      const lines = [
+        "  {",
+        "    id: " + J(id) + ",",
+        "    title: " + J($("c-title").value.trim()) + ",",
+        "    artist: " + J($("artist").value) + ",",
+        "    date: " + J($("date").value) + ",",
+        "    cover: " + J(cf + names[0]) + ",",
+        "    pages: [",
+      ].concat(names.map((n) => "      " + J(cf + n) + ","), ["    ],",
+        "    characters: " + J(shared) + ",",
+        "    tags: " + J(sharedTags) + ","]);
+      if ($("c-desc").value.trim()) lines.push("    desc: " + J($("c-desc").value.trim()) + ",");
+      lines.push("  },");
+      lastEntries = lines.join("\n");
+      $("out").textContent = lastEntries;
+      return;
+    }
+    const folder = normFolder($("folder").value);
+    const entries = rows.filter((r) => r.name.trim()).map((r) => {
+      const ids = shared.slice();
+      splitList(r.chars).forEach((n) => {
+        const hit = nameMap.get(norm(n));
+        if (!hit) unknown.push(n);
+        else hit.forEach((id) => { if (!ids.includes(id)) ids.push(id); });
+      });
+      const tags = sharedTags.concat(splitList(r.tags).filter((t) => !sharedTags.includes(t)));
+      return [
+        "  {",
+        "    file: " + J(folder + r.name.trim()) + ",",
+        "    title: " + J(r.title.trim()) + ",",
+        "    artist: " + J($("artist").value) + ",",
+        "    date: " + J($("date").value) + ",",
+        "    characters: " + J(ids) + ",",
+        "    tags: " + J(tags) + ",",
+        "  },",
+      ].join("\n");
+    });
+    imageCount = entries.length;
+    lastEntries = entries.join("\n");
+    $("out").textContent = entries.length ? lastEntries : "(그림을 고르면 여기에 코드가 나옴)";
+    const u = [...new Set(unknown)];
+    $("warn").textContent = u.length ? "⚠ 이름을 못 찾음 (빼고 만듦): " + u.join(", ") : "";
+  }
+  let imageCount = 0;
+
+  // ───────────── 화면 이벤트 ─────────────
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
+    $("comic-box").hidden = m !== "comic";
+    $("folder-wrap").hidden = m === "comic";
+    $("rows").classList.toggle("comic-mode", m === "comic");
+    $("rows-h").textContent = m === "comic" ? "페이지 순서" : "그림별 설정";
+    $("rows-hint").hidden = m === "comic";
+    $("addrow").textContent = m === "comic" ? "+ 파일 없이 페이지 한 줄 추가" : "+ 파일 없이 한 줄 추가";
+    build();
+  }
+  $("mode").addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (b) setMode(b.dataset.mode); });
+  $("c-id").addEventListener("input", () => { $("c-folder").value = "images/comics/" + $("c-id").value.trim() + "/"; });
+  $("pick").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => addFiles(e.dataTransfer.files));
+
+  $("rows").addEventListener("input", (e) => {
+    const row = e.target.closest("[data-i]");
+    if (row && e.target.dataset.k) { rows[+row.dataset.i][e.target.dataset.k] = e.target.value; build(); }
+  });
+  $("rows").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-del]");
+    if (b) { rows.splice(+b.dataset.del, 1); drawRows(); return; }
+    const m = e.target.closest("[data-mv]");
+    if (m) {
+      const i = +m.dataset.i2, j = i + +m.dataset.mv;
+      if (j >= 0 && j < rows.length) { [rows[i], rows[j]] = [rows[j], rows[i]]; drawRows(); }
+    }
+  });
+  $("resort").addEventListener("click", () => { rows.sort(byName); drawRows(); });
+  $("addrow").addEventListener("click", () => { rows.push({ name: "", url: "", file: null, title: "", chars: "", tags: "" }); drawRows(); });
+  $("main-form").addEventListener("input", (e) => { if (e.target.id !== "pick") build(); });
+
+  $("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("out").textContent); $("copy").textContent = "복사됨"; }
+    catch (e) { const r = document.createRange(); r.selectNodeContents($("out")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copy").textContent = "선택됨. Ctrl+C 로 복사"; }
+    setTimeout(() => ($("copy").textContent = "복사하기"), 2000);
+  });
+
+  // ───────────── GitHub 연결 ─────────────
+  const enc = (p) => String(p).split("/").map(encodeURIComponent).join("/");
+  const CFG_KEY = "gh-cfg";
+  function loadCfg() {
+    try { const c = JSON.parse(localStorage.getItem(CFG_KEY) || "null"); return c && c.repo && c.token ? c : null; } catch (e) { return null; }
+  }
+  function guessRepo() {
+    const h = location.hostname;
+    if (!/\.github\.io$/.test(h)) return "";
+    const owner = h.replace(/\.github\.io$/, "");
+    const seg = location.pathname.split("/").filter(Boolean)[0];
+    return owner + "/" + (seg && !/\.html?$/i.test(seg) ? seg : owner + ".github.io");
+  }
+  function showCfg() {
+    const c = loadCfg();
+    $("gh-state").textContent = c ? "· 연결됨 (" + c.repo + ")" : "· 아직 연결 안 됨";
+    $("gh").open = !c;
+    $("gh-repo").value = (c && c.repo) || $("gh-repo").value || guessRepo();
+    $("gh-branch").value = (c && c.branch) || $("gh-branch").value || "main";
+    $("gh-token").value = "";
+    $("gh-token").placeholder = c ? "저장돼 있음 (바꿀 때만 새로 입력)" : "github_pat_...";
+  }
+
+  function ghError(status, msg) {
+    const m = msg ? " (" + msg + ")" : "";
+    if (status === 401) return new Error("토큰이 올바르지 않거나 만료됨. 새 토큰으로 다시 연결 필요." + m);
+    if (status === 403 || status === 404) return new Error("저장소 이름, 브랜치 이름, 토큰 권한 확인 필요. (저장소 선택 + Contents 'Read and write' 인지)" + m);
+    if (status === 409 || status === 422) return new Error("저장 중에 저장소가 바뀌었거나 값이 맞지 않음. 한 번 더 누르기." + m);
+    return new Error("GitHub 오류 " + status + m);
+  }
+  // path 는 저장소 안의 경로. raw=true 면 파일 내용을 글자로 받아요.
+  async function gh(cfg, method, path, body, raw) {
+    let res;
+    try {
+      res = await fetch("https://api.github.com/repos/" + cfg.repo + (path ? "/" + path : ""), {
+        method,
+        headers: Object.assign(
+          { Authorization: "Bearer " + cfg.token, Accept: raw ? "application/vnd.github.raw+json" : "application/vnd.github+json" },
+          body ? { "Content-Type": "application/json" } : {}
+        ),
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch (e) { throw new Error("GitHub 에 연결할 수 없음. 인터넷 연결 확인."); }
+    if (!res.ok) { let m = ""; try { m = (await res.json()).message || ""; } catch (e) {} throw ghError(res.status, m); }
+    return raw ? res.text() : res.json();
+  }
+
+  $("gh-save").addEventListener("click", async () => {
+    const old = loadCfg();
+    const repo = $("gh-repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+    const branch = $("gh-branch").value.trim() || "main";
+    const token = $("gh-token").value.trim() || (old && old.token) || "";
+    const msg = $("gh-msg");
+    if (!/^[^\/\s]+\/[^\/\s]+$/.test(repo)) { msg.textContent = "⚠ 저장소는 '아이디/저장소이름' 형식으로 입력"; return; }
+    if (!token) { msg.textContent = "⚠ 토큰을 붙여넣기"; return; }
+    msg.textContent = "확인 중…";
+    try {
+      const info = await gh({ repo, token }, "GET", "");
+      if (info.permissions && info.permissions.push === false) { msg.textContent = "⚠ 이 토큰은 저장소에 쓸 권한이 없음. Contents 를 'Read and write' 로 설정 필요."; return; }
+      await gh({ repo, token }, "GET", "git/ref/heads/" + enc(branch));
+      localStorage.setItem(CFG_KEY, JSON.stringify({ repo, branch, token }));
+      msg.textContent = "✔ 연결됨";
+      showCfg();
+    } catch (e) { msg.textContent = "⚠ " + e.message; }
+  });
+  $("gh-clear").addEventListener("click", () => {
+    try { localStorage.removeItem(CFG_KEY); } catch (e) {}
+    $("gh-msg").textContent = "연결 해제됨. (이 기기에 저장된 토큰 삭제)";
+    showCfg();
+  });
+
+  // ───────────── 바로 올리기 ─────────────
+  const toB64 = (file) => new Promise((ok, no) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(",")[1] || "");
+    r.onerror = () => no(new Error("파일을 읽지 못함: " + file.name));
+    r.readAsDataURL(file);
+  });
+  const utf8b64 = (s) => btoa(encodeURIComponent(s).replace(/%([0-9A-F]{2})/g, (m, h) => String.fromCharCode(parseInt(h, 16))));
+
+  // data 파일 맨 아래 `];` 바로 앞에 새 항목을 끼워 넣어요
+  function insertEntries(text, entries) {
+    const idx = text.lastIndexOf("];");
+    if (idx < 0) throw new Error("data 파일에서 맨 아래 '];' 를 못 찾음. 파일 형식 확인 필요.");
+    let before = text.slice(0, idx).replace(/\s+$/, "");
+    const last = before.split("\n").pop();
+    if (before && !/\[$/.test(before) && !before.endsWith(",") && !last.includes("//")) before += ",";
+    return before + "\n" + entries + "\n" + text.slice(idx);
+  }
+  // 새 파일이 문법에 맞는지 미리 돌려봐요 (망가진 파일을 올리지 않도록)
+  function evalData(text, key) {
+    const w = {};
+    try { new Function("window", text)(w); } catch (e) { throw new Error("data 파일 문법 오류로 올리지 않음: " + e.message); }
+    if (!Array.isArray(w[key])) throw new Error("data 파일에서 " + key + " 목록을 찾지 못함.");
+    return w[key];
+  }
+
+  const say = (t, err) => { $("pub-msg").textContent = t; $("pub-msg").className = "pub-msg" + (err ? " err" : ""); };
+  const step = (t) => { const p = document.createElement("div"); p.textContent = t; $("pub-log").appendChild(p); };
+
+  async function publish() {
+    if (busy) return;
+    build(); // 마지막으로 입력한 값까지 반영
+    const cfg = loadCfg();
+    $("pub-log").textContent = "";
+    if (!cfg) { say("먼저 위의 'GitHub 연결'에서 토큰 연결 필요.", true); $("gh").open = true; return; }
+    if (!lastEntries) { say("올릴 그림(또는 만화 페이지)이 없음.", true); return; }
+    if (mode === "comic") {
+      const id = $("c-id").value.trim();
+      if (!/^[A-Za-z0-9_-]+$/.test(id)) { say("만화 id 는 영어/숫자/-/_ 만 가능.", true); return; }
+      if (existingComics.has(id)) { say("이미 있는 만화 id: " + id, true); return; }
+      if (!$("c-title").value.trim() && !confirm("만화 제목이 비어 있음. 그대로 올릴까?")) return;
+    }
+    const uploads = uploadList();
+    const dataPath = mode === "comic" ? "data/comics.js" : "data/gallery.js";
+    const key = mode === "comic" ? "COMICS" : "GALLERY";
+    busy = true; $("publish").disabled = true; say("올리는 중. 창 닫지 말기…");
+    try {
+      step("저장소 확인 중…");
+      const ref = await gh(cfg, "GET", "git/ref/heads/" + enc(cfg.branch));
+      const headSha = ref.object.sha;
+      const baseTree = (await gh(cfg, "GET", "git/commits/" + headSha)).tree.sha;
+
+      step("data 파일 읽는 중…");
+      const text = await gh(cfg, "GET", "contents/" + enc(dataPath) + "?ref=" + encodeURIComponent(cfg.branch), null, true);
+      const current = evalData(text, key);
+      if (mode === "comic" && current.some((c) => c && c.id === $("c-id").value.trim())) throw new Error("이미 있는 만화 id. 다른 id 로 변경 필요.");
+
+      if (uploads.length) {
+        const tr = await gh(cfg, "GET", "git/trees/" + baseTree + "?recursive=1");
+        if (!tr.truncated) {
+          const have = new Set(tr.tree.map((x) => x.path));
+          const dup = uploads.filter((u) => have.has(u.path));
+          if (dup.length && !confirm("이미 같은 이름의 파일이 " + dup.length + "개 있음 (" + dup.slice(0, 3).map((u) => u.path.split("/").pop()).join(", ") + (dup.length > 3 ? " …" : "") + "). 덮어쓸까?")) {
+            say("취소됨. 아무것도 올리지 않음.");
+            return;
+          }
+        }
+      }
+
+      const newText = insertEntries(text, lastEntries);
+      evalData(newText, key);
+
+      const items = [];
+      for (let i = 0; i < uploads.length; i++) {
+        step("파일 올리는 중 (" + (i + 1) + "/" + uploads.length + ") " + uploads[i].path.split("/").pop());
+        const b = await gh(cfg, "POST", "git/blobs", { content: await toB64(uploads[i].file), encoding: "base64" });
+        items.push({ path: uploads[i].path, mode: "100644", type: "blob", sha: b.sha });
+      }
+      const db = await gh(cfg, "POST", "git/blobs", { content: utf8b64(newText), encoding: "base64" });
+      items.push({ path: dataPath, mode: "100644", type: "blob", sha: db.sha });
+
+      step("저장하는 중…");
+      const tree = await gh(cfg, "POST", "git/trees", { base_tree: baseTree, tree: items });
+      const message = mode === "comic" ? "만화 추가: " + ($("c-title").value.trim() || $("c-id").value.trim()) : "그림 " + imageCount + "장 추가";
+      const commit = await gh(cfg, "POST", "git/commits", { message, tree: tree.sha, parents: [headSha] });
+      await gh(cfg, "PATCH", "git/refs/heads/" + enc(cfg.branch), { sha: commit.sha });
+
+      if (mode === "comic") existingComics.add($("c-id").value.trim());
+      rows = []; drawRows();
+      say("✔ 올라감. 1~2분 뒤 사이트에 반영됨. (" + message + ")");
+    } catch (e) {
+      say("⚠ " + e.message + " — 아무것도 올라가지 않음.", true);
+    } finally {
+      busy = false; $("publish").disabled = false;
+    }
+  }
+  $("publish").addEventListener("click", publish);
+
+  showCfg();
+  drawRows();
+</script>
+</body>
+</html>

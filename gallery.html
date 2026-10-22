@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>갤러리</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <h1 class="page-title">갤러리</h1>
+  <form class="searchbar" id="f">
+    <input id="q" placeholder="태그로 검색 (예: 루티 바닐라)" autocomplete="off">
+    <button>검색</button>
+  </form>
+  <div class="chips" id="types"></div>
+  <p class="hint">만화도 여기 같이 있어요 · 여러 태그는 띄어쓰기로 · 제외는 -태그 · 앞부분 검색은 태그* · 이름에 띄어쓰기가 있으면 _ 로 (공_유안). 옆 목록을 눌러도 돼요.</p>
+  <div class="active" id="active"></div>
+  <div class="browser">
+    <aside class="side" id="side"></aside>
+    <section>
+      <div class="count" id="count"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+</main>
+
+<div class="lb" id="lb" hidden>
+  <div class="lb-main" id="lb-main">
+    <button class="lb-close" id="lb-close" aria-label="닫기">✕</button>
+    <button class="lb-nav prev" id="lb-prev" aria-label="이전">‹</button>
+    <div class="lb-img" id="lb-img"></div>
+    <button class="lb-nav next" id="lb-next" aria-label="다음">›</button>
+  </div>
+  <aside class="lb-info" id="lb-info"></aside>
+</div>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("gallery", "갤러리");
+
+  const all = App.galleryAll();   // 그림 + 만화
+  let type = App.param("type") || "";   // "" | "image" | "comic"
+  let q = (App.param("q") || "").trim();
+  let shown = [];   // 지금 목록 (그림+만화)
+  let imgs = [];    // 그 중 그림만 (라이트박스용)
+  let cur = -1;
+
+  function setQ(v) {
+    q = v.trim().replace(/\s+/g, " ");
+    $("q").value = q;
+    try {
+      const u = new URL(location.href);
+      if (q) u.searchParams.set("q", q); else u.searchParams.delete("q");
+      u.searchParams.delete("img");
+      history.replaceState(null, "", u);
+    } catch (e) {}
+    render();
+  }
+  function addTerm(t) {
+    const terms = q.split(/\s+/).filter(Boolean);
+    if (!terms.includes(t)) terms.push(t);
+    setQ(terms.join(" "));
+  }
+
+  function setType(t) {
+    type = t;
+    try { const u = new URL(location.href); if (t) u.searchParams.set("type", t); else u.searchParams.delete("type"); history.replaceState(null, "", u); } catch (e) {}
+    render();
+  }
+
+  function render() {
+    const byQ = all.filter((it) => App.matches(it, q));
+    const nI = byQ.filter((it) => it.kind === "image").length, nC = byQ.length - nI;
+    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화 " + nC]]
+      .map(([k, label]) => '<button class="chip' + (type === k ? " on" : "") + '" data-type="' + k + '">' + label + "</button>").join("");
+    shown = byQ.filter((it) => !type || it.kind === type);
+    imgs = shown.filter((it) => it.kind === "image");
+    const terms = q.split(/\s+/).filter(Boolean);
+    $("active").innerHTML = terms.map((t) => '<button class="chip" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
+    $("count").textContent = shown.length + "개 (그림 " + imgs.length + " · 만화 " + (shown.length - imgs.length) + ")";
+    $("grid").innerHTML = shown.length
+      ? shown.map((it) => it.kind === "comic"
+          ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">만화 ' + (it.pages || []).length + "p</span></a>"
+          : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + "</button>").join("")
+      : '<p class="empty">' + (all.length ? "검색 결과가 없어요." : "아직 그림/만화가 없어요. data/gallery.js, data/comics.js 에 추가해 주세요!") + "</p>";
+    $("side").innerHTML = App.sidebarHTML(shown);
+  }
+
+  function openLb(i) {
+    if (!imgs.length) return;
+    cur = (i + imgs.length) % imgs.length;
+    const it = imgs[cur];
+    const chars = (it.characters || []).map((id) => App.byId[id]).filter(Boolean);
+    $("lb-img").innerHTML = App.img(it.file, it.title);
+    $("lb-info").innerHTML =
+      "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
+      '<p class="muted small">' + [it.artist && "그림: " + it.artist, it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
+      (it.desc ? "<p>" + esc(it.desc) + "</p>" : "") +
+      '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
+      App.tagsOf(it).map((t) => '<button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + "</button>").join("") + "</div>" +
+      (chars.length ? '<h3 class="side-h">캐릭터 페이지</h3><div>' + chars.map((c) => '<a class="tag t-character" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join("") + "</div>" : "") +
+      '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>' +
+      '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";
+    $("lb").hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closeLb() { $("lb").hidden = true; document.body.style.overflow = ""; }
+
+  $("f").addEventListener("submit", (e) => { e.preventDefault(); setQ($("q").value); });
+  $("types").addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) setType(b.dataset.type); });
+  $("side").addEventListener("click", (e) => { const b = e.target.closest("[data-tag]"); if (b) addTerm(b.dataset.tag); });
+  $("active").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-rm]");
+    if (b) setQ(q.split(/\s+/).filter((t) => t !== b.dataset.rm).join(" "));
+  });
+  $("grid").addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) openLb(+b.dataset.i); });
+  $("lb-info").addEventListener("click", (e) => { const b = e.target.closest("button[data-tag]"); if (b) { closeLb(); addTerm(b.dataset.tag); } });
+  $("lb-close").addEventListener("click", closeLb);
+  $("lb-main").addEventListener("click", (e) => { if (e.target === $("lb-main") || e.target === $("lb-img")) closeLb(); });
+  $("lb-prev").addEventListener("click", () => openLb(cur - 1));
+  $("lb-next").addEventListener("click", () => openLb(cur + 1));
+  document.addEventListener("keydown", (e) => {
+    if ($("lb").hidden) return;
+    if (e.key === "Escape") closeLb();
+    if (e.key === "ArrowLeft") openLb(cur - 1);
+    if (e.key === "ArrowRight") openLb(cur + 1);
+  });
+
+  $("q").value = q;
+  render();
+  const want = App.param("img");
+  if (want) { const i = imgs.findIndex((it) => it.file === want); if (i >= 0) openLb(i); }
+</script>
+</body>
+</html>

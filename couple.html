@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>커플</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <h1 class="page-title">커플</h1>
+
+  <div id="list"></div>
+
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/couples.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, byId, fmt } = App;
+  App.nav("couple", "커플");
+
+  // 표에 먼저 나오는 칸 (이 밖의 칸 이름을 써도 아래에 따로 나와요)
+  const FIELDS = ["관계", "호칭", "만난 계기", "시작", "분위기", "데이트", "키워드", "노래"];
+
+  // member: "캐릭터id"  또는  { name: "트랜스", ids: ["id1", "id2"] } (한 캐릭터의 여러 모습)
+  function norm(m) {
+    const ids = typeof m === "string" ? [m] : (m && m.ids) || [];
+    const chars = ids.map((id) => byId[id]).filter(Boolean);
+    if (!chars.length || chars.length !== ids.length) return null;
+    const first = chars[0];
+    return { chars, first, group: chars.length > 1, name: (m && m.name) || first.name };
+  }
+
+  function member(m) {
+    const gd = App.guildOf(m.first);
+    const href = "character.html?id=" + encodeURIComponent(m.first.id);
+    const fb = m.group && !m.first.image ? '<div class="avatar-fb" style="--mc:' + gd.color + '">' + esc([...m.name][0]) + "</div>" : App.avatar(m.first);
+    return '<div class="cp-who" style="--mc:' + gd.color + '">' +
+      '<a class="cp-link" href="' + href + '"><span class="cp-pic">' + fb + "</span>" +
+      '<span class="cp-nm">' + esc(m.name) + "</span></a>" +
+      '<span class="cp-sub">' + esc([m.first.owner, gd.name].filter(Boolean).join(" · ")) + "</span>" +
+      (m.group ? '<span class="cp-forms">' + m.chars.map((c) => '<a class="tag" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.name) + "</a>").join("") + "</span>" : "") +
+      "</div>";
+  }
+
+  function couple(cp) {
+    const ms = (cp.members || []).map(norm);
+    if (ms.length !== 2 || ms.includes(null)) return '<p class="empty">커플에 쓴 캐릭터 id 를 찾을 수 없어요. data/couples.js 를 확인해 주세요.</p>';
+    const [a, b] = ms;
+    const info = cp.info || {};
+    const keys = FIELDS.concat(Object.keys(info).filter((k) => !FIELDS.includes(k)));
+    const rows = keys.filter((k) => info[k]).map((k) => "<tr><th>" + esc(k) + "</th><td>" + fmt(info[k]) + "</td></tr>").join("");
+    const has = (g, m) => (g.characters || []).some((id) => m.chars.some((c) => c.id === id));
+    const pics = App.GALLERY.filter((g) => has(g, a) && has(g, b)).sort(App.byDateDesc);
+    // 갤러리 검색은 AND 라서, 여러 모습인 쪽은 빼고 한 명짜리 태그로 찾아요
+    const single = ms.filter((m) => !m.group);
+    const q = encodeURIComponent((single.length ? single : [a]).map((m) => App.tagText(m.first.label)).join(" "));
+    const empty = !cp.summary && !rows && !cp.desc;
+    return '<section class="couple">' +
+      '<div class="cp-head">' + member(a) + '<span class="cp-x" aria-label="커플">×</span>' + member(b) + "</div>" +
+      '<div class="cp-body">' +
+        (cp.summary ? '<p class="lead">' + fmt(cp.summary) + "</p>" : "") +
+        (rows ? '<table class="info sheet">' + rows + "</table>" : "") +
+        (cp.desc ? '<div class="desc">' + App.text(cp.desc) + "</div>" : "") +
+        (empty ? '<p class="muted">아직 소개가 없어요. data/couples.js 에서 채워 주세요.</p>' : "") +
+        '<h3 class="cp-pics-h">같이 있는 그림 <small>' + pics.length + "</small>" + (pics.length ? '<a class="link" href="gallery.html?q=' + q + '">갤러리에서 보기 →</a>' : "") + "</h3>" +
+        (pics.length
+          ? '<div class="grid">' + pics.map((it) => '<a class="thumb" title="' + esc(it.title || "") + '" href="gallery.html?q=' + q + "&img=" + encodeURIComponent(it.file) + '">' + App.img(it.thumb || it.file, it.title) + "</a>").join("") + "</div>"
+          : '<p class="muted small">아직 두 사람이 같이 태그된 그림이 없어요.</p>') +
+      "</div></section>";
+  }
+
+  const list = window.COUPLES || [];
+  document.getElementById("list").innerHTML = list.length ? list.map(couple).join("") : '<p class="empty">아직 등록된 커플이 없어요. data/couples.js 에서 추가해 주세요.</p>';
+</script>
+</body>
+</html>

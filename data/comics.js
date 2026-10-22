@@ -1,0 +1,173 @@
+// 만화 목록. 새 만화는 맨 아래 `];` 바로 위에 추가해요.
+//
+//   id         : 영어/숫자 고유 이름 (주소에 쓰여요)
+//   title      : 제목
+//   artist     : 그린 사람
+//   date       : 날짜 (YYYY-MM-DD)
+//   cover      : 표지 파일 경로
+//   pages      : 페이지 파일 경로 목록 (순서대로)
+//   characters : 나온 캐릭터 id 목록
+//   tags       : 자유 태그
+//   desc       : (선택) 설명
+window.COMICS = [
+  // ↓ 샘플이에요. 지워도 돼요.
+  {
+    id: "1",
+    title: "오빠모임",
+    artist: "예나",
+    date: "2026-8-20",
+    cover: "images/comics/1/KakaoTalk_20261022_020023853.png",
+    pages: [
+      "images/comics/1/KakaoTalk_20261022_020023853.png",
+      "images/comics/1/KakaoTalk_20261022_020023853_01.png",
+      "images/comics/1/KakaoTalk_20261022_020023853_02.png",
+      "images/comics/1/KakaoTalk_20261022_020023853_03.png",
+      "images/comics/1/KakaoTalk_20261022_020023853_04.png",
+    ],
+    characters: ["yena-jiruciel","yena-jiien","sieun-e","sieun-f"],
+    tags: ["단체"],
+  },
+  {
+    id: "2",
+    title: "2",
+    artist: "시은",
+    date: "2026-10-21",
+    cover: "images/comics/2/4_1_1_Notes_261021_220313_1.jpg.gPPPzYda8o.jpg",
+    pages: [
+      "images/comics/2/4_1_1_Notes_261021_220313_1.jpg.gPPPzYda8o.jpg",
+      "images/comics/2/4_2_1_Notes_261021_220313_2.jpg.bgm8fqu0tL.jpg",
+      "images/comics/2/4_3_1_Notes_261021_220313_3.jpg.kbmIJcmF0w.jpg",
+      "images/comics/2/4_4_1_Notes_261021_220313_4.jpg.gZwFiqJpK3.jpg",
+      "images/comics/2/4_5_1_Notes_261021_220313_5.jpg.znFBsdiWeY.jpg",
+      "images/comics/2/4_6_1_Notes_261021_220313_6.jpg.rU_svhXHr1.jpg",
+      "images/comics/2/4_7_1_Notes_261021_220313_7.jpg.abY1aZq2TI.jpg",
+      "images/comics/2/4_8_1_Notes_261021_220313_8.jpg.lG2xuChf65.jpg",
+      "images/comics/2/4_9_1_Notes_261021_220509.jpg.6Ea4DyBPSv.jpg",
+      "images/comics/2/4_10_1_Notes_261021_220313_10.jpg.chI8mETbOO.jpg",
+    ],
+    characters: ["yena-gangchun","sieun-f","sieun-ruti","yeonwoo-gongyuan","harin-mun"],
+    tags: ["단체"],
+  },
+  {
+    id: "3",
+    title: "3",
+    artist: "예나",
+    date: "2026-10-22",
+    cover: "images/comics/3/KakaoTalk_20261022_020800808_27.jpg",
+    pages: [
+      "images/comics/3/KakaoTalk_20261022_020800808_27.jpg",
+      "images/comics/3/KakaoTalk_20261022_020800808_26.jpg",
+      "images/comics/3/KakaoTalk_20261022_020800808_25.png",
+      "images/comics/3/KakaoTalk_20261022_020800808_24.png",
+      "images/comics/3/KakaoTalk_20261022_020800808_23.png",
+      "images/comics/3/KakaoTalk_20261022_020800808_22.png",
+      "images/comics/3/KakaoTalk_20261022_020800808_21.png",
+      "images/comics/3/KakaoTalk_20261022_020800808_20.png",
+      "images/comics/3/KakaoTalk_20261022_020800808_28.png",
+    ],
+    characters: ["yena-jangcheongil"],
+    tags: [],
+  },
+  {
+    id: "5",
+    title: "5",
+    artist: "예나",
+    date: "2026-10-22",
+    cover: "images/comics/5/KakaoTalk_20261022_020800808_15.jpg",
+    pages: [
+      "images/comics/5/KakaoTalk_20261022_020800808_15.jpg",
+      "images/comics/5/KakaoTalk_20261022_020800808_14.jpg",
+      "images/comics/5/KakaoTalk_20261022_020800808_13.jpg",
+    ],
+    characters: ["yena-jangcheongil","yena-kail"],
+    tags: [],
+  },
+  {
+    id: "4",
+    title: "4",
+    artist: "예나",
+    date: "2026-10-22",
+    cover: "images/comics/4/KakaoTalk_20261022_020800808_18.jpg",
+    pages: [
+      "images/comics/4/KakaoTalk_20261022_020800808_18.jpg",
+      "images/comics/4/KakaoTalk_20261022_020800808_17.jpg",
+      "images/comics/4/KakaoTalk_20261022_020800808_16.jpg",
+    ],
+    characters: ["yena-chi","yeonwoo-hyeon"],
+    tags: [],
+  },
+  {
+    id: "6",
+    title: "6",
+    artist: "하린",
+    date: "2026-10-22",
+    cover: "images/comics/6/636_1_1_1243_20260826194503.png.Fw69mWG6bg.jpg",
+    pages: [
+      "images/comics/6/636_1_1_1243_20260826194503.png.Fw69mWG6bg.jpg",
+      "images/comics/6/636_2_1_1243_20260826194503.png.LyPUmtuc7i.jpg",
+      "images/comics/6/636_3_1_1244_20260828220153.png.Gh20Rv2gGr.png",
+    ],
+    characters: ["yeonwoo-mir","harin-dobu","harin-baekjeomyuheuksae"],
+    tags: [],
+  },
+  {
+    id: "8",
+    title: "8",
+    artist: "예나",
+    date: "2026-10-22",
+    cover: "images/comics/8/640_1_1_1787919426955.jpg.joD4EphH3Y.jpg",
+    pages: [
+      "images/comics/8/640_1_1_1787919426955.jpg.joD4EphH3Y.jpg",
+      "images/comics/8/640_2_1_1787919430048.jpg.89nSs8m3dy.jpg",
+      "images/comics/8/640_3_1_1787919437927.jpg.cBSO-aHsD9.jpg",
+      "images/comics/8/640_4_1_1787919439468.jpg.duJCUKiMIR.jpg",
+      "images/comics/8/640_5_1_1787919440888.jpg.vc4oktzRhw.jpg",
+      "images/comics/8/640_6_1_1787919442826.jpg.qh34Q1zeN_.jpg",
+      "images/comics/8/640_7_1_1787919443957.jpg.r1zh3byix_.jpg",
+      "images/comics/8/640_8_1_1787919445832.jpg.9o-T5ex_GZ.jpg",
+      "images/comics/8/640_9_1_1787919446810.jpg.mJAyc6kN3b.jpg",
+      "images/comics/8/640_10_1_1787919447829.jpg.s_Hlc6kxzn.jpg",
+      "images/comics/8/639_1_1_1787919449500.jpg.u434ixHOrH.jpg",
+    ],
+    characters: ["yena-jiruciel","yena-jiien"],
+    tags: [],
+  },
+  {
+    id: "7",
+    title: "7",
+    artist: "연우",
+    date: "2026-10-23",
+    cover: "images/comics/7/868_1_1_1787738660941.png.DyYXGMvOFR.png",
+    pages: [
+      "images/comics/7/868_1_1_1787738660941.png.DyYXGMvOFR.png",
+    ],
+    characters: ["yena-jiien","sihyeon-lanhwa","yeonwoo-ethan"],
+    tags: [],
+  },
+  {
+    id: "10",
+    title: "10",
+    artist: "연우",
+    date: "2026-10-23",
+    cover: "images/comics/10/1081_1_1_1787471427356.png.mv3IeZwIXu.png",
+    pages: [
+      "images/comics/10/1081_1_1_1787471427356.png.mv3IeZwIXu.png",
+    ],
+    characters: ["yeonwoo-mir","harin-dobu"],
+    tags: [],
+  },
+  {
+    id: "12",
+    title: "12",
+    artist: "예나",
+    date: "2026-10-23",
+    cover: "images/comics/12/62_1_1_1792339320629.jpg.qXQvG3a1sE.jpg",
+    pages: [
+      "images/comics/12/62_1_1_1792339320629.jpg.qXQvG3a1sE.jpg",
+      "images/comics/12/62_2_1_1792339320764.jpg.y2pnn0P80a.jpg",
+      "images/comics/12/62_3_1_1792339320867.jpg.P9PNY2BUAu.jpg",
+    ],
+    characters: ["yena-jiruciel","yena-jiien"],
+    tags: [],
+  },
+];

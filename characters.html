@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>캐릭터</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <h1 class="page-title">캐릭터</h1>
+  <form class="searchbar" id="f"><input id="kw" placeholder="이름으로 찾기" autocomplete="off"></form>
+  <div class="chips" id="chips-g"></div>
+  <div class="chips" id="chips-o"></div>
+  <div id="list"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { SITE, CHARS, esc } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("characters", "캐릭터");
+  let gid = App.param("guild") || "";
+  let owner = App.param("owner") || "";
+  let kw = "";
+
+  function render() {
+    const gl = App.guildList();
+    $("chips-g").innerHTML = ['<button class="chip' + (gid ? "" : " on") + '" data-g="">길드 전체 ' + CHARS.length + "</button>"]
+      .concat(gl.map((g) => '<button class="chip' + (gid === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '">' + esc(g.name) + " " + App.charsOfGuild(g).length + "</button>"))
+      .join("");
+    $("chips-o").innerHTML = ['<button class="chip' + (owner ? "" : " on") + '" data-o="">만든 사람 전체</button>']
+      .concat(SITE.members.map((m) => '<button class="chip' + (owner === m ? " on" : "") + '" data-o="' + esc(m) + '">' + esc(m) + " " + CHARS.filter((c) => c.owner === m).length + "</button>"))
+      .join("");
+    const html = gl.filter((g) => !gid || g.id === gid).map((g) => {
+      const list = App.charsOfGuild(g).filter((c) => (!owner || c.owner === owner) && (!kw || c.name.toLowerCase().includes(kw)));
+      if (!list.length) return "";
+      return '<section class="group" style="--mc:' + g.color + '"><h2 class="group-h"><a href="guild.html?id=' + encodeURIComponent(g.id) + '">' + esc(g.name) + "</a> <small>" + list.length + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c)).join("") + "</div></section>";
+    }).join("");
+    $("list").innerHTML = html || '<p class="empty">찾는 캐릭터가 없어요.</p>';
+  }
+
+  $("chips-g").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { gid = b.dataset.g; render(); } });
+  $("chips-o").addEventListener("click", (e) => { const b = e.target.closest("[data-o]"); if (b) { owner = b.dataset.o; render(); } });
+  $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); render(); });
+  $("f").addEventListener("submit", (e) => e.preventDefault());
+  render();
+</script>
+</body>
+</html>
