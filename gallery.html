@@ -111,7 +111,7 @@
     $("lb-img").innerHTML = App.img(it.file, it.title);
     $("lb-info").innerHTML =
       "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
-      '<p class="muted small">' + [it.artist && "그림: " + it.artist, it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
+      '<p class="muted small">' + [App.artistsOf(it).length && "그림: " + App.artistsOf(it).join(", "), it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
       (it.desc ? "<p>" + esc(it.desc) + "</p>" : "") +
       '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
       App.tagsOf(it).map((t) => '<button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + "</button>").join("") + "</div>" +

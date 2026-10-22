@@ -47,7 +47,7 @@
 
     <h2 class="sec-h" style="margin:8px 0 0">공통 설정 <small>고른 그림 전부에 적용됨</small></h2>
     <label id="folder-wrap">올릴 폴더<input id="folder" value="images/gallery/"></label>
-    <label>그린 사람<select id="artist"></select></label>
+    <fieldset><legend>그린 사람 (여러 명 체크하면 공동 · 없으면 "없음")</legend><div id="artist"></div></fieldset>
     <label>날짜<input id="date" type="date"></label>
     <fieldset><legend>나온 캐릭터 (전부 같은 캐릭터일 때만 체크)</legend><div id="chars"></div></fieldset>
     <label>공통 태그 (쉼표로 구분)<input id="tags" placeholder="단체, 일러"></label>
@@ -90,7 +90,22 @@
   App.nav("", "그림·만화 추가 도우미");
 
   // ───────────── 공통 설정 칸 ─────────────
-  $("artist").innerHTML = SITE.members.map((m) => "<option>" + esc(m) + "</option>").join("");
+  $("artist").innerHTML = SITE.members.map((m) => '<label class="chk"><input type="checkbox" value="' + esc(m) + '"> ' + esc(m) + "</label>").join(" ") +
+    ' <label class="chk"><input type="checkbox" id="artist-none" value=""> 없음</label>';
+  // "없음" 을 체크하면 사람 체크는 풀리고, 사람을 체크하면 "없음" 이 풀려요
+  $("artist").addEventListener("change", (e) => {
+    const t = e.target; if (t.type !== "checkbox") return;
+    const boxes = [...document.querySelectorAll("#artist input")];
+    if (t.id === "artist-none" && t.checked) boxes.forEach((b) => { if (b !== t) b.checked = false; });
+    else if (t.checked) $("artist-none").checked = false;
+    build();
+  });
+  // 그린 사람 값: 한 명 "시은" / 공동 ["시은","하린"] / 없음 "" / 아직 안 고름 null
+  function artistVal() {
+    if ($("artist-none").checked) return "";
+    const v = [...document.querySelectorAll("#artist input:checked")].map((b) => b.value);
+    return v.length === 0 ? null : v.length === 1 ? v[0] : v;
+  }
   const groups = SITE.members.concat(CHARS.some((c) => !SITE.members.includes(c.owner)) ? ["기타"] : []);
   $("chars").innerHTML = groups.map((m) =>
     '<div class="own">' + esc(m) + "</div>" +
@@ -187,7 +202,7 @@
         "  {",
         "    id: " + J(id) + ",",
         "    title: " + J($("c-title").value.trim()) + ",",
-        "    artist: " + J($("artist").value) + ",",
+        "    artist: " + J(artistVal() == null ? "" : artistVal()) + ",",
         "    date: " + J($("date").value) + ",",
         "    cover: " + J(cf + names[0]) + ",",
         "    pages: [",
@@ -214,7 +229,7 @@
         "  {",
         "    file: " + J(folder + r.name.trim()) + ",",
         "    title: " + J(r.title.trim()) + ",",
-        "    artist: " + J($("artist").value) + ",",
+        "    artist: " + J(artistVal() == null ? "" : artistVal()) + ",",
         "    date: " + J($("date").value) + ",",
         "    characters: " + J(ids) + ",",
         "    tags: " + J(tags) + ",",
@@ -380,6 +395,7 @@
     $("pub-log").textContent = "";
     if (!cfg) { say("먼저 위의 'GitHub 연결'에서 토큰 연결 필요.", true); $("gh").open = true; return; }
     if (!lastEntries) { say("올릴 그림(또는 만화 페이지)이 없음.", true); return; }
+    if (artistVal() === null) { say("그린 사람을 골라 주세요. 없으면 '없음' 을 체크.", true); return; }
     if (isSet()) {
       const id = $("c-id").value.trim();
       if (!/^[A-Za-z0-9_-]+$/.test(id)) { say("만화 id 는 영어/숫자/-/_ 만 가능.", true); return; }

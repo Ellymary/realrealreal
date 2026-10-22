@@ -40,7 +40,7 @@
     main.innerHTML =
       '<a class="back" href="gallery.html?type=' + (comic.series ? "image" : "comic") + '">← 갤러리</a>' +
       '<div class="comic-head"><h1>' + esc(comic.title) + "</h1>" +
-      '<div class="muted small">' + [comic.artist && "그림: " + comic.artist, comic.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</div>" +
+      '<div class="muted small">' + [App.artistsOf(comic).length && "그림: " + App.artistsOf(comic).join(", "), comic.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</div>" +
       (comic.desc ? "<p>" + esc(comic.desc) + "</p>" : "") +
       "<div>" + App.tagsOf(comic).map((t) => '<a class="tag t-' + t.type + '" href="gallery.html?type=comic&q=' + encodeURIComponent(t.text) + '">' + esc(t.show) + "</a>").join("") + "</div>" +
       (chars.length ? '<div class="muted small" style="margin-top:6px">캐릭터: ' + chars.map((c) => '<a class="link" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join(", ") + "</div>" : "") +

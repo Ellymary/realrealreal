@@ -25,6 +25,13 @@
     byId[c.id] = c;
   });
 
+  // ── 그린 사람 ──
+  //   artist: "시은"  /  artist: ["시은", "하린"] (공동)  /  artist: "" 또는 "없음" 또는 생략 (그린 사람 없음 → 태그도 안 생겨요)
+  function artistsOf(item) {
+    const a = item && item.artist;
+    return (Array.isArray(a) ? a : [a]).map((x) => String(x == null ? "" : x).trim()).filter((x) => x && x !== "없음");
+  }
+
   // ── 태그 ──
   function tagsOf(item) {
     const out = [];
@@ -32,7 +39,7 @@
       const c = byId[id];
       if (c) out.push({ type: "character", text: tagText(c.label), alias: tagText(c.name), show: c.label });
     });
-    if (item.artist) out.push({ type: "artist", text: "작가:" + tagText(item.artist), show: item.artist });
+    artistsOf(item).forEach((a) => out.push({ type: "artist", text: "작가:" + tagText(a), show: a }));
     (item.tags || []).forEach((t) => out.push({ type: "general", text: tagText(t), show: t }));
     return out;
   }
@@ -168,7 +175,7 @@
 
   const galleryOf = (id) => GALLERY.filter((g) => (g.characters || []).includes(id));
   const comicsOf = (id) => COMICS.filter((c) => (c.characters || []).includes(id));
-  // 갤러리 = 그림 + 만화 (kind: "image" | "comic")
+  // 갤러리 = 그림 + 만화/시리즈 (kind: "image" | "comic").  시리즈는 comics.js 에 series: true 로 적은 것
   const galleryAll = () =>
     GALLERY.map((g) => Object.assign({ kind: "image" }, g))
       .concat(COMICS.map((c) => Object.assign({ kind: "comic", file: "comic:" + c.id, thumb: c.cover || (c.pages || [])[0] }, c)))
@@ -357,7 +364,7 @@
 
   window.App = {
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
-    SITE, CHARS, GALLERY, COMICS, byId,
+    SITE, CHARS, GALLERY, COMICS, byId, artistsOf,
     esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
     GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,
