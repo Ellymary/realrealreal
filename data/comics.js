@@ -340,4 +340,19 @@ window.COMICS = [
     tags: ["R-18","낙서"],
     series: true,
   },
+  {
+    id: "dfd0ff0",
+    title: "길드 관계표",
+    artist: "",
+    date: "2026-10-23",
+    cover: "images/comics/dfd0ff0/56_20261019005120.webp",
+    pages: [
+      "images/comics/dfd0ff0/56_20261019005120.webp",
+      "images/comics/dfd0ff0/57_20261019003218.webp",
+      "images/comics/dfd0ff0/58_20261019003226.webp",
+    ],
+    characters: [],
+    tags: [],
+    series: true,
+  },
 ];
