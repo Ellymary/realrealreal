@@ -326,4 +326,18 @@ window.COMICS = [
     characters: ["yena-chi","sihyeon-trans-f"],
     tags: [],
   },
+  {
+    id: "ppp",
+    title: "바닐라 야짤",
+    artist: "시은",
+    date: "2026-10-23",
+    cover: "images/comics/ppp/노트_261022_232325_0.png",
+    pages: [
+      "images/comics/ppp/노트_261022_232325_0.png",
+      "images/comics/ppp/KakaoTalk_20261022_232445841.png",
+    ],
+    characters: ["sieun-vanilla"],
+    tags: ["R-18","낙서"],
+    series: true,
+  },
 ];
