@@ -186,4 +186,16 @@ window.COMICS = [
     characters: ["sieun-macao","sihyeon-lanhwa","sihyeon-dong"],
     tags: [],
   },
+  {
+    id: "22",
+    title: "22",
+    artist: "시은",
+    date: "2026-10-23",
+    cover: "images/comics/22/1112_1_1_12_20260823013828.png.Yx76WzUat5.png",
+    pages: [
+      "images/comics/22/1112_1_1_12_20260823013828.png.Yx76WzUat5.png",
+    ],
+    characters: ["yena-gangchun","sieun-e","sieun-f"],
+    tags: [],
+  },
 ];
