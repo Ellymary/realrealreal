@@ -84,14 +84,17 @@
 
   function render() {
     const byQ = all.filter((it) => App.matches(it, q));
-    const nI = byQ.filter((it) => it.kind === "image").length, nC = byQ.length - nI;
-    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화·시리즈 " + nC]]
+    // 시리즈(series: true)는 "그림" 쪽으로 세요. 눌러서 열면 시리즈 뷰어(comic.html)가 열려요.
+    const isImg = (it) => it.kind === "image" || !!it.series;
+    const nI = byQ.filter(isImg).length, nC = byQ.length - nI;
+    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화 " + nC]]
       .map(([k, label]) => '<button class="chip' + (type === k ? " on" : "") + '" data-type="' + k + '">' + label + "</button>").join("");
-    shown = byQ.filter((it) => !type || it.kind === type);
+    shown = byQ.filter((it) => !type || (type === "image" ? isImg(it) : !isImg(it)));
     imgs = shown.filter((it) => it.kind === "image");
     const terms = q.split(/\s+/).filter(Boolean);
     $("active").innerHTML = terms.map((t) => '<button class="chip" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
-    $("count").textContent = shown.length + "개 (그림 " + imgs.length + " · 만화/시리즈 " + (shown.length - imgs.length) + ")";
+    const nShownImg = shown.filter(isImg).length;
+    $("count").textContent = shown.length + "개 (그림 " + nShownImg + " · 만화 " + (shown.length - nShownImg) + ")";
     $("grid").innerHTML = shown.length
       ? shown.map((it) => it.kind === "comic"
           ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">' + (it.series ? "시리즈 " : "만화 ") + (it.pages || []).length + "p</span></a>"
