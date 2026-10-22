@@ -198,4 +198,18 @@ window.COMICS = [
     characters: ["yena-gangchun","sieun-e","sieun-f"],
     tags: [],
   },
+  {
+    id: "21",
+    title: "21",
+    artist: "예나",
+    date: "2026-10-23",
+    cover: "images/comics/21/1102_1_1_3344_20260823021303.png.5FfjMnvfwj.png",
+    pages: [
+      "images/comics/21/1102_1_1_3344_20260823021303.png.5FfjMnvfwj.png",
+      "images/comics/21/1102_2_1_3344_20260823022136.png.VsZlpSNbEi.png",
+      "images/comics/21/1102_3_1_3344_20260823022512.png.-ImzTLaVbt.png",
+    ],
+    characters: ["sihyeon-lanhwa","harin-dobu"],
+    tags: [],
+  },
 ];
