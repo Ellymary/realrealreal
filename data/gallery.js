@@ -36,4 +36,12 @@ window.GALLERY = [
     characters: ["harin-mun"],
     tags: ["샘플", "낙서"],
   },
+  {
+    video: "https://drive.google.com/file/d/1t1CWLUdpn565XtwCvGmh0NJQF1uzCXV-/view?usp=drive_link",
+    title: "11",
+    artist: "예나",
+    date: "2026-10-23",
+    characters: ["sieun-vanilla"],
+    tags: [],
+  },
 ];
