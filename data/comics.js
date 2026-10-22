@@ -212,4 +212,23 @@ window.COMICS = [
     characters: ["sihyeon-lanhwa","harin-dobu"],
     tags: [],
   },
+  {
+    id: "20",
+    title: "20",
+    artist: "예나",
+    date: "2026-10-23",
+    cover: "images/comics/20/1086_1_1_3346_20260823024818.png.9b40CxfsJE.png",
+    pages: [
+      "images/comics/20/1086_1_1_3346_20260823024818.png.9b40CxfsJE.png",
+      "images/comics/20/1086_2_1_3346_20260823024958.png.SkWAu6pVSJ.png",
+      "images/comics/20/1086_3_1_3346_20260823025246.png.7n1kXNLMn3.png",
+      "images/comics/20/1086_4_1_3346_20260823025350.png.ivlWGGQoTA.png",
+      "images/comics/20/1086_5_1_3346_20260823030002.png.J7sdIP0gcd.png",
+      "images/comics/20/1086_6_1_3346_20260823033854.png.eu306xq-We.png",
+      "images/comics/20/1086_7_1_3346_20260823032436.png.jyLMKsI1IN.png",
+      "images/comics/20/1086_8_1_3346_20260823032725.png.ALSws7psC6.png",
+    ],
+    characters: ["yena-jiruciel","yena-jiien","yeonwoo-ethan"],
+    tags: [],
+  },
 ];
