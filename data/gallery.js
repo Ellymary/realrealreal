@@ -60,4 +60,12 @@ window.GALLERY = [
     characters: ["yena-jangcheongil","yena-karia"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1lcr7Zac3ATuXhd1IPfrXZeMxa_TsTTj6/view?usp=drive_link",
+    title: "85858",
+    artist: "하린",
+    date: "2026-10-24",
+    characters: ["yena-jiien","sihyeon-lanhwa","sihyeon-dong","harin-dobu","harin-mun"],
+    tags: [],
+  },
 ];
