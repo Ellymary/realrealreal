@@ -298,8 +298,13 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
 
   window.App = {
+<<<<<<< HEAD
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, sheetText, openSheet, closeSheet,
     SITE, CHARS, GALLERY, COMICS, byId,
+=======
+    SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
+    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
+>>>>>>> parent of 07db66b (오류 패치)
     esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
     GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,
