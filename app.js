@@ -110,11 +110,28 @@
   // ── 이미지 ──
   // 파일 이름에 한글/띄어쓰기가 있어도 돼요. 주소를 깨뜨리는 글자(% # ?)만 안전하게 바꿔요.
   const fileUrl = (p) => String(p == null ? "" : p).replace(/[%#?]/g, (c) => encodeURIComponent(c));
+  // 갤러리 그림(images/gallery/a번호.확장자)은 확장자가 달라도 찾아봐요: png → webp → jpg → jpeg → gif 순서로 다시 시도
+  const EXTS = ["png", "webp", "jpg", "jpeg", "gif"];
+  function imgFail(el) {
+    const m = /^(images\/gallery\/a\d+)\.(\w+)$/i.exec(el.getAttribute("data-src") || el.getAttribute("src") || "");
+    if (m) {
+      if (!el.dataset.src) el.dataset.src = m[0];
+      const tried = (el.dataset.tried || m[2].toLowerCase()).split(",");
+      const next = EXTS.find((x) => !tried.includes(x));
+      if (next) {
+        tried.push(next);
+        el.dataset.tried = tried.join(",");
+        el.src = fileUrl(m[1] + "." + next);
+        return;
+      }
+    }
+    el.outerHTML = el.dataset.miss;
+  }
   function img(src, alt, cls) {
     const miss = '<div class="img-miss">이미지를 찾을 수 없어요<br><small>' + esc(src || "") + "</small></div>";
     if (!src) return miss;
-    return '<img ' + (cls ? 'class="' + cls + '" ' : "") + 'src="' + esc(fileUrl(src)) + '" alt="' + esc(alt || "") +
-      '" loading="lazy" onerror="this.outerHTML=this.dataset.miss" data-miss="' + esc(miss) + '">';
+    return '<img ' + (cls ? 'class="' + cls + '" ' : "") + 'src="' + esc(fileUrl(src)) + '" data-src="' + esc(src) + '" alt="' + esc(alt || "") +
+      '" loading="lazy" onerror="App.imgFail(this)" data-miss="' + esc(miss) + '">';
   }
   function avatar(c) {
     const fb = '<div class="avatar-fb" style="--mc:' + guildOf(c).color + '">' + esc([...c.name][0]) + "</div>";
@@ -469,7 +486,7 @@
   window.App = {
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
     SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
-    esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
+    esc, param, store, tagText, imgFail, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
     GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,
   };

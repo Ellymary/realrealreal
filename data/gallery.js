@@ -91,7 +91,7 @@ window.GALLERY = [
     tags: ["이모티콘"],
   },
   {
-    file: "images/gallery/a226.png",
+    file: "images/gallery/a226.webp",
     title: "226",
     artist: "시현",
     date: "2026-10-24",
@@ -99,7 +99,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a227.png",
+    file: "images/gallery/a227.webp",
     title: "227",
     artist: "시현",
     date: "2026-10-24",
@@ -107,7 +107,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a257.png",
+    file: "images/gallery/a257.webp",
     title: "257",
     artist: "시은",
     date: "2026-10-24",
@@ -123,7 +123,7 @@ window.GALLERY = [
     tags: ["이모티콘"],
   },
   {
-    file: "images/gallery/a252.png",
+    file: "images/gallery/a252.webp",
     title: "252",
     artist: "시은",
     date: "2026-10-24",
@@ -131,7 +131,7 @@ window.GALLERY = [
     tags: ["낙서"],
   },
   {
-    file: "images/gallery/a189.png",
+    file: "images/gallery/a189.webp",
     title: "189",
     artist: "시현",
     date: "2026-10-24",
@@ -139,7 +139,7 @@ window.GALLERY = [
     tags: ["이메레스"],
   },
   {
-    file: "images/gallery/a122.png",
+    file: "images/gallery/a122.webp",
     title: "122",
     artist: "시은, 예나, 연우",
     date: "2026-10-24",
@@ -147,7 +147,7 @@ window.GALLERY = [
     tags: ["트레"],
   },
   {
-    file: "images/gallery/a81.png",
+    file: "images/gallery/a81.webp",
     title: "81",
     artist: "연우",
     date: "2026-10-24",
@@ -155,7 +155,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a80.png",
+    file: "images/gallery/a80.webp",
     title: "80",
     artist: "예나",
     date: "2026-10-24",
@@ -163,7 +163,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a63.png",
+    file: "images/gallery/a63.webp",
     title: "63",
     artist: "시은",
     date: "2026-10-24",
@@ -171,7 +171,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a49.png",
+    file: "images/gallery/a49.webp",
     title: "49",
     artist: "하린",
     date: "2026-10-24",
@@ -179,7 +179,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a47.png",
+    file: "images/gallery/a47.webp",
     title: "47",
     artist: "하린",
     date: "2026-10-24",
@@ -355,7 +355,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a118.png",
+    file: "images/gallery/a118.webp",
     title: "118",
     artist: "예나",
     date: "2026-10-24",
@@ -379,7 +379,7 @@ window.GALLERY = [
     tags: ["낙서"],
   },
   {
-    file: "images/gallery/a219.png",
+    file: "images/gallery/a219.webp",
     title: "219",
     artist: "시은",
     date: "2026-10-24",
@@ -387,7 +387,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a217.png",
+    file: "images/gallery/a217.webp",
     title: "217",
     artist: "시현",
     date: "2026-10-24",
@@ -395,7 +395,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a215.png",
+    file: "images/gallery/a215.webp",
     title: "215",
     artist: "하린",
     date: "2026-10-24",
@@ -403,7 +403,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a250.png",
+    file: "images/gallery/a250.webp",
     title: "250",
     artist: "연우",
     date: "2026-10-24",
@@ -411,7 +411,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a213.png",
+    file: "images/gallery/a213.webp",
     title: "213",
     artist: "",
     date: "2026-10-24",
@@ -419,7 +419,7 @@ window.GALLERY = [
     tags: ["제타"],
   },
   {
-    file: "images/gallery/a202.png",
+    file: "images/gallery/a202.webp",
     title: "202",
     artist: "하린",
     date: "2026-10-24",
@@ -427,7 +427,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a201.png",
+    file: "images/gallery/a201.webp",
     title: "201",
     artist: "시은",
     date: "2026-10-24",
@@ -435,7 +435,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a231.gif",
+    file: "images/gallery/a231.webp",
     title: "231",
     artist: "예나",
     date: "2026-10-24",
@@ -443,7 +443,7 @@ window.GALLERY = [
     tags: ["gif"],
   },
   {
-    file: "images/gallery/a10.png",
+    file: "images/gallery/a10.webp",
     title: "10",
     artist: "시은",
     date: "2026-10-24",
@@ -451,7 +451,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a11.png",
+    file: "images/gallery/a11.webp",
     title: "11",
     artist: "시은",
     date: "2026-10-24",
@@ -459,7 +459,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a12.png",
+    file: "images/gallery/a12.webp",
     title: "12",
     artist: "시은",
     date: "2026-10-24",
@@ -467,7 +467,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a13.png",
+    file: "images/gallery/a13.webp",
     title: "13",
     artist: "하린",
     date: "2026-10-24",
@@ -475,7 +475,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a28.png",
+    file: "images/gallery/a28.webp",
     title: "28",
     artist: "하린",
     date: "2026-10-24",
@@ -483,7 +483,7 @@ window.GALLERY = [
     tags: ["프로필"],
   },
   {
-    file: "images/gallery/a29.png",
+    file: "images/gallery/a29.webp",
     title: "29",
     artist: "시은",
     date: "2026-10-24",
@@ -491,7 +491,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a42.png",
+    file: "images/gallery/a42.webp",
     title: "42",
     artist: "시은",
     date: "2026-10-24",
@@ -499,7 +499,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a43.png",
+    file: "images/gallery/a43.webp",
     title: "43",
     artist: "시은",
     date: "2026-10-24",
@@ -507,7 +507,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a44.png",
+    file: "images/gallery/a44.webp",
     title: "44",
     artist: "시은",
     date: "2026-10-24",
@@ -515,7 +515,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a45.png",
+    file: "images/gallery/a45.webp",
     title: "45",
     artist: "시은",
     date: "2026-10-24",
@@ -523,7 +523,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a46.png",
+    file: "images/gallery/a46.webp",
     title: "46",
     artist: "시은",
     date: "2026-10-24",
@@ -531,7 +531,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a53.png",
+    file: "images/gallery/a53.webp",
     title: "53",
     artist: "하린",
     date: "2026-10-24",
@@ -539,7 +539,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a65.png",
+    file: "images/gallery/a65.webp",
     title: "65",
     artist: "시은",
     date: "2026-10-24",
@@ -547,7 +547,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a66.png",
+    file: "images/gallery/a66.webp",
     title: "66",
     artist: "시은",
     date: "2026-10-24",
@@ -555,7 +555,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a73.png",
+    file: "images/gallery/a73.webp",
     title: "73",
     artist: "하린",
     date: "2026-10-24",
@@ -563,7 +563,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a76.png",
+    file: "images/gallery/a76.webp",
     title: "76",
     artist: "시은",
     date: "2026-10-24",
@@ -571,7 +571,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a115.png",
+    file: "images/gallery/a115.webp",
     title: "115",
     artist: "시은",
     date: "2026-10-24",
@@ -579,7 +579,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a131.png",
+    file: "images/gallery/a131.webp",
     title: "131",
     artist: "하린",
     date: "2026-10-24",
@@ -587,7 +587,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a132.png",
+    file: "images/gallery/a132.webp",
     title: "132",
     artist: "하린",
     date: "2026-10-24",
@@ -595,7 +595,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a169.png",
+    file: "images/gallery/a169.webp",
     title: "169",
     artist: "시은",
     date: "2026-10-24",
@@ -603,7 +603,7 @@ window.GALLERY = [
     tags: [],
   },
   {
-    file: "images/gallery/a170.png",
+    file: "images/gallery/a170.webp",
     title: "170",
     artist: "시은",
     date: "2026-10-24",
