@@ -788,5 +788,55 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: ["sihyeon-trans-f", "sihyeon-trans-m"], rel: "경계", dir: ">", color: "파랑" },
       { who: "yeonwoo-muk", dir: ">", color: "파랑" }
     ]
+  },
+
+  // ── 주인 미정 (owner 를 알려주면 적어 넣어요) ──
+  {
+    id: "hwawol",
+    name: "화월",
+    owner: "",
+    guild: "제우스 밤의 울음",
+    image: "",
+    summary: "",
+    info: { "소속(겸임)": "헌터관리국" },
+    desc: "",
+    sheet: "",
+    relations: []
+  },
+  {
+    id: "andrei",
+    name: "안드레이",
+    owner: "",
+    guild: "제우스 밤의 울음",
+    image: "",
+    summary: "",
+    info: {},
+    desc: "",
+    sheet: "",
+    relations: []
+  },
+  {
+    id: "hoyeon",
+    name: "호연",
+    owner: "",
+    guild: "제우스 밤의 울음",
+    image: "",
+    summary: "",
+    info: {},
+    desc: "",
+    sheet: "",
+    relations: []
+  },
+  {
+    id: "rimina",
+    name: "리민아",
+    owner: "",
+    guild: "",
+    image: "",
+    summary: "",
+    info: { "성별": "여성", "나이": "25", "능력": "세계의 시선 집중 (타인의 관심을 특정 사물로 옮길 수 있음. 2초 정도. 쿨타임 3분.)", "등급": "C" },
+    desc: "",
+    sheet: "",
+    relations: []
   }
 ];
