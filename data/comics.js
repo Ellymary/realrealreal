@@ -765,4 +765,19 @@ window.COMICS = [
     tags: [],
     series: true,
   },
+  {
+    id: "ojojjojjo",
+    title: "ioio",
+    artist: "시은",
+    date: "2026-10-25",
+    cover: "images/comics/ojojjojjo/KakaoTalk_20261025_042618332_03.jpg",
+    pages: [
+      "images/comics/ojojjojjo/KakaoTalk_20261025_042618332_03.jpg",
+      "images/comics/ojojjojjo/KakaoTalk_20261025_042618332_01.jpg",
+      "images/comics/ojojjojjo/KakaoTalk_20261025_042618332_02.jpg",
+    ],
+    characters: ["hoyeon"],
+    tags: ["프로필"],
+    series: true,
+  },
 ];
