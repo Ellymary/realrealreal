@@ -6,6 +6,12 @@
 <title>갤러리</title>
 <link rel="stylesheet" href="style.css">
 <script src="theme.js"></script>
+<style>
+  .pager { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 20px 0 6px; }
+  .pager .chip { min-width: 36px; text-align: center; padding: 4px 10px; cursor: pointer; }
+  .pager .chip[disabled] { opacity: .4; cursor: default; }
+  .pager .gap { align-self: center; color: var(--muted); }
+</style>
 </head>
 <body>
 <header class="site-header" id="site-header"></header>
@@ -23,6 +29,7 @@
     <section>
       <div class="count" id="count"></div>
       <div class="grid" id="grid"></div>
+      <nav class="pager" id="pager" aria-label="페이지"></nav>
     </section>
   </div>
 </main>
@@ -58,12 +65,16 @@
   let shown = [];   // 지금 목록 (그림+만화)
   let imgs = [];    // 그 중 그림만 (라이트박스용)
   let cur = -1;
+  const PER = 48;   // 한 페이지에 보여줄 개수 (바꾸고 싶으면 이 숫자만!)
+  let page = Math.max(1, parseInt(App.param("page"), 10) || 1);
 
   function setQ(v) {
     q = v.trim().replace(/\s+/g, " ");
     $("q").value = q;
+    page = 1;
     try {
       const u = new URL(location.href);
+      u.searchParams.delete("page");
       if (q) u.searchParams.set("q", q); else u.searchParams.delete("q");
       u.searchParams.delete("img");
       history.replaceState(null, "", u);
@@ -80,8 +91,29 @@
 
   function setType(t) {
     type = t;
-    try { const u = new URL(location.href); if (t) u.searchParams.set("type", t); else u.searchParams.delete("type"); history.replaceState(null, "", u); } catch (e) {}
+    page = 1;
+    try { const u = new URL(location.href); u.searchParams.delete("page"); if (t) u.searchParams.set("type", t); else u.searchParams.delete("type"); history.replaceState(null, "", u); } catch (e) {}
     render();
+  }
+
+  function setPage(p, scroll) {
+    page = p;
+    try { const u = new URL(location.href); if (p > 1) u.searchParams.set("page", p); else u.searchParams.delete("page"); history.replaceState(null, "", u); } catch (e) {}
+    render();
+    if (scroll) document.querySelector(".browser").scrollIntoView({ block: "start" });
+  }
+  // 1 … 4 5 [6] 7 8 … 20 처럼 현재 페이지 주변만 보여줘요
+  function pagerHTML(pages) {
+    if (pages <= 1) return "";
+    const nums = [];
+    for (let i = 1; i <= pages; i++) if (i === 1 || i === pages || Math.abs(i - page) <= 2) nums.push(i);
+    const btn = (label, p, on, dis) => '<button type="button" class="chip' + (on ? " on" : "") + '"' + (dis ? " disabled" : ' data-page="' + p + '"') + ">" + label + "</button>";
+    let html = btn("‹ 이전", page - 1, false, page <= 1);
+    nums.forEach((n, i) => {
+      if (i && n - nums[i - 1] > 1) html += '<span class="gap">…</span>';
+      html += btn(n, n, n === page, false);
+    });
+    return html + btn("다음 ›", page + 1, false, page >= pages);
   }
 
   function render() {
@@ -99,10 +131,15 @@
     const sn = { image: 0, video: 0, comic: 0 };
     shown.forEach((it) => sn[cat(it)]++);
     $("count").textContent = shown.length + "개 (그림 " + sn.image + " · 영상 " + sn.video + " · 만화 " + sn.comic + ")";
+    const pages = Math.max(1, Math.ceil(shown.length / PER));
+    if (page > pages) page = pages;
+    const imgIdx = new Map(imgs.map((it, i) => [it, i]));
+    const slice = shown.slice((page - 1) * PER, page * PER);
+    $("pager").innerHTML = pagerHTML(pages);
     $("grid").innerHTML = shown.length
-      ? shown.map((it) => it.kind === "comic"
+      ? slice.map((it) => it.kind === "comic"
           ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">' + (it.series ? "시리즈 " : "만화 ") + (it.pages || []).length + "p</span></a>"
-          : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + (App.videoOf(it) ? '<span class="badge">▶ 영상</span>' : "") + "</button>").join("")
+          : '<button class="thumb" data-i="' + imgIdx.get(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + (App.videoOf(it) ? '<span class="badge">▶ 영상</span>' : "") + "</button>").join("")
       : '<p class="empty">' + (all.length ? "검색 결과가 없어요." : "아직 그림/만화가 없어요. data/gallery.js, data/comics.js 에 추가해 주세요!") + "</p>";
     $("side").innerHTML = App.sidebarHTML(shown);
   }
@@ -140,6 +177,7 @@
     const b = e.target.closest("[data-rm]");
     if (b) setQ(q.split(/\s+/).filter((t) => t !== b.dataset.rm).join(" "));
   });
+  $("pager").addEventListener("click", (e) => { const b = e.target.closest("[data-page]"); if (b) setPage(+b.dataset.page, true); });
   $("grid").addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) openLb(+b.dataset.i); });
   $("lb-info").addEventListener("click", (e) => {
     const x = e.target.closest("button[data-ex]"); if (x) { closeLb(); addTerm("-" + x.dataset.ex); return; }
@@ -159,7 +197,14 @@
   $("q").value = q;
   render();
   const want = App.param("img");
-  if (want) { const i = imgs.findIndex((it) => it.file === want); if (i >= 0) openLb(i); }
+  if (want) {
+    const i = imgs.findIndex((it) => it.file === want);
+    if (i >= 0) {
+      const p = Math.floor(shown.indexOf(imgs[i]) / PER) + 1;
+      if (p !== page) { page = p; render(); }
+      openLb(i);
+    }
+  }
 </script>
 </body>
 </html>

@@ -45,10 +45,10 @@
   });
 
   // ── 그린 사람 ──
-  //   artist: "시은"  /  artist: ["시은", "하린"] (공동)  /  artist: "" 또는 "없음" 또는 생략 (그린 사람 없음 → 태그도 안 생겨요)
+  //   artist: "시은"  /  artist: ["시은", "하린"] 또는 "시은, 하린" (공동)  /  artist: "" 또는 "없음" 또는 생략 (그린 사람 없음 → 태그도 안 생겨요)
   function artistsOf(item) {
     const a = item && item.artist;
-    return (Array.isArray(a) ? a : [a]).map((x) => String(x == null ? "" : x).trim()).filter((x) => x && x !== "없음");
+    return (Array.isArray(a) ? a : [a]).flatMap((x) => String(x == null ? "" : x).split(/\s*[,，、\/·]\s*/)).map((x) => x.trim()).filter((x) => x && x !== "없음");
   }
 
   // ── 태그 ──
@@ -101,7 +101,7 @@
         if (!list.length) return "";
         return (
           '<h3 class="side-h">' + title + "</h3>" +
-          list.map((t) => '<div class="tag-line"><button class="tag-row t-' + type + '" data-tag="' + esc(t.text) + '"><span>' + esc(t.show) + '</span><span class="n">' + t.n + '</span></button><button class="tag-ex" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></div>').join("")
+          list.map((t) => '<div class="tag-line"><button class="tag-row t-' + type + '" data-tag="' + esc(t.text) + '"><span>' + esc(t.show) + '</span></button><button class="tag-ex" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></div>').join("")
         );
       })
       .join("");

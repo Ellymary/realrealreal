@@ -405,7 +405,7 @@ window.COMICS = [
   {
     id: "a121",
     title: "121 외 4장",
-    artist: "예나, 시현, 하린, 연우, 시은",
+    artist: ["예나", "시현", "하린", "연우", "시은"],
     date: "2026-10-24",
     cover: "images/gallery/a121.webp",
     pages: [
@@ -496,7 +496,7 @@ window.COMICS = [
   {
     id: "a25",
     title: "23~26",
-    artist: "하린, 시현, 시은, 예나",
+    artist: ["하린", "시현", "시은", "예나"],
     date: "2026-10-24",
     cover: "images/gallery/a25.webp",
     pages: [
@@ -512,7 +512,7 @@ window.COMICS = [
   {
     id: "a18",
     title: "18 외 3장",
-    artist: "하린, 시현, 시은, 예나",
+    artist: ["하린", "시현", "시은", "예나"],
     date: "2026-10-24",
     cover: "images/gallery/a18.webp",
     pages: [
@@ -528,7 +528,7 @@ window.COMICS = [
   {
     id: "a14",
     title: "14~17",
-    artist: "하린, 시현, 시은, 예나",
+    artist: ["하린", "시현", "시은", "예나"],
     date: "2026-10-24",
     cover: "images/gallery/a14.webp",
     pages: [
@@ -544,7 +544,7 @@ window.COMICS = [
   {
     id: "a230",
     title: "230 외 6장",
-    artist: "시현, 예나, 하린, 연우, 시은",
+    artist: ["시현", "예나", "하린", "연우", "시은"],
     date: "2026-10-24",
     cover: "images/gallery/a230.png",
     pages: [
@@ -563,7 +563,7 @@ window.COMICS = [
   {
     id: "a150",
     title: "150 외 4장",
-    artist: "시현, 예나, 하린, 연우, 시은",
+    artist: ["시현", "예나", "하린", "연우", "시은"],
     date: "2026-10-24",
     cover: "images/gallery/a150.png",
     pages: [
@@ -580,7 +580,7 @@ window.COMICS = [
   {
     id: "a181",
     title: "181~185",
-    artist: "시현, 예나, 하린, 연우, 시은",
+    artist: ["시현", "예나", "하린", "연우", "시은"],
     date: "2026-10-24",
     cover: "images/gallery/a181.png",
     pages: [
@@ -614,7 +614,7 @@ window.COMICS = [
   {
     id: "a88",
     title: "88 외 4장",
-    artist: "예나, 연우, 시은, 시현",
+    artist: ["예나", "연우", "시은", "시현"],
     date: "2026-10-24",
     cover: "images/gallery/a88.png",
     pages: [
@@ -647,7 +647,7 @@ window.COMICS = [
   {
     id: "a36",
     title: "30~41",
-    artist: "시은, 예나",
+    artist: ["시은", "예나"],
     date: "2026-10-24",
     cover: "images/gallery/a36.webp",
     pages: [
@@ -671,7 +671,7 @@ window.COMICS = [
   {
     id: "a113",
     title: "113 외 5장",
-    artist: "시은, 시현, 연우, 예나",
+    artist: ["시은", "시현", "연우", "예나"],
     date: "2026-10-24",
     cover: "images/gallery/a113.webp",
     pages: [

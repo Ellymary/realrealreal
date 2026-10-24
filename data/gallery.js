@@ -141,7 +141,7 @@ window.GALLERY = [
   {
     file: "images/gallery/a122.webp",
     title: "122",
-    artist: "시은, 예나, 연우",
+    artist: ["시은", "예나", "연우"],
     date: "2026-10-24",
     characters: ["yeonwoo-ethan"],
     tags: ["트레"],
