@@ -202,11 +202,10 @@
   const guildById = (id) => guildList().find((g) => g.id === id);
 
   function charCard(c, note) {
-    const n = galleryOf(c.id).length;
     return '<a class="card" style="--mc:' + guildOf(c).color + '" href="character.html?id=' + encodeURIComponent(c.id) + '">' +
       '<div class="pic">' + avatar(c) + "</div>" +
       '<div class="body"><div class="nm">' + esc(c.name) + '</div><div class="sub">' + fmt(c.summary || "") + "</div>" +
-      '<div class="cnt">' + esc([c.owner, n ? "그림 " + n : ""].filter(Boolean).join(" · ")) + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + (note.html || esc(note)) : "") + "</div></div></a>";
+      '<div class="cnt">' + esc(c.owner || "") + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + (note.html || esc(note)) : "") + "</div></div></a>";
   }
 
   const galleryOf = (id) => GALLERY.filter((g) => (g.characters || []).includes(id));
