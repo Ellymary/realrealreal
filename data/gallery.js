@@ -47,7 +47,7 @@ window.GALLERY = [
     title: "6767676",
     artist: "예나",
     date: "2026-10-24",
-    characters: ["yena-kail"],
+    characters: ["yena-kail","yena-gangchun","yena-jiruciel","sihyeon-dong","yeonwoo-hyeonrang","sieun-e"],
     tags: [],
   },
   {
