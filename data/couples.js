@@ -10,7 +10,8 @@
 // 두 캐릭터가 같이 태그된 그림은 자동으로 이 커플 밑에 나와요. (갤러리에서 두 캐릭터를 같이 태그하면 돼요)
 window.COUPLES = [
   { members: ["yena-gangchun", "sieun-e"],            summary: "", info: {}, desc: "" },
-  { members: ["yeonwoo-gongyuan", { name: "트랜스", ids: ["sihyeon-trans-f", "sihyeon-trans-m"] }], summary: "", info: {}, desc: "" },
+  { members: ["yeonwoo-gongyuan", "sihyeon-trans-m"], summary: "", info: {}, desc: "" },
+  { members: ["yeonwoo-gongyuan", "sihyeon-trans-f"], summary: "", info: {}, desc: "" },
   { members: ["harin-mun", "harin-dobu"],             summary: "", info: {}, desc: "" },
 ];
 
