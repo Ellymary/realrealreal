@@ -12,7 +12,7 @@
   .pager .chip[disabled] { opacity: .4; cursor: default; }
   .count-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .count-row .chip { padding: 2px 10px; font-size: 13px; cursor: pointer; }
-  .nums-off .num, .nums-off .tag-row .n, .nums-off #count { display: none; }
+  .nums-off .tag-row .n { display: none; }
   .pager .gap { align-self: center; color: var(--muted); }
 </style>
 </head>
@@ -197,12 +197,12 @@
     if (e.key === "ArrowRight") openLb(cur + 1);
   });
 
-  // 숫자 숨기기/표시: 기본은 숨김, 고른 상태는 기억해요
+  // 사이드바 태그 옆 숫자 숨기기/표시: 기본은 숨김, 고른 상태는 기억해요
   let numsOn = false;
   try { numsOn = localStorage.getItem("gallery-nums") === "1"; } catch (e) {}
   function paintNums() {
     document.body.classList.toggle("nums-off", !numsOn);
-    $("num-toggle").textContent = numsOn ? "숫자 숨기기" : "숫자 표시";
+    $("num-toggle").textContent = numsOn ? "태그 숫자 숨기기" : "태그 숫자 표시";
   }
   $("num-toggle").addEventListener("click", () => {
     numsOn = !numsOn;
