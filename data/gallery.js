@@ -858,4 +858,12 @@ window.GALLERY = [
     characters: ["sieun-vanilla"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_042618332_06.png",
+    title: "KakaoTalk_20261025_042618332_06",
+    artist: "예나",
+    date: "2026-10-25",
+    characters: ["andrei","hoyeon","rimina"],
+    tags: [],
+  },
 ];
