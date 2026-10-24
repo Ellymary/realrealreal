@@ -874,4 +874,12 @@ window.GALLERY = [
     characters: ["andrei","hoyeon","rimina"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_042618332_05.png",
+    title: "KakaoTalk_20261025_042618332_05",
+    artist: "연우",
+    date: "2026-10-25",
+    characters: ["hwawol"],
+    tags: ["프로필"],
+  },
 ];
