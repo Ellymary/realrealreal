@@ -789,11 +789,11 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     ]
   },
 
-  // ── 주인 미정 (owner 를 알려주면 적어 넣어요) ──
+  // ── 새 캐릭터 ──
   {
     id: "hwawol",
     name: "화월",
-    owner: "",
+    owner: "연우",
     guild: "헌터관리국",
     image: "",
     summary: "",
@@ -805,7 +805,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
   {
     id: "andrei",
     name: "안드레이",
-    owner: "",
+    owner: "예나",
     guild: "제우스 밤의 울음",
     image: "",
     summary: "",
@@ -817,7 +817,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
   {
     id: "hoyeon",
     name: "호연",
-    owner: "",
+    owner: "시은",
     guild: "제우스 밤의 울음",
     image: "",
     summary: "",
@@ -829,7 +829,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
   {
     id: "rimina",
     name: "리민아",
-    owner: "",
+    owner: "시현",
     guild: "제우스 밤의 울음",
     image: "",
     summary: "",
