@@ -890,4 +890,12 @@ window.GALLERY = [
     characters: ["andrei"],
     tags: ["프로필"],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_042618332.png",
+    title: "KakaoTalk_20261025_042618332",
+    artist: "시현",
+    date: "2026-10-25",
+    characters: ["rimina"],
+    tags: ["프로필"],
+  },
 ];
