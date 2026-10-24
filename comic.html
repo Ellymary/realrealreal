@@ -26,7 +26,6 @@
   const $ = (id) => document.getElementById(id);
   const comic = App.COMICS.find((x) => x.id === App.param("id"));
   App.nav("gallery", comic ? comic.title : "만화");
-  if (comic && comic.series) document.title = comic.title;
   const main = $("main");
 
   if (!comic) {
@@ -38,37 +37,16 @@
     const chars = (comic.characters || []).map((id) => App.byId[id]).filter(Boolean);
 
     main.innerHTML =
-      '<a class="back" href="gallery.html?type=' + (comic.series ? "image" : "comic") + '">← 갤러리</a>' +
+      '<a class="back" href="gallery.html?type=comic">← 갤러리 (만화)</a>' +
       '<div class="comic-head"><h1>' + esc(comic.title) + "</h1>" +
-      '<div class="muted small">' + [App.artistsOf(comic).length && "그림: " + App.artistsOf(comic).join(", "), comic.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</div>" +
+      '<div class="muted small">' + [comic.artist && "그림: " + comic.artist, comic.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</div>" +
       (comic.desc ? "<p>" + esc(comic.desc) + "</p>" : "") +
       "<div>" + App.tagsOf(comic).map((t) => '<a class="tag t-' + t.type + '" href="gallery.html?type=comic&q=' + encodeURIComponent(t.text) + '">' + esc(t.show) + "</a>").join("") + "</div>" +
       (chars.length ? '<div class="muted small" style="margin-top:6px">캐릭터: ' + chars.map((c) => '<a class="link" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join(", ") + "</div>" : "") +
       "</div>" +
       '<div class="viewer-bar"><button class="btn" data-m="page">페이지씩</button><button class="btn" data-m="scroll">세로 스크롤</button><span class="pg" id="pg"></span></div>' +
       '<div id="view"></div>' +
-      '<div class="pager" id="pager"><button class="btn" data-d="-1">‹ 이전</button><button class="btn" data-d="1">다음 ›</button></div>' +
-      '<div id="more"></div>';
-
-    // ── 아래쪽: 다른 만화/시리즈로 넘어가기 ──
-    const list = App.COMICS.slice().sort(App.byDateDesc);
-    const at = list.findIndex((x) => x.id === comic.id);
-    const newer = at > 0 ? list[at - 1] : null;          // 목록에서 바로 위(더 최근) 작품
-    const older = at >= 0 && at < list.length - 1 ? list[at + 1] : null;   // 바로 아래(더 오래된) 작품
-    const label = (x) => (x.series ? "시리즈" : "만화");
-    const card = (x) => '<a class="thumb" href="comic.html?id=' + encodeURIComponent(x.id) + '" title="' + esc(x.title || "") + '">' +
-      App.img(x.cover || (x.pages || [])[0], x.title) + '<span class="badge">' + label(x) + " " + (x.pages || []).length + "p</span></a>";
-    const others = list.filter((x) => x.id !== comic.id);
-    if (others.length) {
-      $("more").innerHTML =
-        '<div class="pager more-nav">' +
-        (older ? '<a class="btn" href="comic.html?id=' + encodeURIComponent(older.id) + '">‹ 이전 작품: ' + esc(older.title || older.id) + "</a>" : "") +
-        (newer ? '<a class="btn" href="comic.html?id=' + encodeURIComponent(newer.id) + '">다음 작품: ' + esc(newer.title || newer.id) + " ›</a>" : "") +
-        "</div>" +
-        '<h3 class="side-h" style="margin-top:22px">다른 만화 · 그림 시리즈</h3>' +
-        '<div class="grid">' + others.slice(0, 12).map(card).join("") + "</div>" +
-        '<p><a class="link" href="gallery.html?type=' + (comic.series ? "image" : "comic") + '">전체 보기 →</a></p>';
-    }
+      '<div class="pager" id="pager"><button class="btn" data-d="-1">‹ 이전</button><button class="btn" data-d="1">다음 ›</button></div>';
 
     function draw() {
       document.querySelectorAll("[data-m]").forEach((b) => b.classList.toggle("on", b.dataset.m === mode));

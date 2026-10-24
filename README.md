@@ -13,9 +13,9 @@ guild.html        길드 상세 (주소: guild.html?id=길드id)
 gallery.html      갤러리 (그림 + 만화 통합, 태그 검색)
 comic.html        만화 뷰어 (갤러리에서 들어와요)
 playground.html   놀이터 (게임/퀴즈/체크리스트 넣을 빈 페이지)
-couple.html       커플 (data/couples.js 로 채워요)
+couple.html       커플 (빈 페이지)
 add.html          그림 추가 코드 만들어주는 도우미
-data/             ← 내용은 전부 여기! (site / guilds / characters / couples / gallery / comics / world / music)
+data/             ← 내용은 전부 여기! (site / guilds / characters / gallery / comics / world / music)
 theme.js          다크/라이트 모드
 player.js         음악 플레이어
 images/           ← 그림 파일
@@ -49,15 +49,6 @@ style.css, app.js 디자인 / 공통 기능 (보통 안 건드려도 돼요)
 - `눈 색` / `머리색` 은 `"#c8d2ff"` 또는 `"rgb(200,210,255)"` 로 쓰면 색 네모 + RGB 값이 나와요
 - `desc` 는 표 **아래** 글이에요
 - 표 아래 **📄 캐릭터 시트** 버튼을 누르면 팝업이 떠요. 팝업에는 캐릭터 줄의 `sheet` 칸에 직접 적은 글(챗봇용 시트)이 그대로 나오고, `시트 복사` 로 통째로 복사할 수 있어요. 비워 두면 "아직 비어 있음"으로 나와요
-
-**관계**: 캐릭터 줄의 `relations` 칸에 써요. 캐릭터 페이지 맨 아래 "관계" 칸에 나오고, **상대는 왼쪽 · 이 캐릭터는 오른쪽** 사이에 화살표가 그려져요.
-- 한 명당 한 줄: `{ who: "sieun-e", rel: "연인", dir: "<>", color: "빨강", main: true, text: "설명" }`
-- `who` = 상대 캐릭터 id (누르면 그 캐릭터 페이지로 가요) 또는 그냥 이름 (같은 관계인 사람이 여러 명이면 `who: ["id1", "id2"]` 처럼 대괄호로 묶어요) / `rel` = 화살표 위 작은 글씨 / `text` = 아래 설명
-- `dir` = 화살표 방향. `"<>"` 서로 (상대 ↔ 이 캐릭터) · `"<"` 이 캐릭터가 상대를 (상대 ← 이 캐릭터, 예: 일방적 혐오) · `">"` 상대가 이 캐릭터를 (상대 → 이 캐릭터). 안 쓰면 `"<>"`
-- `color` = `빨강` `주황` `초록` `파랑` `검정` (또는 `#ff00aa`). 안 쓰면 회색
-- `main: true` = 주요 관계 (이름·설명 굵게 + ★). 설명 안에서 일부만 굵게 하려면 `[굵게:글자]`
-
-**커플**: `data/couples.js` 에서 `members` 에 두 캐릭터 id 를 쓰면 `couple.html` 에 나와요. `summary`(한 줄) · `info`(표: 관계/호칭/만난 계기/시작/분위기/데이트/키워드/노래) · `desc`(글). 갤러리에서 두 캐릭터를 같이 태그한 그림은 자동으로 나와요.
 
 **길드**: 길드 소개는 `data/guilds.js` 에, 캐릭터의 소속은 `data/characters.js` 의 `guild` 칸에 써요. 비워두면 "소속 미정" 으로 나와요.
 

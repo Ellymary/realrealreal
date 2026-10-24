@@ -15,7 +15,6 @@
 <script src="data/site.js"></script>
 <script src="data/guilds.js"></script>
 <script src="data/characters.js"></script>
-<script src="data/order.js"></script>
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
 <script src="data/world.js"></script>
@@ -45,22 +44,11 @@
         (!g.summary && !g.desc ? '<p class="muted">아직 소개가 없어요. data/guilds.js 에서 채워 주세요.</p>' : "") +
       "</section>" +
       '<h2 class="sec-h">캐릭터 <small>' + cs.length + "</small></h2>" +
-      (cs.length > 1 ? '<div class="chips" id="g-sort"></div>' : "") +
-      '<div class="cards" id="g-cards"></div>' +
+      '<div class="cards">' + (cs.length ? cs.map((c) => App.charCard(c)).join("") : '<p class="empty">아직 이 길드 캐릭터가 없어요.</p>') + "</div>" +
       (pics.length
         ? '<h2 class="sec-h">이 길드 캐릭터가 나온 그림 <small>' + pics.length + '</small></h2><div class="grid">' +
           pics.map((it) => '<a class="thumb" title="' + esc(it.title || "") + '" href="gallery.html?img=' + encodeURIComponent(it.file) + '">' + App.img(it.thumb || it.file, it.title) + "</a>").join("") + "</div>"
         : "");
-    // 캐릭터 정렬 (기본 / 등급 높은순 / 등급 낮은순)
-    let gsort = App.param("sort") || "";
-    const drawCards = () => {
-      document.getElementById("g-cards").innerHTML = cs.length ? App.sortChars(cs, gsort).map((c) => App.charCard(c, App.noteFor(gsort, c))).join("") : '<p class="empty">아직 이 길드 캐릭터가 없어요.</p>';
-      const bar = document.getElementById("g-sort");
-      if (bar) bar.innerHTML = App.SORTS.map((o) => '<button class="chip' + (gsort === o.id ? " on" : "") + '" data-s="' + esc(o.id) + '">' + (o.id ? "정렬: " : "") + esc(o.label) + (o.note ? ' <small class="muted">' + esc(o.note) + "</small>" : "") + "</button>").join("");
-    };
-    drawCards();
-    const bar = document.getElementById("g-sort");
-    if (bar) bar.addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b) { gsort = b.dataset.s; drawCards(); } });
   }
 </script>
 </body>

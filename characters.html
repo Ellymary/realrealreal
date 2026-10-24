@@ -14,7 +14,6 @@
   <form class="searchbar" id="f"><input id="kw" placeholder="이름으로 찾기" autocomplete="off"></form>
   <div class="chips" id="chips-g"></div>
   <div class="chips" id="chips-o"></div>
-  <div class="chips" id="chips-s"></div>
   <div id="list"></div>
 </main>
 <footer class="site-footer" id="site-footer"></footer>
@@ -22,7 +21,6 @@
 <script src="data/site.js"></script>
 <script src="data/guilds.js"></script>
 <script src="data/characters.js"></script>
-<script src="data/order.js"></script>
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
 <script src="data/world.js"></script>
@@ -35,7 +33,6 @@
   App.nav("characters", "캐릭터");
   let gid = App.param("guild") || "";
   let owner = App.param("owner") || "";
-  let sort = App.param("sort") || "";   // "" | "grade" | "grade-asc"
   let kw = "";
 
   function render() {
@@ -46,34 +43,16 @@
     $("chips-o").innerHTML = ['<button class="chip' + (owner ? "" : " on") + '" data-o="">만든 사람 전체</button>']
       .concat(SITE.members.map((m) => '<button class="chip' + (owner === m ? " on" : "") + '" data-o="' + esc(m) + '">' + esc(m) + " " + CHARS.filter((c) => c.owner === m).length + "</button>"))
       .join("");
-    $("chips-s").innerHTML = App.SORTS.map((o) => '<button class="chip' + (sort === o.id ? " on" : "") + '" data-s="' + esc(o.id) + '">' + (o.id ? "정렬: " : "") + esc(o.label) + (o.note ? ' <small class="muted">' + esc(o.note) + "</small>" : "") + "</button>").join("");
-    const match = (c) => (!owner || c.owner === owner) && (!kw || c.name.toLowerCase().includes(kw));
-    const noteOf = (c) => App.noteFor(sort, c);
-    let html;
-    if (sort) {
-      // 정렬 중에는 한 줄로 쭉: 전체 / 고른 길드 / 고른 만든 사람 기준으로 등급 정렬
-      const gsel = gid ? gl.find((g) => g.id === gid) : null;
-      const list = App.sortChars(CHARS.filter((c) => (!gsel || App.guildOf(c) === gsel) && match(c)), sort);
-      const title = [gsel ? gsel.name : "전체", owner].filter(Boolean).join(" · ") + " (" + App.SORTS.find((o) => o.id === sort).label + ")";
-      html = list.length ? '<section class="group"><h2 class="group-h">' + esc(title) + " <small>" + list.length + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c, noteOf(c))).join("") + "</div></section>" : "";
-    } else {
-      html = gl.filter((g) => !gid || g.id === gid).map((g) => {
-        const list = App.charsOfGuild(g).filter(match);
-        if (!list.length) return "";
-        return '<section class="group" style="--mc:' + g.color + '"><h2 class="group-h"><a href="guild.html?id=' + encodeURIComponent(g.id) + '">' + esc(g.name) + "</a> <small>" + list.length + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c)).join("") + "</div></section>";
-      }).join("");
-    }
+    const html = gl.filter((g) => !gid || g.id === gid).map((g) => {
+      const list = App.charsOfGuild(g).filter((c) => (!owner || c.owner === owner) && (!kw || c.name.toLowerCase().includes(kw)));
+      if (!list.length) return "";
+      return '<section class="group" style="--mc:' + g.color + '"><h2 class="group-h"><a href="guild.html?id=' + encodeURIComponent(g.id) + '">' + esc(g.name) + "</a> <small>" + list.length + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c)).join("") + "</div></section>";
+    }).join("");
     $("list").innerHTML = html || '<p class="empty">찾는 캐릭터가 없어요.</p>';
   }
 
   $("chips-g").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { gid = b.dataset.g; render(); } });
   $("chips-o").addEventListener("click", (e) => { const b = e.target.closest("[data-o]"); if (b) { owner = b.dataset.o; render(); } });
-  $("chips-s").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-s]"); if (!b) return;
-    sort = b.dataset.s;
-    try { const u = new URL(location.href); if (sort) u.searchParams.set("sort", sort); else u.searchParams.delete("sort"); history.replaceState(null, "", u); } catch (e2) {}
-    render();
-  });
   $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); render(); });
   $("f").addEventListener("submit", (e) => e.preventDefault());
   render();
