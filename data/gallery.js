@@ -882,4 +882,12 @@ window.GALLERY = [
     characters: ["hwawol"],
     tags: ["프로필"],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_042618332_04.png",
+    title: "KakaoTalk_20261025_042618332_04",
+    artist: "예나",
+    date: "2026-10-25",
+    characters: ["andrei"],
+    tags: ["프로필"],
+  },
 ];
