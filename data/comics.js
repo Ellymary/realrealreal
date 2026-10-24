@@ -748,4 +748,21 @@ window.COMICS = [
     characters: ["yena-gangchun","sieun-f","sihyeon-trans-f","yeonwoo-gongyuan","harin-mun"],
     tags: [],
   },
+  {
+    id: "jijij",
+    title: "jij",
+    artist: "연우",
+    date: "2026-10-24",
+    cover: "images/comics/jijij/KakaoTalk_20261024_232813692_01.png",
+    pages: [
+      "images/comics/jijij/KakaoTalk_20261024_232813692_01.png",
+      "images/comics/jijij/KakaoTalk_20261024_232813692_02.png",
+      "images/comics/jijij/KakaoTalk_20261024_232813692_03.png",
+      "images/comics/jijij/KakaoTalk_20261024_232813692_04.png",
+      "images/comics/jijij/KakaoTalk_20261024_232813692.png",
+    ],
+    characters: ["yena-chi","sieun-mina","sihyeon-trans-m","yeonwoo-ethan","harin-yangyu"],
+    tags: [],
+    series: true,
+  },
 ];
