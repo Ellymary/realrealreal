@@ -703,7 +703,7 @@ window.GALLERY = [
     title: "68",
     artist: "시은",
     date: "2026-10-24",
-    characters: ["sieun-e"],
+    characters: ["harin-baekjeomyuheuksae"],
     tags: ["이모티콘"],
   },
   {
