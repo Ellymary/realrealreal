@@ -70,7 +70,7 @@
     ? recent.map((it) => it.kind === "comic"
         ? `<a class="thumb" href="comic.html?id=${encodeURIComponent(it.id)}" title="${esc(it.title || "")}">${App.img(it.thumb, it.title)}<span class="badge">만화</span></a>`
         : `<a class="thumb" href="gallery.html?img=${encodeURIComponent(it.file)}" title="${esc(it.title || "")}">${App.img(it.thumb || it.file, it.title)}</a>`).join("")
-    : '<p class="empty">아직 그림이 없어요.</p>';
+    : '<p class="empty">그림 올려줘</p>';
 </script>
 </body>
 </html>

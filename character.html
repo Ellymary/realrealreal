@@ -40,10 +40,12 @@
         '<div class="p-pic">' + App.avatar(c) + "</div>" +
         '<div class="p-body">' +
           "<h1>" + esc(c.name) + ' <a class="guild-chip" href="guild.html?id=' + encodeURIComponent(gd.id) + '">' + esc(gd.name) + '</a>' + (c.owner ? ' <span class="owner-tag">' + esc(c.owner) + "</span>" : "") + "</h1>" +
-          (c.summary ? '<p class="lead">' + App.fmt(c.summary) + "</p>" : '<p class="muted">아직 소개가 없어요. data/characters.js 에서 채워 주세요.</p>') +
+          (c.quote ? '<blockquote class="quote"><p>' + App.text(c.quote).replace(/^<p>|<\/p>$/g, "") + "</p></blockquote>" : "") +
+          (c.summary ? '<p class="lead">' + App.fmt(c.summary) + "</p>" : (c.quote ? "" : '<p class="muted">아직 소개가 없어요. data/characters.js 에서 채워 주세요.</p>')) +
           '<table class="info sheet">' + App.sheetRowsHTML(c) + "</table>" +
           '<button type="button" class="btn sheet-btn" id="sheet-open">📄 캐릭터 시트</button>' +
           (c.desc ? '<div class="desc">' + App.text(c.desc) + "</div>" : '<p class="muted">아래에 쓸 글이 아직 없어요. data/characters.js 의 desc 칸에 써 주세요.</p>') +
+          App.relationsHTML(c) +
         "</div>" +
       "</div>" +
       '<h2 class="sec-h">그림 <small>' + pics.length + '</small>' + (pics.length ? '<a class="link" href="gallery.html?q=' + tag + '">갤러리에서 보기 →</a>' : "") + "</h2>" +

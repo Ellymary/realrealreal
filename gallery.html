@@ -16,7 +16,7 @@
     <button>검색</button>
   </form>
   <div class="chips" id="types"></div>
-  <p class="hint">만화도 여기 같이 있어요 · 여러 태그는 띄어쓰기로 · 제외는 -태그 · 앞부분 검색은 태그* · 이름에 띄어쓰기가 있으면 _ 로 (공_유안). 옆 목록을 눌러도 돼요.</p>
+  <p class="hint">만화도 여기 같이 있어요 · 여러 태그는 띄어쓰기로 · 제외는 -태그 (태그 옆 − 버튼으로도 돼요) · 앞부분 검색은 태그* · 이름에 띄어쓰기가 있으면 _ 로 (공_유안). 옆 목록을 눌러도 돼요.</p>
   <div class="active" id="active"></div>
   <div class="browser">
     <aside class="side" id="side"></aside>
@@ -71,27 +71,11 @@
     render();
   }
   function addTerm(t) {
-    const terms = q.split(/\s+/).filter(Boolean);
+    // 같은 태그의 반대 조건(포함 ↔ 제외)은 빼고 넣어요
+    const opp = t[0] === "-" ? t.slice(1) : "-" + t;
+    const terms = q.split(/\s+/).filter(Boolean).filter((x) => x !== opp);
     if (!terms.includes(t)) terms.push(t);
     setQ(terms.join(" "));
-  }
-  // 옆 목록: 누르면 선택, 한 번 더 누르면 해제 (여러 개 선택 가능)
-  function toggleTerm(t) {
-    const terms = q.split(/\s+/).filter(Boolean);
-    const i = terms.indexOf(t);
-    if (i >= 0) terms.splice(i, 1); else terms.push(t);
-    setQ(terms.join(" "));
-  }
-  // 태그 옆 수량 표시/숨기기 (기본은 숨김, 고른 상태는 브라우저가 기억)
-  let showN = false;
-  try { showN = localStorage.getItem("gal-n") === "1"; } catch (e) {}
-  function applySide() {
-    const side = $("side");
-    side.classList.toggle("hide-n", !showN);
-    const tb = $("n-toggle");
-    if (tb) tb.textContent = "수량 " + (showN ? "숨기기" : "표시");
-    const terms = q.split(/\s+/).filter(Boolean);
-    side.querySelectorAll("[data-tag]").forEach((b) => b.classList.toggle("on", terms.includes(b.dataset.tag)));
   }
 
   function setType(t) {
@@ -102,21 +86,25 @@
 
   function render() {
     const byQ = all.filter((it) => App.matches(it, q));
-    const nI = byQ.filter((it) => it.kind === "image").length, nC = byQ.length - nI;
-    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + nI], ["comic", "만화 " + nC]]
+    // 칸 나누기: 그림(시리즈 포함) / 영상 / 만화
+    const cat = (it) => (App.videoOf(it) ? "video" : it.kind === "comic" && !it.series ? "comic" : "image");
+    const n = { image: 0, video: 0, comic: 0 };
+    byQ.forEach((it) => n[cat(it)]++);
+    $("types").innerHTML = [["", "전체 " + byQ.length], ["image", "그림 " + n.image], ["video", "영상 " + n.video], ["comic", "만화 " + n.comic]]
       .map(([k, label]) => '<button class="chip' + (type === k ? " on" : "") + '" data-type="' + k + '">' + label + "</button>").join("");
-    shown = byQ.filter((it) => !type || it.kind === type);
+    shown = byQ.filter((it) => !type || cat(it) === type);
     imgs = shown.filter((it) => it.kind === "image");
     const terms = q.split(/\s+/).filter(Boolean);
-    $("active").innerHTML = terms.map((t) => '<button class="chip" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
-    $("count").textContent = shown.length + "개 (그림 " + imgs.length + " · 만화 " + (shown.length - imgs.length) + ")";
+    $("active").innerHTML = terms.map((t) => '<button class="chip' + (t.length > 1 && t[0] === "-" ? " neg" : "") + '" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
+    const sn = { image: 0, video: 0, comic: 0 };
+    shown.forEach((it) => sn[cat(it)]++);
+    $("count").textContent = shown.length + "개 (그림 " + sn.image + " · 영상 " + sn.video + " · 만화 " + sn.comic + ")";
     $("grid").innerHTML = shown.length
       ? shown.map((it) => it.kind === "comic"
-          ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">만화 ' + (it.pages || []).length + "p</span></a>"
-          : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + "</button>").join("")
+          ? '<a class="thumb" href="comic.html?id=' + encodeURIComponent(it.id) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb, it.title) + '<span class="badge">' + (it.series ? "시리즈 " : "만화 ") + (it.pages || []).length + "p</span></a>"
+          : '<button class="thumb" data-i="' + imgs.indexOf(it) + '" title="' + esc(it.title || "") + '">' + App.img(it.thumb || it.file, it.title) + (App.videoOf(it) ? '<span class="badge">▶ 영상</span>' : "") + "</button>").join("")
       : '<p class="empty">' + (all.length ? "검색 결과가 없어요." : "아직 그림/만화가 없어요. data/gallery.js, data/comics.js 에 추가해 주세요!") + "</p>";
-    $("side").innerHTML = '<button type="button" class="btn-mini" id="n-toggle"></button>' + App.sidebarHTML(shown);
-    applySide();
+    $("side").innerHTML = App.sidebarHTML(shown);
   }
 
   function openLb(i) {
@@ -124,38 +112,39 @@
     cur = (i + imgs.length) % imgs.length;
     const it = imgs[cur];
     const chars = (it.characters || []).map((id) => App.byId[id]).filter(Boolean);
-    $("lb-img").innerHTML = App.img(it.file, it.title);
+    const vd = App.videoOf(it);
+    $("lb-img").innerHTML = !vd ? App.img(it.file, it.title)
+      : vd.type === "drive" ? '<iframe class="lb-video" src="' + esc(vd.embed) + '" allow="autoplay; fullscreen" allowfullscreen></iframe>'
+      : '<video class="lb-video" src="' + esc(vd.src) + '" controls playsinline></video>';
     $("lb-info").innerHTML =
       "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
-      '<p class="muted small">' + [it.artist && "그림: " + it.artist, it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
+      '<p class="muted small">' + [App.artistsOf(it).length && "그림: " + App.artistsOf(it).join(", "), it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
       (it.desc ? "<p>" + esc(it.desc) + "</p>" : "") +
-      '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
-      App.tagsOf(it).map((t) => '<button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + "</button>").join("") + "</div>" +
+      '<h3 class="side-h">태그 (누르면 검색 · − 는 빼고 보기)</h3><div>' +
+      App.tagsOf(it).map((t) => '<span class="tag-wrap"><button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + '</button><button class="tag-x" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></span>').join("") + "</div>" +
       (chars.length ? '<h3 class="side-h">캐릭터 페이지</h3><div>' + chars.map((c) => '<a class="tag t-character" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join("") + "</div>" : "") +
-      '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>' +
+      (vd ? "" : '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>') +
       '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";
     $("lb").hidden = false;
     document.body.style.overflow = "hidden";
   }
-  function closeLb() { $("lb").hidden = true; document.body.style.overflow = ""; }
+  function closeLb() { $("lb").hidden = true; $("lb-img").innerHTML = ""; /* 영상 소리 멈추기 */ document.body.style.overflow = ""; }
 
   $("f").addEventListener("submit", (e) => { e.preventDefault(); setQ($("q").value); });
   $("types").addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) setType(b.dataset.type); });
   $("side").addEventListener("click", (e) => {
-    if (e.target.closest("#n-toggle")) {
-      showN = !showN;
-      try { localStorage.setItem("gal-n", showN ? "1" : "0"); } catch (err) {}
-      return applySide();
-    }
-    const b = e.target.closest("[data-tag]");
-    if (b) toggleTerm(b.dataset.tag);
+    const x = e.target.closest("[data-ex]"); if (x) { addTerm("-" + x.dataset.ex); return; }
+    const b = e.target.closest("[data-tag]"); if (b) addTerm(b.dataset.tag);
   });
   $("active").addEventListener("click", (e) => {
     const b = e.target.closest("[data-rm]");
     if (b) setQ(q.split(/\s+/).filter((t) => t !== b.dataset.rm).join(" "));
   });
   $("grid").addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) openLb(+b.dataset.i); });
-  $("lb-info").addEventListener("click", (e) => { const b = e.target.closest("button[data-tag]"); if (b) { closeLb(); addTerm(b.dataset.tag); } });
+  $("lb-info").addEventListener("click", (e) => {
+    const x = e.target.closest("button[data-ex]"); if (x) { closeLb(); addTerm("-" + x.dataset.ex); return; }
+    const b = e.target.closest("button[data-tag]"); if (b) { closeLb(); addTerm(b.dataset.tag); }
+  });
   $("lb-close").addEventListener("click", closeLb);
   $("lb-main").addEventListener("click", (e) => { if (e.target === $("lb-main") || e.target === $("lb-img")) closeLb(); });
   $("lb-prev").addEventListener("click", () => openLb(cur - 1));

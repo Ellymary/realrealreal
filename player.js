@@ -28,15 +28,26 @@
       '<div class="mp-ctrl"><button type="button" id="mp-prev" aria-label="이전">⏮</button><button type="button" id="mp-next" aria-label="다음">⏭</button>' +
       '<span aria-hidden="true">🔈</span><input type="range" id="mp-vol" min="0" max="100" aria-label="볼륨"></div>' +
     "</div>" +
-    '<div class="mp-bar"><button type="button" id="mp-toggle" aria-label="플레이리스트 열기/닫기">♪</button>' +
+    '<div class="mp-bar"><button type="button" id="mp-toggle"></button>' +
     '<span class="mp-now" id="mp-now"></span><button type="button" id="mp-play" aria-label="재생/일시정지">▶</button></div>';
   document.body.appendChild(root);
   const $ = (id) => root.querySelector("#" + id);
   $("mp-vol").value = st.vol;
 
+  // 접기 / 펼치기 버튼: 지금 상태에 맞게 글자와 화살표가 바뀌어요
+  function setOpen(v) {
+    st.open = !!v;
+    root.classList.toggle("closed", !st.open);
+    const b = $("mp-toggle");
+    b.textContent = st.open ? "▼ 접기" : "▲ 펼치기";
+    b.setAttribute("aria-label", st.open ? "플레이리스트 접기" : "플레이리스트 펼치기");
+    b.setAttribute("aria-expanded", st.open ? "true" : "false");
+    save();
+  }
+
   function paint() {
     const t = track(st.cat, st.idx);
-    $("mp-now").textContent = playable(t) ? t.title + (t.artist ? " · " + t.artist : "") : "플레이리스트";
+    $("mp-now").textContent = playable(t) ? t.title + (t.artist ? " · " + t.artist : "") : "♪ 플레이리스트";
     $("mp-play").textContent = st.playing ? "⏸" : "▶";
     $("mp-tabs").innerHTML = cats.map((c, i) => '<button type="button" data-c="' + i + '" class="' + (i === st.cat ? "on" : "") + '">' + esc(c.name) + "</button>").join("");
     $("mp-list").innerHTML = cats[st.cat].tracks.map((t, i) =>
@@ -167,9 +178,9 @@
   }
 
   // ── 이벤트 ──
-  $("mp-toggle").addEventListener("click", () => { st.open = !st.open; root.classList.toggle("closed", !st.open); save(); });
+  $("mp-toggle").addEventListener("click", () => setOpen(!st.open));
   $("mp-play").addEventListener("click", () => {
-    if (!playable(track(st.cat, st.idx))) { const i = cats[st.cat].tracks.findIndex(playable); if (i < 0) { st.open = true; root.classList.remove("closed"); save(); return; } st.idx = i; }
+    if (!playable(track(st.cat, st.idx))) { const i = cats[st.cat].tracks.findIndex(playable); if (i < 0) { setOpen(true); return; } st.idx = i; }
     togglePlay();
   });
   $("mp-prev").addEventListener("click", () => step(-1));
@@ -192,6 +203,7 @@
     } catch (e) {}
   }, 1000);
 
+  setOpen(st.open);
   paint();
   // 이전 페이지에서 틀고 있었다면 이어서 재생 시도
   if (st.playing && playable(track(st.cat, st.idx))) playTrack(st.t, true);
