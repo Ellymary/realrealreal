@@ -54,7 +54,7 @@
     // 캐릭터 정렬 (기본 / 등급 높은순 / 등급 낮은순)
     let gsort = App.param("sort") || "";
     const drawCards = () => {
-      document.getElementById("g-cards").innerHTML = cs.length ? App.sortChars(cs, gsort).map((c) => App.charCard(c, gsort.startsWith("age") ? (App.ageOf(c) != null ? App.ageOf(c) + "세" : "나이 미정") : gsort.startsWith("debut") ? App.debutDate(c) : "")).join("") : '<p class="empty">아직 이 길드 캐릭터가 없어요.</p>';
+      document.getElementById("g-cards").innerHTML = cs.length ? App.sortChars(cs, gsort).map((c) => App.charCard(c, App.noteFor(gsort, c))).join("") : '<p class="empty">아직 이 길드 캐릭터가 없어요.</p>';
       const bar = document.getElementById("g-sort");
       if (bar) bar.innerHTML = App.SORTS.map((o) => '<button class="chip' + (gsort === o.id ? " on" : "") + '" data-s="' + esc(o.id) + '">' + (o.id ? "정렬: " : "") + esc(o.label) + (o.note ? ' <small class="muted">' + esc(o.note) + "</small>" : "") + "</button>").join("");
     };

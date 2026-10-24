@@ -189,7 +189,7 @@
     return '<a class="card" style="--mc:' + guildOf(c).color + '" href="character.html?id=' + encodeURIComponent(c.id) + '">' +
       '<div class="pic">' + avatar(c) + "</div>" +
       '<div class="body"><div class="nm">' + esc(c.name) + '</div><div class="sub">' + fmt(c.summary || "") + "</div>" +
-      '<div class="cnt">' + esc([c.owner, n ? "그림 " + n : ""].filter(Boolean).join(" · ")) + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + esc(note) : "") + "</div></div></a>";
+      '<div class="cnt">' + esc([c.owner, n ? "그림 " + n : ""].filter(Boolean).join(" · ")) + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + (note.html || esc(note)) : "") + "</div></div></a>";
   }
 
   const galleryOf = (id) => GALLERY.filter((g) => (g.characters || []).includes(id));
@@ -231,10 +231,10 @@
 
   // ── 캐릭터 시트 (표 + 팝업) ──
   // 표에 나오는 순서예요. 주인/소속은 owner/guild 칸에서 자동으로 가져오고, 나머지는 info 칸에서 가져와요.
-  const SHEET_FIELDS = ["주인", "성별", "나이", "키", "소속", "MBTI", "무기", "포지션", "능력", "등급", "눈 색", "머리색"];
+  const SHEET_FIELDS = ["주인", "성별", "나이", "생일", "키", "소속", "MBTI", "무기", "포지션", "능력", "등급", "눈 색", "머리색"];
   const COLOR_FIELDS = ["눈 색", "머리색"];
   // info 에 비슷한 이름으로 써도 알아봐요 (예: "랭크" → "등급")
-  const FIELD_ALIAS = { "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "신장": "키" };
+  const FIELD_ALIAS = { "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "신장": "키", "생년월일": "생일", "birthday": "생일" };
 
   function infoOf(c) {
     const raw = c.info || {};
@@ -252,6 +252,35 @@
     const base = m[1][0] === "S" ? 60 + (m[1].length - 1) * 10 : { A: 50, B: 40, C: 30, D: 20, E: 10, F: 0 }[m[1]];
     return base + (m[2] === "+" ? 3 : m[2] === "-" ? -3 : 0);
   }
+  // ── 생일 ──  info 의 "생일" 칸: "8월 29일" / "8/29" / "08-29" / "2000-08-29" 어느 쪽으로 써도 돼요
+  //   계절 색: 봄(3~5월) 분홍 · 여름(6~8월) 파랑 · 가을(9~11월) 갈색 · 겨울(12~2월) 아주 연한 회색
+  function bdayOf(c) {
+    const t = String(infoOf(c)["생일"] == null ? "" : infoOf(c)["생일"]);
+    let m = t.match(/(\d{1,2})\s*월\s*(\d{1,2})/) || t.match(/(?:^|\D)(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*$/) || t.match(/\d{4}\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/);
+    if (!m) return null;
+    const mo = +m[1], d = +m[2];
+    return mo >= 1 && mo <= 12 && d >= 1 && d <= 31 ? { m: mo, d } : null;
+  }
+  const SEASON_STYLE = {
+    spring: "color:#ff6fa8;font-weight:700",
+    summer: "color:#3b82f6;font-weight:700",
+    autumn: "color:#a0693a;font-weight:700",
+    winter: "color:#e4e7ee;font-weight:700;text-shadow:0 0 1px #555,0 0 3px rgba(0,0,0,.45)",   // 연한 회색 (밝은 테마에서도 보이게 살짝 테두리)
+  };
+  const seasonOf = (m) => (m >= 3 && m <= 5 ? "spring" : m >= 6 && m <= 8 ? "summer" : m >= 9 && m <= 11 ? "autumn" : "winter");
+  function birthdayHTML(text, b) {
+    b = b || bdayOf({ info: { "생일": text } });
+    return b ? '<span style="' + SEASON_STYLE[seasonOf(b.m)] + '">' + esc(text) + "</span>" : fmt(text);
+  }
+  // 오늘부터 다음 생일까지 남은 날수 (오늘이면 0)
+  function daysToBday(c) {
+    const b = bdayOf(c); if (!b) return null;
+    const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let t = new Date(now.getFullYear(), b.m - 1, b.d);
+    if (t < today) t = new Date(now.getFullYear() + 1, b.m - 1, b.d);
+    return Math.round((t - today) / 86400000);
+  }
+
   // ── 나이 / 나온 순서 ──
   function ageOf(c) { const m = String(infoOf(c)["나이"] == null ? "" : infoOf(c)["나이"]).match(/\d+/); return m ? +m[0] : null; }
   const DEBUT = window.DEBUT || [];   // data/order.js
@@ -264,25 +293,38 @@
     { id: "grade-asc", label: "등급 낮은순" },
     { id: "age", label: "나이 많은순" },
     { id: "age-asc", label: "나이 적은순" },
-    { id: "debut", label: "나온 순서", note: "(잘 모름, 정확한 날짜 있으면 알려줘)" },
+    { id: "debut", label: "나온 순서", note: "(잘 몰름, 정확한 날짜 있으면 알려줘)" },
     { id: "debut-desc", label: "최근에 나온 순" },
+    { id: "bday", label: "생일 순 (1월부터)", note: "(대부분 몰름)" },
+    { id: "bday-next", label: "다가오는 생일 순" },
   ];
-  // 값이 없는 캐릭터(등급 미정, 나이 미정 등)는 항상 맨 뒤
-  const keyOf = { grade: gradeRank, age: ageOf, debut: (c) => { const i = debutIndex(c); return i < 0 ? null : i; } };
+  // 정렬 계산: get = 값 구하기, asc = true 면 값이 작은 쪽이 위. 값이 없는(null) 캐릭터는 항상 맨 뒤
+  const debutKey = (c) => { const i = debutIndex(c); return i < 0 ? null : i; };
+  const bdayKey = (c) => { const b = bdayOf(c); return b ? b.m * 100 + b.d : null; };
+  const SORT_DEF = {
+    grade: { get: gradeRank, asc: false }, "grade-asc": { get: gradeRank, asc: true },
+    age: { get: ageOf, asc: false }, "age-asc": { get: ageOf, asc: true },
+    debut: { get: debutKey, asc: true }, "debut-desc": { get: debutKey, asc: false },
+    bday: { get: bdayKey, asc: true }, "bday-next": { get: daysToBday, asc: true },
+  };
   function sortChars(list, key) {
+    const def = SORT_DEF[key];
     const out = list.slice();
-    const base = String(key || "").replace(/-(asc|desc)$/, "");
-    const get = keyOf[base];
-    if (!get) return out;
-    // 등급·나이는 기본이 높은/많은 순(내림차순), 나온 순서는 기본이 먼저 나온 순(오름차순)
-    const asc = base === "debut" ? key !== "debut-desc" : key === base + "-asc";
+    if (!def) return out;
     return out.sort((a, b) => {
-      const ra = get(a), rb = get(b);
+      const ra = def.get(a), rb = def.get(b);
       if (ra == null && rb == null) return a.name.localeCompare(b.name, "ko");
       if (ra == null) return 1;
       if (rb == null) return -1;
-      return (asc ? ra - rb : rb - ra) || a.name.localeCompare(b.name, "ko");
+      return (def.asc ? ra - rb : rb - ra) || a.name.localeCompare(b.name, "ko");
     });
+  }
+  // 정렬 중 카드에 같이 보여줄 값 (문자열 또는 { html })
+  function noteFor(key, c) {
+    if (key.startsWith("age")) return ageOf(c) != null ? ageOf(c) + "세" : "나이 미정";
+    if (key.startsWith("debut")) return debutDate(c);
+    if (key.startsWith("bday")) { const v = infoOf(c)["생일"]; return v && bdayOf(c) ? { html: birthdayHTML(String(v)) } : "생일 미정"; }
+    return "";
   }
   function fieldValue(c, key) {
     if (key === "주인") return c.owner || "";
@@ -331,6 +373,7 @@
       if (COLOR_FIELDS.includes(k)) cell = colorHTML(v);
       else if (k === "소속" && v) cell = esc(v);
       else if (k === "등급" && v) cell = infoVal(k, v);
+      else if (k === "생일" && v) cell = birthdayHTML(String(v));
       else cell = v ? fmt(v) : '<span class="muted">-</span>';
       return "<tr><th>" + esc(k) + "</th><td>" + cell + "</td></tr>";
     }).join("");
@@ -425,7 +468,7 @@
 
   window.App = {
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
-    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, SORTS, sortChars,
+    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
     esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
     GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,
