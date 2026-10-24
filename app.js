@@ -304,6 +304,9 @@
 =======
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
     SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
+<<<<<<< HEAD
+>>>>>>> parent of 07db66b (오류 패치)
+=======
 >>>>>>> parent of 07db66b (오류 패치)
     esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
