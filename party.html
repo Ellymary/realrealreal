@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>랜덤 파티 짜기</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  .pt-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+  .pt-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+  .pt-slot { border: 1px solid var(--line); background: var(--panel); padding: 10px 8px 12px; text-align: center; min-height: 190px; display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: var(--r-sm); }
+  .pt-slot.empty { border-style: dashed; color: var(--muted); justify-content: center; }
+  .pt-slot.click { cursor: pointer; }
+  .pt-slot.click:hover { border-color: var(--accent); }
+  .pt-role { font-size: 12px; color: var(--muted); }
+  .pt-pic { width: 84px; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--mc, var(--line)); background: var(--panel2); }
+  .pt-pic img { width: 100%; height: 100%; object-fit: cover; }
+  .pt-pic .avatar-fb { font-size: 30px; }
+  .pt-nm { font-weight: 700; }
+  .pt-sub { font-size: 12px; color: var(--muted); }
+  .pt-gates { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+  .pt-gates .chip.on { color: var(--on-accent); background: var(--gc, var(--accent)); border-color: var(--gc, var(--accent)); }
+  .pt-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; max-height: 280px; overflow: auto; padding: 8px; border: 1px solid var(--line); background: var(--panel); }
+  .pt-pick .chip { text-align: left; padding: 4px 8px; font-size: 13px; }
+  .pt-pick .chip.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .pt-go { margin: 16px 0; }
+  .pt-res { margin-top: 14px; padding: 22px 18px; border: 1px solid var(--line); background: var(--panel); text-align: center; border-radius: var(--r-lg); }
+  .pt-res .big { font-size: 34px; font-weight: 800; font-family: var(--serif); margin: 4px 0 8px; }
+  .pt-res.ok .big { color: #4cc38a; }
+  .pt-res.great .big { color: #ffc857; }
+  .pt-res.no .big { color: #ff7a66; }
+  .pt-res.wipe .big { color: #ff4c4c; }
+  .pt-stat { color: var(--muted); font-size: 13px; margin: 8px 0; }
+  .pt-loading { text-align: center; padding: 30px 0; color: var(--muted); font-size: 18px; }
+  .pt-note { font-size: 13px; }
+  @media (max-width: 640px) { .pt-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap narrow">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">랜덤 파티 짜기</h1>
+  <p class="muted">파티를 짜서 게이트에 보내 봐요. 파티원 등급이 높을수록 성공 확률이 올라가요. (재미용!)</p>
+
+  <h3 class="side-h">1. 파티 인원</h3>
+  <div class="pt-bar" id="sizes"></div>
+  <h3 class="side-h">2. 파티 짜는 방법</h3>
+  <div class="pt-bar" id="modes"></div>
+  <p class="muted small pt-note" id="mode-desc"></p>
+  <div id="picker"></div>
+  <div class="pt-slots" id="slots"></div>
+  <div class="pt-bar" id="pt-ctrl"></div>
+
+  <h3 class="side-h">3. 게이트 고르기</h3>
+  <div class="pt-gates" id="gates"></div>
+
+  <div class="pt-go"><button class="btn btn-primary" id="go" type="button">⚔ 공략 시작</button></div>
+  <div id="result"></div>
+  <p class="muted small pt-note">탱커 · 딜러 · 서포터가 골고루 있으면 보너스, 4명보다 많으면 유리하고 적으면 불리해요.</p>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/party.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, CHARS } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "랜덤 파티 짜기");
+  const P = window.PARTY;
+  const MIN = 2, MAX = 8;   // 파티 인원 범위
+  const SECONDS = 2.2;   // 결과가 나오기까지 걸리는 시간 (초)
+
+  const MODES = [
+    { id: "pos", name: "포지션별", desc: "인원에 맞게 탱커 · 딜러 · 서포터(힐러 포함)를 균형 있게 뽑아요. 카드를 누르면 그 자리만 다시 뽑아요." },
+    { id: "pick", name: "내가 고르기", desc: "원하는 캐릭터를 정한 인원만큼 골라요. (최소 2명이면 출발할 수 있어요)" },
+    { id: "rand", name: "전부 랜덤", desc: "포지션 상관없이 아무나! 카드를 누르면 그 자리만 다시 뽑아요." },
+  ];
+  // 인원별 포지션 구성 (탱커 / 딜러 / 서포터)
+  function slotsFor(n) {
+    const tank = n <= 2 ? 0 : n >= 7 ? 2 : 1;
+    const sup = n >= 6 ? 2 : 1;
+    const out = [];
+    for (let i = 0; i < tank; i++) out.push("탱커");
+    for (let i = 0; i < n - tank - sup; i++) out.push("딜러");
+    for (let i = 0; i < sup; i++) out.push("서포터");
+    return out;
+  }
+
+  let mode = "pos", gateId = "random", size = 4, party = [], busy = false, kw = "";
+  let SLOTS = slotsFor(size).map((k) => ({ role: k, key: k }));
+  const empty = () => new Array(size).fill(null);
+
+  const posOf = (c) => String((c.info || {})["포지션"] || "").split(/[\/,·]/).map((x) => x.trim()).filter(Boolean);
+  const hasRole = (c, key) => { const p = posOf(c); return key === "서포터" ? p.some((x) => x === "서포터" || x === "힐러") : p.includes(key); };
+  const score = (c) => { const r = App.gradeRank(c); return r == null ? 30 : r; };
+  const letter = (r) => (r >= 80 ? "SSS" : r >= 70 ? "SS" : r >= 60 ? "S" : r >= 50 ? "A" : r >= 40 ? "B" : r >= 30 ? "C" : r >= 20 ? "D" : r >= 10 ? "E" : "F");
+  const pickOne = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const used = () => new Set(party.filter(Boolean).map((c) => c.id));
+
+  function roll(slotIdx) {
+    const pool = CHARS.filter((c) => !used().has(c.id) && (mode === "rand" || hasRole(c, SLOTS[slotIdx].key)));
+    return pool.length ? pickOne(pool) : null;
+  }
+  function draw() {
+    SLOTS = slotsFor(size).map((k) => ({ role: k, key: k }));
+    party = empty();
+    // 후보가 적은 포지션부터 뽑아요 (탱커 → 서포터 → 딜러)
+    const prio = { "탱커": 0, "서포터": 1, "딜러": 2 };
+    SLOTS.map((s, i) => i).sort((a, b) => prio[SLOTS[a].key] - prio[SLOTS[b].key]).forEach((i) => { party[i] = roll(i); });
+  }
+
+  function card(c, i) {
+    const role = mode === "pos" ? '<span class="pt-role">' + SLOTS[i].role + "</span>" : "";
+    if (!c) return '<div class="pt-slot empty' + (mode !== "pick" ? " click" : "") + '" data-i="' + i + '">' + role + "<span>" + (mode === "pick" ? "비어 있음" : "해당 캐릭터 없음") + "</span></div>";
+    const gd = App.guildOf(c);
+    const g = App.gradeOf(c);
+    return '<div class="pt-slot' + (mode !== "pick" ? " click" : "") + '" data-i="' + i + '" style="--mc:' + gd.color + '">' + role +
+      '<span class="pt-pic">' + App.avatar(c) + '</span><span class="pt-nm">' + esc(c.name) + "</span>" +
+      '<span class="pt-sub">' + esc(posOf(c).join("/") || "포지션 미정") + "</span>" +
+      '<span class="pt-sub">' + (g ? App.infoVal("등급", g) : "등급 미정") + " · " + esc(gd.name) + "</span></div>";
+  }
+
+  function render() {
+    $("sizes").innerHTML = Array.from({ length: MAX - MIN + 1 }, (_, k) => k + MIN).map((n) => '<button class="chip' + (n === size ? " on" : "") + '" data-n="' + n + '" type="button">' + n + "명</button>").join("");
+    $("modes").innerHTML = MODES.map((m) => '<button class="chip' + (m.id === mode ? " on" : "") + '" data-m="' + m.id + '" type="button">' + m.name + "</button>").join("");
+    $("mode-desc").textContent = MODES.find((m) => m.id === mode).desc;
+    if (mode === "pick") {
+      const ids = used();
+      const list = CHARS.filter((c) => !kw || c.name.toLowerCase().includes(kw));
+      $("picker").innerHTML = '<input class="searchbar-in" id="kw" placeholder="이름으로 찾기" value="' + esc(kw) + '" style="width:100%;margin-bottom:8px;padding:8px 10px;border:1px solid var(--line);background:var(--panel);color:inherit">' +
+        '<div class="pt-pick">' + list.map((c) => '<button type="button" class="chip' + (ids.has(c.id) ? " on" : "") + '" data-c="' + esc(c.id) + '">' + esc(c.name) + "</button>").join("") + "</div>";
+      $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); const pos = e.target.selectionStart; render(); const k = $("kw"); k.focus(); k.setSelectionRange(pos, pos); });
+    } else $("picker").innerHTML = "";
+    $("slots").innerHTML = party.map((c, i) => card(c, i)).join("");
+    $("pt-ctrl").innerHTML = mode === "pick" ? '<button class="btn" id="clear" type="button">선택 비우기</button>' : '<button class="btn" id="redraw" type="button">🎲 다시 뽑기</button>';
+    const rows = [["random", "🎲 랜덤", "#98a2b6"]].concat(P.gates.map((g) => [g.id, g.name, g.color]));
+    $("gates").innerHTML = rows.map(([id, name, color]) => '<button type="button" class="chip' + (gateId === id ? " on" : "") + '" data-g="' + id + '" style="--gc:' + color + '">' + esc(name) + "</button>").join("");
+  }
+
+  function pick(id) {
+    const i = party.findIndex((c) => c && c.id === id);
+    if (i >= 0) party[i] = null;
+    else { const j = party.findIndex((c) => !c); if (j < 0) return; party[j] = App.byId[id]; }
+    render();
+  }
+
+  $("sizes").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-n]"); if (!b || busy) return;
+    size = +b.dataset.n; $("result").innerHTML = "";
+    if (mode === "pick") { const keep = party.filter(Boolean).slice(0, size); party = empty(); keep.forEach((c, i) => { party[i] = c; }); }
+    else draw();
+    render();
+  });
+  $("modes").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-m]"); if (!b || busy) return;
+    mode = b.dataset.m; $("result").innerHTML = "";
+    if (mode === "pick") party = empty(); else draw();
+    render();
+  });
+  $("picker").addEventListener("click", (e) => { const b = e.target.closest("[data-c]"); if (b && !busy) pick(b.dataset.c); });
+  $("slots").addEventListener("click", (e) => {
+    const s = e.target.closest(".pt-slot"); if (!s || mode === "pick" || busy) return;
+    const i = +s.dataset.i;
+    party[i] = null;
+    party[i] = roll(i) || null;
+    render();
+  });
+  $("pt-ctrl").addEventListener("click", (e) => {
+    if (busy) return;
+    if (e.target.id === "clear") { party = empty(); render(); }
+    if (e.target.id === "redraw") { draw(); render(); }
+  });
+  $("gates").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { gateId = b.dataset.g; render(); } });
+
+  const fill = (t, mvp, weak) => t.replace(/\{mvp\}/g, mvp).replace(/\{weak\}/g, weak);
+
+  function run() {
+    if (busy) return;
+    const ms = party.filter(Boolean);
+    if (ms.length < MIN) { $("result").innerHTML = '<p class="empty">파티원이 최소 ' + MIN + '명은 있어야 해요. 먼저 파티를 짜 주세요!</p>'; return; }
+    const gate = gateId === "random" ? pickOne(P.gates) : P.gates.find((g) => g.id === gateId);
+    busy = true;
+    $("go").disabled = true;
+    $("result").innerHTML = '<div class="pt-loading" id="load">' + esc(gate.name) + " 진입 중...</div>";
+    let n = 0;
+    const dots = setInterval(() => { n = (n + 1) % 4; const l = $("load"); if (l) l.textContent = gate.name + " 진입 중" + ".".repeat(n + 1); }, 400);
+
+    setTimeout(() => {
+      clearInterval(dots);
+      const avg = ms.reduce((a, c) => a + score(c), 0) / ms.length;
+      const bonus = ["탱커", "딜러", "서포터"].filter((k) => ms.some((c) => hasRole(c, k))).length;   // 역할이 골고루면 +
+      const adj = avg + bonus * 3 + (ms.length - 4) * 2;   // 인원이 많을수록 유리, 적을수록 불리 (4명 기준)
+      let p = 1 / (1 + Math.exp(-(adj - gate.need) / 7));
+      p = Math.min(0.97, Math.max(0.03, p));
+      const r = Math.random();
+      const win = r < p, great = r < p * 0.4;
+      const sorted = ms.slice().sort((a, b) => score(b) - score(a));
+      const weak = sorted[sorted.length - 1].name;
+      // 활약한 캐릭터: 등급이 높을수록 뽑힐 확률이 높음
+      const w = ms.map((c) => score(c) + 10);
+      let t = Math.random() * w.reduce((a, b) => a + b, 0), mvp = ms[0].name;
+      for (let i = 0; i < ms.length; i++) { t -= w[i]; if (t <= 0) { mvp = ms[i].name; break; } }
+      const heavy = !win && r > p + (1 - p) * 0.6;
+      const kind = great ? "great" : win ? "ok" : heavy ? "wipe" : "no";
+      const title = great ? "대성공!" : win ? "공략 성공" : heavy ? "전멸..." : "공략 실패";
+      let msg = fill(pickOne(great ? P.bigWin : win ? P.win : heavy ? P.wipe : P.fail), mvp, weak);
+      if (heavy && gate.need >= 55) msg += " " + pickOne(P.breakMsg);
+      $("result").innerHTML = '<div class="pt-res ' + kind + '" style="border-top:3px solid ' + gate.color + '">' +
+        '<div class="muted small">' + esc(gate.name) + "</div>" +
+        '<div class="big">' + title + "</div><p>" + esc(msg) + "</p>" +
+        '<div class="pt-stat">파티 평균 ' + letter(Math.round(avg)) + "급 · 필요 실력 " + letter(gate.need) + "급 · 성공 확률 " + Math.round(p * 100) + "%</div>" +
+        '<button class="btn" id="again" type="button">같은 파티로 다시 도전</button></div>';
+      $("again").addEventListener("click", run);
+      busy = false;
+      $("go").disabled = false;
+    }, SECONDS * 1000);
+  }
+  $("go").addEventListener("click", run);
+
+  draw();
+  render();
+</script>
+</body>
+</html>

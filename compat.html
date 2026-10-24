@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>궁합 테스트</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap narrow">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">궁합 테스트</h1>
+  <p class="muted">재미로 보는 완전 랜덤 궁합이에요. 두 캐릭터를 골라요!</p>
+  <div class="cp-pick">
+    <select id="ca" aria-label="첫 번째 캐릭터"></select>
+    <span class="cp-x">♥</span>
+    <select id="cb" aria-label="두 번째 캐릭터"></select>
+    <button type="button" class="btn btn-primary" id="c-go">궁합 보기</button>
+  </div>
+  <div id="compat"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/compat.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, byId } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "궁합 테스트");
+
+  const SECONDS = 1.8;   // 결과가 올라가는 시간 (초). 더 길게/짧게 하고 싶으면 이 숫자만!
+
+  function who(c) {
+    const gd = App.guildOf(c);
+    return '<div class="cp-who" style="--mc:' + gd.color + '">' +
+      '<a class="cp-link" href="character.html?id=' + encodeURIComponent(c.id) + '"><span class="cp-pic">' + App.avatar(c) + "</span>" +
+      '<span class="cp-nm">' + esc(c.name) + "</span></a>" +
+      '<span class="cp-sub">' + esc([c.owner, gd.name].filter(Boolean).join(" · ")) + "</span></div>";
+  }
+
+  const opts = '<option value="">캐릭터 고르기</option>' + App.CHARS.map((c) => '<option value="' + esc(c.id) + '">' + esc(c.label || c.name) + "</option>").join("");
+  $("ca").innerHTML = opts; $("cb").innerHTML = opts;
+  const KEY = "hw-compat-pick";
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { if (byId[s[0]]) $("ca").value = s[0]; if (byId[s[1]]) $("cb").value = s[1]; } } catch (e) {}
+  $("compat").innerHTML = '<p class="muted">두 캐릭터를 모두 고르고 "궁합 보기"를 눌러요.</p>';
+
+  function draw() {
+    const a = $("ca").value, b = $("cb").value;
+    try { localStorage.setItem(KEY, JSON.stringify([a, b])); } catch (e) {}
+    if (!a || !b) { $("compat").innerHTML = '<p class="muted">두 캐릭터를 모두 고르고 "궁합 보기"를 눌러요.</p>'; return; }
+    if (a === b) { $("compat").innerHTML = '<p class="empty">서로 다른 두 캐릭터를 골라 주세요.</p>'; return; }
+    const pct = Math.floor(Math.random() * 101);
+    const tiers = (window.COMPAT || []).slice().sort((x, y) => y.min - x.min);
+    const t = tiers.find((x) => pct >= x.min) || { tier: "", msgs: [""] };
+    const msg = t.msgs[Math.floor(Math.random() * t.msgs.length)];
+    $("compat").innerHTML = '<div class="compat-box"><div class="compat-who">' + who(byId[a]) + '<span class="cp-x">♥</span>' + who(byId[b]) + "</div>" +
+      '<div class="compat-pct"><span id="c-num">0</span><small>%</small></div>' +
+      '<div class="compat-bar"><span id="c-bar" style="transition-duration:' + SECONDS + 's"></span></div>' +
+      '<div id="c-res" style="opacity:0;transition:opacity .6s">' +
+      '<p class="compat-msg">' + esc(msg) + "</p>" + (t.tier ? '<p class="compat-tier">' + esc(t.tier) + "</p>" : "") +
+      '<div class="compat-ctrl"><button type="button" class="btn" id="c-again">다시 보기</button></div></div></div>';
+    $("c-again").addEventListener("click", draw);
+    requestAnimationFrame(() => { $("c-bar").style.width = pct + "%"; });
+    const t0 = performance.now();
+    (function tick(now) {
+      const k = Math.min(1, (now - t0) / (SECONDS * 1000));
+      $("c-num").textContent = Math.round(pct * (1 - Math.pow(1 - k, 2)));
+      if (k < 1) requestAnimationFrame(tick); else $("c-res").style.opacity = 1;
+    })(t0);
+  }
+  $("c-go").addEventListener("click", draw);
+</script>
+</body>
+</html>

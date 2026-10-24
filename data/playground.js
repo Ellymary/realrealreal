@@ -10,4 +10,6 @@ window.PLAYGROUND = [
   { title: "내 능력은 정확히 뭘까? (자세한 버전)", desc: "심리테스트 · 11문제 · 25가지 능력 중 하나", href: "quiz.html?id=ability-detail", icon: "🔮" },
   { title: "사분면에 배치하기", desc: "프로필 사진을 4분면에 놓고 놀기 · 프리셋 · 이미지로 저장", href: "quadrant.html", icon: "🧭" },
   { title: "커플링 잇기", desc: "원에 캐릭터를 놓고 선으로 잇기 · 최애/좋아/먹을 수 있음/흠/못 먹음", href: "ship.html", icon: "💞" },
+  { title: "궁합 테스트", desc: "두 캐릭터를 골라 보는 랜덤 궁합 · 재미로만!", href: "compat.html", icon: "💘" },
+  { title: "랜덤 파티 짜기", desc: "파티를 짜서 게이트 공략! · 포지션별 / 직접 / 전부 랜덤 · 등급에 따라 성공 확률", href: "party.html", icon: "⚔️" },
 ];
