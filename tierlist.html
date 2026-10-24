@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>티어표 만들기</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  /* ── 티어표 판 ── 판 안의 모든 크기는 판 너비(1000칸 기준)에 비례해요. (1칸 = 0.1cqw) */
+  .t-scroll { overflow-x: auto; margin: 14px 0; padding: 0 92px 6px 0; }
+  .t-board { width: 100%; min-width: 520px; max-width: 900px; margin: 0 auto; background: #000; container-type: inline-size; user-select: none; -webkit-user-select: none; border: 1px solid var(--line); }
+  .t-in { display: flex; flex-direction: column; gap: .2cqw; }
+  .t-title { display: block; width: 100%; height: 6.4cqw; padding: 0; border: 0; background: #1e1e1e; color: #fff; font: inherit; font-size: 3.2cqw; font-weight: 800; text-align: center; outline: none; user-select: text; -webkit-user-select: text; }
+  .t-title::placeholder { color: #777; font-weight: 400; }
+  .t-row { position: relative; display: flex; min-height: 10cqw; }
+  .t-label { flex: 0 0 13cqw; width: 13cqw; box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: .8cqw; text-align: center; font-size: 2.4cqw; line-height: 1.25; font-weight: 700; white-space: pre-wrap; word-break: break-all; overflow: hidden; outline: none; user-select: text; -webkit-user-select: text; cursor: text; }
+  .t-row.pick .t-label { box-shadow: inset 0 0 0 .35cqw #ffd24a; }
+  .t-items { flex: 1; min-width: 0; box-sizing: border-box; display: flex; flex-wrap: wrap; align-content: flex-start; gap: .6cqw; padding: .8cqw; background: #1e1e1e; }
+  .t-row.over .t-items { background: #2d2d2d; }
+  /* 줄 안의 사진 */
+  .ti { position: relative; flex: 0 0 auto; width: calc(8.4cqw * var(--ps, 1)); height: calc(8.4cqw * var(--ps, 1)); touch-action: none; cursor: grab; }
+  .ti .ph { width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; border: .25cqw solid var(--mc, #888); background: #eee; }
+  .ti img, .ti .avatar-fb { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .ti img { display: block; }
+  .ti .avatar-fb { font-size: 3.2cqw; --on: 60%; }
+  .ti .qn { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 .2cqw; font-size: calc(1.1cqw * var(--ps, 1)); line-height: 1.25; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgba(0,0,0,.6); color: #fff; pointer-events: none; }
+  .ti .x { position: absolute; right: -.9cqw; top: -.9cqw; width: max(18px, 2.4cqw); height: max(18px, 2.4cqw); border-radius: 50%; border: 0; padding: 0; background: #e5484d; color: #fff; font-size: max(11px, 1.5cqw); line-height: 1; display: none; cursor: pointer; z-index: 2; }
+  .ti.sel .x { display: block; }
+  .ti.sel .ph { outline: .35cqw solid #ffd24a; }
+  .ti.dragging { opacity: .25; }
+  .ti.ins-b { box-shadow: -.45cqw 0 0 #ffd24a; }
+  .ti.ins-a { box-shadow: .45cqw 0 0 #ffd24a; }
+  /* 줄 옆 조절 버튼 (저장되는 그림에는 안 들어가요) */
+  .t-ctl { position: absolute; left: calc(100% + 6px); top: 0; bottom: 0; width: 72px; display: grid; grid-template-columns: repeat(2, 34px); gap: 4px; align-content: center; }
+  .t-ctl button, .t-ctl input { box-sizing: border-box; width: 34px; height: 22px; margin: 0; padding: 0; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 12px; line-height: 1; cursor: pointer; }
+  .t-ctl button:hover { border-color: var(--accent); }
+  .t-ctl button[data-act="del"]:hover { color: #ff6b6b; border-color: #ff6b6b; }
+
+  .q-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 12px; }
+  .q-tools .btn.on { border-color: var(--accent); background: var(--panel); font-weight: 700; }
+  .q-tools .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+  .q-tools label.chk { margin: 0; }
+  /* 사진 보관함 */
+  .q-pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; max-height: 340px; overflow-y: auto; padding: 4px; border: 1px solid var(--line); background: var(--panel); }
+  .q-pal .pi { position: relative; aspect-ratio: 1; border: 2px solid var(--mc, var(--line)); background: var(--panel2); cursor: pointer; padding: 0; overflow: hidden; }
+  .q-pal .pi img, .q-pal .pi .avatar-fb { width: 100%; height: 100%; object-fit: cover; pointer-events: none; font-size: 22px; }
+  .q-pal .pi img { display: block; }
+  .q-pal .pi.on { opacity: .28; }
+  .q-pal .pi .nm { position: absolute; left: 0; right: 0; bottom: 0; font-size: 10px; line-height: 1.2; text-align: center; background: rgba(0,0,0,.6); color: #fff; padding: 1px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  .q-ghost { position: fixed; z-index: 99; width: 56px; height: 56px; transform: translate(-50%, -50%); pointer-events: none; opacity: .9; border: 2px solid #ffd24a; overflow: hidden; background: #eee; }
+  .q-ghost img, .q-ghost .avatar-fb { width: 100%; height: 100%; object-fit: cover; font-size: 22px; }
+  .q-result { margin: 12px 0; }
+  .q-result img { max-width: 100%; border: 1px solid var(--line); background: #fff; }
+  .q-msg { min-height: 1.4em; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">티어표 만들기</h1>
+  <p class="muted">아래 보관함에서 프로필 사진을 줄 위로 끌어다 놓아요. 줄 이름은 눌러서 고치고, 오른쪽 버튼으로 줄을 옮기거나 색을 바꾸거나 지울 수 있어요.</p>
+
+  <div class="q-tools">
+    <button class="btn" id="add-row" type="button">＋ 줄 추가</button>
+    <button class="btn" id="reset-rows" type="button">줄을 처음(S~G)으로</button>
+    <span class="sep"></span>
+    <button class="btn" id="clear-pics" type="button">사진 모두 빼기</button>
+  </div>
+
+  <div class="t-scroll">
+    <div class="t-board" id="board">
+      <div class="t-in">
+        <input class="t-title" id="title" placeholder="티어표 제목 (비워 둬도 돼요)" autocomplete="off">
+        <div class="t-in" id="rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="q-tools">
+    <button class="btn btn-primary" id="save" type="button">이미지로 저장 (PNG)</button>
+    <span class="muted small">사진 크기</span><button class="btn" id="sz-l" type="button">큰 사진</button><button class="btn" id="sz-s" type="button">작은 사진</button>
+    <label class="chk"><input type="checkbox" id="names"> 사진에 이름 표시</label>
+  </div>
+  <div class="q-msg" id="msg" role="status" aria-live="polite"></div>
+  <div class="q-result" id="result"></div>
+
+  <div id="pal-wrap">
+    <h2 class="sec-h">사진 보관함 <small id="pal-n"></small></h2>
+    <p class="hint" id="pal-hint"></p>
+    <div class="chips" id="pal-g"></div>
+    <form class="searchbar" id="pal-f"><input id="pal-q" placeholder="이름으로 찾기" autocomplete="off"></form>
+    <div class="q-pal" id="pal"></div>
+  </div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { CHARS, esc } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "티어표 만들기");
+
+  // ───────── 기본 줄 ─────────  (처음 줄 이름·색을 바꾸고 싶으면 여기)
+  const DEFAULT_ROWS = [["S", "#ff7f7f"], ["A", "#ffbf7f"], ["B", "#ffdf7f"], ["C", "#ffff7f"], ["D", "#bfff7f"], ["E", "#7fff7f"], ["F", "#7fffff"], ["G", "#7fbfff"]];
+  const NEW_COLORS = ["#d9a7ff", "#ff9fd2", "#b0b8c4", "#ffb86b", "#8ee3c8", "#9fb7ff"];   // "줄 추가" 할 때 돌아가며 쓰는 색
+
+  // ───────── 상태 ─────────
+  const KEY = "hw-tier-v1";
+  let rows = [];      // { id, name, color, items: [캐릭터 id, ...] }
+  let showNames = false;
+  let small = false;  // 작은 사진 = 큰 사진의 2/3
+  let pick = null;    // 휴대폰에서 사진을 누르면 들어갈 줄
+  const SMALL = 2 / 3;
+  const byId = App.byId;
+  const uid = () => "r" + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+  const defaultRows = () => DEFAULT_ROWS.map(([name, color]) => ({ id: uid(), name, color, items: [] }));
+  const store = {
+    get() { try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} },
+  };
+  function save() { store.set({ title: $("title").value, rows, showNames, small, pick }); }
+  function load() {
+    const s = store.get();
+    if (!s || !Array.isArray(s.rows)) { rows = defaultRows(); return; }
+    const seen = new Set();
+    rows = s.rows.map((r) => ({
+      id: r.id || uid(), name: String(r.name == null ? "" : r.name),
+      color: /^#[0-9a-f]{6}$/i.test(r.color) ? r.color : "#cccccc",
+      items: (r.items || []).filter((id) => byId[id] && !seen.has(id) && seen.add(id)),
+    }));
+    $("title").value = s.title || "";
+    showNames = !!s.showNames; $("names").checked = showNames; small = !!s.small;
+    pick = rows.some((r) => r.id === s.pick) ? s.pick : null;
+  }
+
+  // ───────── 사진 조각 ─────────
+  const fileUrl = (p) => String(p == null ? "" : p).replace(/[%#?]/g, (c) => encodeURIComponent(c));
+  const colorOf = (c) => App.guildOf(c).color;
+  const faceHTML = (c) => App.avatar(c);   // 사진이 없거나 못 찾으면 이름 첫 글자
+  // 줄 색이 밝으면 글자는 검정, 어두우면 흰색
+  function textOn(hex) {
+    const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#111" : "#fff";
+  }
+  const placedSet = () => new Set(rows.flatMap((r) => r.items));
+
+  // ───────── 판 그리기 ─────────
+  const board = $("board"), rowsEl = $("rows");
+  function applySize() {
+    board.style.setProperty("--ps", small ? SMALL : 1);
+    $("sz-l").classList.toggle("on", !small); $("sz-s").classList.toggle("on", small);
+  }
+  $("sz-l").addEventListener("click", () => { small = false; save(); applySize(); });
+  $("sz-s").addEventListener("click", () => { small = true; save(); applySize(); });
+
+  function picHTML(id) {
+    const c = byId[id]; if (!c) return "";
+    return '<div class="ti" data-id="' + esc(id) + '" style="--mc:' + colorOf(c) + '" title="' + esc(c.label || c.name) + '"><div class="ph">' + faceHTML(c) + "</div>" +
+      (showNames ? '<span class="qn">' + esc(c.name) + "</span>" : "") + '<button class="x" type="button" aria-label="빼기">✕</button></div>';
+  }
+  function rowHTML(r) {
+    return '<div class="t-row' + (pick === r.id ? " pick" : "") + '" data-r="' + r.id + '">' +
+      '<div class="t-label" data-lab style="background:' + r.color + ";color:" + textOn(r.color) + '">' + esc(r.name) + "</div>" +
+      '<div class="t-items">' + r.items.map(picHTML).join("") + "</div>" +
+      '<div class="t-ctl"><button type="button" data-act="up" title="위로" aria-label="위로">▲</button><button type="button" data-act="down" title="아래로" aria-label="아래로">▼</button>' +
+      '<input type="color" value="' + r.color + '" title="색 바꾸기" aria-label="색 바꾸기"><button type="button" data-act="del" title="줄 지우기" aria-label="줄 지우기">✕</button></div></div>';
+  }
+  function drawBoard() {
+    applySize();
+    rowsEl.innerHTML = rows.map(rowHTML).join("");
+    rowsEl.querySelectorAll("[data-lab]").forEach((el) => {   // 글자만 받는 편집 칸
+      try { el.contentEditable = "plaintext-only"; } catch (e) {}
+      if (el.contentEditable !== "plaintext-only") el.contentEditable = "true";
+    });
+    drawPalette();
+  }
+  const rowOf = (el) => rows.find((r) => r.id === el.closest(".t-row").dataset.r);
+  function setPick(id) {
+    pick = id; save();
+    rowsEl.querySelectorAll(".t-row").forEach((el) => el.classList.toggle("pick", el.dataset.r === id));
+  }
+
+  // 사진을 줄 안의 index 번째로 넣기 (이미 다른 곳에 있으면 거기서 빼고)
+  function movePlace(id, rowId, index) {
+    rows.forEach((r) => (r.items = r.items.filter((x) => x !== id)));
+    const r = rows.find((x) => x.id === rowId); if (!r) return;
+    r.items.splice(Math.max(0, Math.min(index, r.items.length)), 0, id);
+  }
+  function unplace(id) { rows.forEach((r) => (r.items = r.items.filter((x) => x !== id))); }
+
+  // ───────── 끌기 (판 위 사진 · 보관함 사진 공통) ─────────
+  function dropTarget(ev, dragId) {
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const rowEl = el && el.closest && el.closest(".t-row"); if (!rowEl) return null;
+    const box = rowEl.querySelector(".t-items");
+    const kids = [...box.querySelectorAll(".ti")].filter((k) => k.dataset.id !== dragId);
+    let index = 0;
+    if (kids.length) {
+      let best = 0, bd = Infinity, bx = 0;
+      kids.forEach((k, i) => { const r = k.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, d = Math.hypot(ev.clientX - cx, ev.clientY - cy); if (d < bd) { bd = d; best = i; bx = cx; } });
+      index = best + (ev.clientX > bx ? 1 : 0);
+    }
+    return { rowEl, rowId: rowEl.dataset.r, index, kids };
+  }
+  function clearMarks() {
+    rowsEl.querySelectorAll(".over").forEach((n) => n.classList.remove("over"));
+    rowsEl.querySelectorAll(".ins-a, .ins-b").forEach((n) => n.classList.remove("ins-a", "ins-b"));
+  }
+  function showTarget(ev, dragId) {
+    clearMarks();
+    const t = dropTarget(ev, dragId); if (!t) return;
+    t.rowEl.classList.add("over");
+    if (t.index < t.kids.length) t.kids[t.index].classList.add("ins-b");
+    else if (t.kids.length) t.kids[t.kids.length - 1].classList.add("ins-a");
+  }
+  const overPalette = (ev) => { const el = document.elementFromPoint(ev.clientX, ev.clientY); return !!(el && el.closest && el.closest("#pal-wrap")); };
+
+  // opt: { el: 판 위 사진(있으면), onTap, onEnd(움직였는지) }
+  function beginDrag(id, e, opt) {
+    const c = byId[id], sx = e.clientX, sy = e.clientY; let ghost = null, moved = false;
+    const mv = (ev) => {
+      if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+      moved = true;
+      if (!ghost) { ghost = document.createElement("div"); ghost.className = "q-ghost"; ghost.innerHTML = faceHTML(c); document.body.appendChild(ghost); if (opt.el) opt.el.classList.add("dragging"); }
+      ghost.style.left = ev.clientX + "px"; ghost.style.top = ev.clientY + "px";
+      showTarget(ev, id);
+    };
+    const end = (ev, cancel) => {
+      window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", cx);
+      clearMarks();
+      if (ghost) {
+        ghost.remove(); if (opt.el) opt.el.classList.remove("dragging");
+        if (!cancel) {
+          const t = dropTarget(ev, id);
+          if (t) { movePlace(id, t.rowId, t.index); setPick(t.rowId); save(); drawBoard(); }
+          else if (opt.el && overPalette(ev)) { unplace(id); save(); drawBoard(); }
+        }
+      } else if (!cancel && opt.onTap) opt.onTap();
+      if (opt.onEnd) opt.onEnd(moved);
+    };
+    const up = (ev) => end(ev, false), cx = (ev) => end(ev, true);
+    window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", cx);
+  }
+
+  rowsEl.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".t-ctl")) return;
+    const rowEl = e.target.closest(".t-row"); if (!rowEl) return;
+    const x = e.target.closest(".x");
+    if (x) { unplace(x.closest(".ti").dataset.id); save(); drawBoard(); e.preventDefault(); return; }
+    const t = e.target.closest(".ti");
+    if (!t) { setPick(rowEl.dataset.r); return; }                 // 줄 이름·빈 곳을 누르면 그 줄을 고른 상태
+    e.preventDefault();
+    beginDrag(t.dataset.id, e, { el: t, onTap: () => {
+      const was = t.classList.contains("sel");
+      rowsEl.querySelectorAll(".ti.sel").forEach((n) => n.classList.remove("sel"));
+      if (!was) t.classList.add("sel");
+    } });
+  });
+
+  // 줄 이름 고치기 / 색 바꾸기 / 줄 버튼
+  rowsEl.addEventListener("input", (e) => {
+    const lab = e.target.closest("[data-lab]");
+    if (lab) { rowOf(lab).name = lab.innerText.replace(/\n$/, ""); save(); return; }
+    if (e.target.matches('input[type="color"]')) {
+      const r = rowOf(e.target), l = e.target.closest(".t-row").querySelector("[data-lab]");
+      r.color = e.target.value; l.style.background = r.color; l.style.color = textOn(r.color); save();
+    }
+  });
+  rowsEl.addEventListener("paste", (e) => {
+    if (!e.target.closest("[data-lab]")) return;
+    e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain"));
+  });
+  rowsEl.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const r = rowOf(b), i = rows.indexOf(r);
+    if (b.dataset.act === "up" && i > 0) { rows.splice(i, 1); rows.splice(i - 1, 0, r); }
+    else if (b.dataset.act === "down" && i < rows.length - 1) { rows.splice(i, 1); rows.splice(i + 1, 0, r); }
+    else if (b.dataset.act === "del") {
+      if (r.items.length && !confirm("'" + (r.name || "이 줄") + "' 줄을 지울까요? (안에 있는 사진은 보관함으로 돌아가요)")) return;
+      rows.splice(i, 1); if (pick === r.id) pick = null;
+    } else return;
+    save(); drawBoard();
+  });
+
+  $("add-row").addEventListener("click", () => {
+    const r = { id: uid(), name: "새 줄", color: NEW_COLORS[rows.length % NEW_COLORS.length], items: [] };
+    rows.push(r); pick = r.id; save(); drawBoard();
+    const el = rowsEl.querySelector('[data-r="' + r.id + '"]'); if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+  });
+  $("reset-rows").addEventListener("click", () => {
+    if (!confirm("줄을 처음 모습(S~G)으로 되돌릴까요? 줄 이름·색·사진 배치가 모두 초기화돼요.")) return;
+    rows = defaultRows(); pick = null; save(); drawBoard();
+  });
+  $("clear-pics").addEventListener("click", () => {
+    if (!placedSet().size || confirm("줄 위의 사진을 모두 뺄까요?")) { rows.forEach((r) => (r.items = [])); save(); drawBoard(); }
+  });
+  $("names").addEventListener("change", (e) => { showNames = e.target.checked; save(); drawBoard(); });
+  $("title").addEventListener("input", save);
+
+  // ───────── 보관함 ─────────
+  let gfilter = "", kw = "";
+  function drawPalette() {
+    const gl = App.guildList();
+    $("pal-g").innerHTML = ['<button class="chip' + (gfilter ? "" : " on") + '" data-g="" type="button">전체 ' + CHARS.length + "</button>"]
+      .concat(gl.map((g) => '<button class="chip' + (gfilter === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '" type="button">' + esc(g.name) + " " + App.charsOfGuild(g).length + "</button>")).join("");
+    const placed = placedSet();
+    const list = CHARS.filter((c) => (!gfilter || App.guildOf(c).id === gfilter) && (!kw || c.name.toLowerCase().includes(kw)));
+    $("pal").innerHTML = list.map((c) =>
+      '<button class="pi' + (placed.has(c.id) ? " on" : "") + '" type="button" data-id="' + esc(c.id) + '" style="--mc:' + colorOf(c) + '" title="' +
+      esc(c.label || c.name) + (placed.has(c.id) ? " (이미 놓음 · 누르면 빼기)" : "") + '">' + faceHTML(c) + '<span class="nm">' + esc(c.name) + "</span></button>").join("") ||
+      '<p class="empty">찾는 캐릭터가 없어요.</p>';
+    $("pal-n").textContent = "배치 " + placed.size + "명";
+    $("pal-hint").textContent = "마우스는 끌어다 놓기, 휴대폰은 줄 이름을 눌러 줄을 고른 뒤 사진을 누르면 그 줄 끝에 들어가요. 줄 위의 사진은 끌어서 옮기고, 보관함으로 끌어다 놓으면 빠져요.";
+  }
+  $("pal-g").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { gfilter = b.dataset.g; drawPalette(); } });
+  $("pal-q").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); drawPalette(); });
+  $("pal-f").addEventListener("submit", (e) => e.preventDefault());
+
+  $("pal").addEventListener("pointerdown", (e) => {
+    const b = e.target.closest(".pi"); if (!b || e.pointerType !== "mouse") return;   // 터치는 click 으로 처리
+    const id = b.dataset.id; if (placedSet().has(id)) return;                          // 이미 놓은 사진은 click 에서 빼기
+    e.preventDefault();
+    beginDrag(id, e, { onEnd: (moved) => { if (moved) { b.dataset.dragged = "1"; setTimeout(() => delete b.dataset.dragged, 0); } } });
+  });
+  $("pal").addEventListener("click", (e) => {
+    const b = e.target.closest(".pi"); if (!b || b.dataset.dragged) return;
+    const id = b.dataset.id;
+    if (placedSet().has(id)) unplace(id);
+    else {
+      const r = rows.find((x) => x.id === pick) || rows[0];
+      if (!r) { $("msg").textContent = "먼저 '＋ 줄 추가'로 줄을 만들어 주세요."; return; }
+      r.items.push(id);
+    }
+    save(); drawBoard();
+  });
+
+  // ───────── 이미지로 저장 ─────────  (판과 같은 모양을 canvas 에 다시 그려요)
+  const loadImg = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+  const FONT = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+  function wrapText(ctx, text, maxW) {
+    const out = [];
+    String(text).split("\n").forEach((para) => {
+      let line = "";
+      [...para].forEach((ch) => { if (line && ctx.measureText(line + ch).width > maxW) { out.push(line); line = ch; } else line += ch; });
+      out.push(line);
+    });
+    return out;
+  }
+  function fitText(ctx, text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return text;
+    let t = [...text]; while (t.length && ctx.measureText(t.join("") + "…").width > maxW) t.pop();
+    return t.join("") + "…";
+  }
+  async function exportPng() {
+    if (!rows.length) throw new Error("줄이 없어요");
+    const U = 2, W = 1000, LW = 130, PAD = 8, GAP = 6, GR = 2;            // 판 1000칸 × 2 = 2000px
+    const P = 84 * (small ? SMALL : 1), AW = W - LW;
+    const per = Math.max(1, Math.floor((AW - 2 * PAD + GAP) / (P + GAP)));  // 한 줄에 들어가는 사진 수
+    const title = $("title").value.trim(), TH = title ? 64 : 0;
+    const hs = rows.map((r) => (r.items.length ? Math.max(100, Math.ceil(r.items.length / per) * (P + GAP) - GAP + 2 * PAD) : 100));
+    const H = (TH ? TH + GR : 0) + hs.reduce((a, b) => a + b, 0) + GR * (rows.length - 1);
+    const cv = document.createElement("canvas"); cv.width = W * U; cv.height = Math.ceil(H * U);
+    const ctx = cv.getContext("2d"), R = (v) => v * U;
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
+    const ids = [...new Set(rows.flatMap((r) => r.items))];
+    const imgs = {};
+    await Promise.all(ids.map(async (id) => { const c = byId[id]; imgs[id] = c && c.image ? await loadImg(fileUrl(c.image)) : null; }));
+    let y = 0;
+    if (title) {
+      ctx.fillStyle = "#1e1e1e"; ctx.fillRect(0, 0, R(W), R(TH));
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 " + R(32) + "px " + FONT;
+      ctx.fillText(fitText(ctx, title, R(W - 40)), R(W / 2), R(TH / 2));
+      y = TH + GR;
+    }
+    rows.forEach((r, ri) => {
+      const h = hs[ri];
+      ctx.fillStyle = r.color; ctx.fillRect(0, R(y), R(LW), R(h));                       // 줄 이름 칸
+      ctx.fillStyle = textOn(r.color); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "700 " + R(24) + "px " + FONT;
+      const lines = wrapText(ctx, r.name, R(LW - 2 * PAD)), lh = R(24 * 1.25);
+      lines.forEach((ln, i) => ctx.fillText(ln, R(LW / 2), R(y + h / 2) + (i - (lines.length - 1) / 2) * lh));
+      ctx.fillStyle = "#1e1e1e"; ctx.fillRect(R(LW), R(y), R(AW), R(h));                // 사진 칸
+      r.items.forEach((id, i) => {
+        const c = byId[id]; if (!c) return;
+        const x = LW + PAD + (i % per) * (P + GAP), yy = y + PAD + Math.floor(i / per) * (P + GAP), im = imgs[id];
+        ctx.save(); ctx.beginPath(); ctx.rect(R(x), R(yy), R(P), R(P)); ctx.clip();
+        if (im) { const m = Math.min(im.width, im.height); ctx.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, R(x), R(yy), R(P), R(P)); }   // 가운데를 정사각형으로 (CSS cover 와 같아요)
+        else {
+          ctx.fillStyle = colorOf(c); ctx.globalAlpha = .35; ctx.fillRect(R(x), R(yy), R(P), R(P)); ctx.globalAlpha = 1;
+          ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "700 " + R(32 * (small ? SMALL : 1)) + "px sans-serif"; ctx.fillText([...c.name][0], R(x + P / 2), R(yy + P / 2));
+        }
+        if (showNames) {
+          const fs = 11 * (small ? SMALL : 1), bh = fs * 1.25;
+          ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(R(x), R(yy + P - bh), R(P), R(bh));
+          ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "400 " + R(fs) + "px " + FONT;
+          ctx.fillText(fitText(ctx, c.name, R(P - 4)), R(x + P / 2), R(yy + P - bh / 2));
+        }
+        ctx.restore();
+        ctx.strokeStyle = colorOf(c); ctx.lineWidth = R(2.5); ctx.strokeRect(R(x + 1.25), R(yy + 1.25), R(P - 2.5), R(P - 2.5));
+      });
+      y += h + GR;
+    });
+    return cv;
+  }
+  $("save").addEventListener("click", async () => {
+    const msg = $("msg"); msg.textContent = "이미지를 만드는 중…"; $("result").innerHTML = "";
+    try {
+      const cv = await exportPng();
+      const url = cv.toDataURL("image/png");
+      const a = document.createElement("a"); a.href = url; a.download = "티어표-" + ($("title").value.trim() || "내 티어표") + ".png"; document.body.appendChild(a); a.click(); a.remove();
+      $("result").innerHTML = '<img src="' + url + '" alt="저장된 티어표 이미지"><p class="hint">자동으로 저장되지 않았다면 위 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
+      msg.textContent = "만들었어요!";
+    } catch (e) {
+      msg.textContent = "저장하지 못했어요. 파일을 그냥 열었을 때는 브라우저가 막을 수 있어요. 사이트 주소에서 다시 해 보세요. (" + e.message + ")";
+    }
+  });
+
+  load(); drawBoard();
+</script>
+</body>
+</html>

@@ -9,4 +9,5 @@ window.PLAYGROUND = [
   { title: "내가 갖게 될 능력은?", desc: "심리테스트 · 8문제 · 6가지 능력 계열", href: "quiz.html?id=ability", icon: "✨" },
   { title: "내 능력은 정확히 뭘까? (자세한 버전)", desc: "심리테스트 · 11문제 · 25가지 능력 중 하나", href: "quiz.html?id=ability-detail", icon: "🔮" },
   { title: "사분면에 배치하기", desc: "프로필 사진을 4분면에 놓고 놀기 · 프리셋 · 이미지로 저장", href: "quadrant.html", icon: "🧭" },
+  { title: "티어표 만들기", desc: "프로필 사진을 S~G 줄에 끌어다 놓기 · 줄 추가/삭제/이름·색 바꾸기 · 이미지로 저장", href: "tierlist.html", icon: "🏆" },
 ];
