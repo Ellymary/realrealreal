@@ -732,4 +732,20 @@ window.COMICS = [
     tags: [],
     series: true,
   },
+  {
+    id: "sjisisijijs",
+    title: "bjbj",
+    artist: "시은",
+    date: "2026-10-24",
+    cover: "images/comics/sjisisijijs/KakaoTalk_20261024_222002935.jpg",
+    pages: [
+      "images/comics/sjisisijijs/KakaoTalk_20261024_222002935.jpg",
+      "images/comics/sjisisijijs/KakaoTalk_20261024_222002935_01.jpg",
+      "images/comics/sjisisijijs/KakaoTalk_20261024_222002935_02.jpg",
+      "images/comics/sjisisijijs/KakaoTalk_20261024_222002935_03.jpg",
+      "images/comics/sjisisijijs/KakaoTalk_20261024_222002935_04.jpg",
+    ],
+    characters: ["yena-gangchun","sieun-f","sihyeon-trans-f","yeonwoo-gongyuan","harin-mun"],
+    tags: [],
+  },
 ];
