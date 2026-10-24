@@ -160,8 +160,8 @@
       "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
       '<p class="muted small">' + [App.artistsOf(it).length && "그림: " + App.artistsOf(it).join(", "), it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
       (it.desc ? "<p>" + esc(it.desc) + "</p>" : "") +
-      '<h3 class="side-h">태그 (누르면 검색 · − 는 빼고 보기)</h3><div>' +
-      App.tagsOf(it).map((t) => '<span class="tag-wrap"><button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + '</button><button class="tag-x" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></span>').join("") + "</div>" +
+      '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
+      App.tagsOf(it).map((t) => '<span class="tag-wrap"><button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + '</button></span>').join("") + "</div>" +
       (chars.length ? '<h3 class="side-h">캐릭터 페이지</h3><div>' + chars.map((c) => '<a class="tag t-character" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join("") + "</div>" : "") +
       (vd ? "" : '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>') +
       '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";

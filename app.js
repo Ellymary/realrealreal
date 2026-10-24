@@ -383,7 +383,9 @@
   }
   function sheetRowsHTML(c) {
     const used = new Set(SHEET_FIELDS);
-    const extra = Object.keys(infoOf(c)).filter((k) => !used.has(k));
+    const NOTE_KEYS = ["능력 부연설명", "능력 설명"];   // 능력 칸 안에 접어서 보여줘요
+    const noteKey = NOTE_KEYS.find((k) => infoOf(c)[k]);
+    const extra = Object.keys(infoOf(c)).filter((k) => !used.has(k) && !NOTE_KEYS.includes(k));
     return SHEET_FIELDS.concat(extra).map((k) => {
       const v = fieldValue(c, k);
       let cell;
@@ -392,6 +394,7 @@
       else if (k === "등급" && v) cell = infoVal(k, v);
       else if (k === "생일" && v) cell = birthdayHTML(String(v));
       else cell = v ? fmt(v) : '<span class="muted">-</span>';
+      if (k === "능력" && noteKey) cell += '<details class="ab-note"><summary>설명 보기</summary><div class="ab-note-body">' + text(String(infoOf(c)[noteKey])) + "</div></details>";
       return "<tr><th>" + esc(k) + "</th><td>" + cell + "</td></tr>";
     }).join("");
   }

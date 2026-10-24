@@ -22,6 +22,16 @@
   </div>
   <div id="custom"></div>
 
+  <h2 class="sec-h">궁합 테스트 <small>재미로 보는 완전 랜덤 궁합</small></h2>
+  <div class="cp-pick">
+    <select id="ca" aria-label="첫 번째 캐릭터"></select>
+    <span class="cp-x">♥</span>
+    <select id="cb" aria-label="두 번째 캐릭터"></select>
+    <button type="button" class="btn btn-primary" id="c-go">궁합 보기</button>
+  </div>
+  <p class="muted small cp-hint">누를 때마다 결과가 바뀌어요. 진지하게 믿지 말기!</p>
+  <div id="compat"></div>
+
   <h2 class="sec-h">2차 커플링</h2>
   <div id="list2"></div>
 
@@ -35,6 +45,7 @@
 <script src="data/comics.js"></script>
 <script src="data/world.js"></script>
 <script src="data/couples.js"></script>
+<script src="data/compat.js"></script>
 <script src="app.js"></script>
 <script src="data/music.js"></script>
 <script src="player.js"></script>
@@ -113,6 +124,32 @@
   }
   $("pa").addEventListener("change", drawCustom); $("pb").addEventListener("change", drawCustom);
   drawCustom();
+
+  // 궁합 테스트: 두 캐릭터를 고르고 버튼을 누르면 랜덤 퍼센트 + 문구가 나와요 (문구는 data/compat.js)
+  $("ca").innerHTML = opts; $("cb").innerHTML = opts;
+  const CKEY = "hw-compat-pick";
+  try { const s = JSON.parse(localStorage.getItem(CKEY) || "null"); if (s) { if (byId[s[0]]) $("ca").value = s[0]; if (byId[s[1]]) $("cb").value = s[1]; } } catch (e) {}
+  function drawCompat() {
+    const a = $("ca").value, b = $("cb").value;
+    try { localStorage.setItem(CKEY, JSON.stringify([a, b])); } catch (e) {}
+    if (!a || !b) { $("compat").innerHTML = '<p class="muted">두 캐릭터를 모두 고르고 "궁합 보기"를 눌러요.</p>'; return; }
+    if (a === b) { $("compat").innerHTML = '<p class="empty">서로 다른 두 캐릭터를 골라 주세요.</p>'; return; }
+    const pct = Math.floor(Math.random() * 101);
+    const tiers = (window.COMPAT || []).slice().sort((x, y) => y.min - x.min);
+    const t = tiers.find((x) => pct >= x.min) || { tier: "", msgs: [""] };
+    const msg = t.msgs[Math.floor(Math.random() * t.msgs.length)];
+    $("compat").innerHTML = '<div class="compat-box"><div class="compat-who">' + member(norm(a)) + '<span class="cp-x">♥</span>' + member(norm(b)) + "</div>" +
+      '<div class="compat-pct"><span id="c-num">0</span><small>%</small></div>' +
+      '<div class="compat-bar"><span id="c-bar"></span></div>' +
+      '<p class="compat-msg">' + esc(msg) + "</p>" + (t.tier ? '<p class="compat-tier">' + esc(t.tier) + "</p>" : "") +
+      '<div class="compat-ctrl"><button type="button" class="btn" id="c-again">다시 보기</button></div></div>';
+    $("c-again").addEventListener("click", drawCompat);
+    // 숫자가 올라가는 연출
+    requestAnimationFrame(() => { $("c-bar").style.width = pct + "%"; });
+    const t0 = performance.now();
+    (function tick(now) { const k = Math.min(1, (now - t0) / 900); $("c-num").textContent = Math.round(pct * k); if (k < 1) requestAnimationFrame(tick); })(t0);
+  }
+  $("c-go").addEventListener("click", drawCompat);
 </script>
 </body>
 </html>
