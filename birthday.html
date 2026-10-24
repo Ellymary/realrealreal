@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>달력</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  .cal-bar { display: flex; align-items: center; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+  .cal-bar h2 { margin: 0; font-size: 22px; min-width: 130px; text-align: center; }
+  .cal-bar button { padding: 6px 14px; border: 1px solid var(--line); background: var(--panel); color: inherit; cursor: pointer; font: inherit; }
+  .cal-bar button:hover { border-color: var(--accent); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .cal-dow { text-align: center; color: var(--muted); font-size: 13px; padding: 4px 0; }
+  .cal-dow:first-child, .cal-day:nth-child(7n+1) .n { color: #e86a6a; }
+  .cal-day { min-height: 92px; padding: 5px; border: 1px solid var(--line); background: var(--panel); overflow: hidden; }
+  .cal-day.out { opacity: .35; }
+  .cal-day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .cal-day .n { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+  .ev { display: block; font-size: 12px; line-height: 1.3; padding: 1px 5px; margin-top: 2px; border-left: 3px solid var(--mc, var(--accent)); background: var(--panel2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
+  a.ev:hover { background: var(--line); }
+  .cal-list { margin-top: 22px; }
+  .cal-list h3 { margin: 0 0 8px; }
+  .cal-item { display: flex; gap: 12px; padding: 8px 12px; margin-bottom: 6px; border: 1px solid var(--line); border-left: 4px solid var(--mc, var(--accent)); background: var(--panel); align-items: baseline; }
+  .cal-item .d { min-width: 54px; font-weight: 700; }
+  .cal-item .t { flex: 1; }
+  .cal-item .s { color: var(--muted); font-size: 13px; }
+  .cal-next { margin: 10px 0 0; color: var(--muted); }
+  @media (max-width: 640px) {
+    .cal-day { min-height: 60px; padding: 3px; }
+    .ev { font-size: 10px; padding: 0 3px; }
+    .cal-bar h2 { font-size: 18px; min-width: 100px; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <h1 class="page-title">달력</h1>
+  <p class="cal-next" id="next"></p>
+
+  <div class="cal-bar">
+    <button id="prev" type="button">◀</button>
+    <h2 id="title"></h2>
+    <button id="nextm" type="button">▶</button>
+    <button id="today" type="button">오늘</button>
+  </div>
+  <div class="cal-grid" id="grid"></div>
+  <div class="cal-list" id="list"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/calendar.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, CHARS } = App;
+  App.nav("birthday", "달력");
+
+  const now = new Date();
+  let Y = now.getFullYear(), M = now.getMonth() + 1;
+
+  // 일정 목록 만들기: { m, d, y(없으면 매년), label, href, color, note, kind }
+  function parseDate(t) {
+    t = String(t || "");
+    let r = t.match(/(\d{4})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/);
+    if (r) return { y: +r[1], m: +r[2], d: +r[3] };
+    r = t.match(/(\d{1,2})\s*월\s*(\d{1,2})/) || t.match(/(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/);
+    return r ? { m: +r[1], d: +r[2] } : null;
+  }
+  const events = [];
+  CHARS.forEach((c) => {
+    const b = App.bdayOf(c);
+    if (b) events.push({ m: b.m, d: b.d, label: "🎂 " + c.name, href: "character.html?id=" + encodeURIComponent(c.id), color: App.guildOf(c).color, note: [c.owner, App.guildOf(c).name].filter(Boolean).join(" · "), kind: "bday" });
+  });
+  (window.CALENDAR || []).forEach((e) => {
+    const p = parseDate(e.date);
+    if (p) events.push({ m: p.m, d: p.d, y: p.y, label: "📌 " + e.title, color: e.color, note: e.note || "", kind: "ev" });
+  });
+
+  const dim = (y, m) => new Date(y, m, 0).getDate();
+  // 해당 날짜의 일정 (2월 29일 생일은 평년엔 28일에 표시)
+  function on(y, m, d) {
+    return events.filter((e) => {
+      if (e.y && e.y !== y) return false;
+      if (e.m !== m) return false;
+      return e.d === d || (e.d === 29 && m === 2 && dim(y, 2) === 28 && d === 28);
+    });
+  }
+  const evHTML = (e) => {
+    const st = e.color ? ' style="--mc:' + esc(e.color) + '"' : "";
+    return e.href ? '<a class="ev" href="' + e.href + '"' + st + ' title="' + esc(e.label) + '">' + esc(e.label) + "</a>"
+                  : '<span class="ev"' + st + ' title="' + esc(e.label + (e.note ? " - " + e.note : "")) + '">' + esc(e.label) + "</span>";
+  };
+
+  function render() {
+    document.getElementById("title").textContent = Y + "년 " + M + "월";
+    const first = new Date(Y, M - 1, 1).getDay(), days = dim(Y, M);
+    let h = ["일", "월", "화", "수", "목", "금", "토"].map((x) => '<div class="cal-dow">' + x + "</div>").join("");
+    for (let i = 0; i < first; i++) h += '<div class="cal-day out"></div>';
+    for (let d = 1; d <= days; d++) {
+      const isToday = Y === now.getFullYear() && M === now.getMonth() + 1 && d === now.getDate();
+      h += '<div class="cal-day' + (isToday ? " today" : "") + '"><div class="n">' + d + "</div>" + on(Y, M, d).map(evHTML).join("") + "</div>";
+    }
+    document.getElementById("grid").innerHTML = h;
+
+    let l = "";
+    for (let d = 1; d <= days; d++) on(Y, M, d).forEach((e) => {
+      l += '<div class="cal-item"' + (e.color ? ' style="--mc:' + esc(e.color) + '"' : "") + '><span class="d">' + M + "/" + d + '</span><span class="t">' +
+        (e.href ? '<a class="link" href="' + e.href + '">' + esc(e.label) + "</a>" : esc(e.label)) + '</span><span class="s">' + esc(e.note) + "</span></div>";
+    });
+    document.getElementById("list").innerHTML = '<h3>' + M + '월 일정</h3>' + (l || '<p class="empty">이번 달 일정이 없어요.</p>');
+  }
+
+  // 다가오는 생일
+  (function () {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let best = null;
+    CHARS.forEach((c) => {
+      const n = App.bdayOf(c) && (function () {
+        const b = App.bdayOf(c);
+        let t = new Date(today.getFullYear(), b.m - 1, b.d);
+        if (t < today) t = new Date(today.getFullYear() + 1, b.m - 1, b.d);
+        return Math.round((t - today) / 86400000);
+      })();
+      if (n == null) return;
+      if (!best || n < best.n) best = { n, names: [c.name] }; else if (n === best.n) best.names.push(c.name);
+    });
+    if (best) document.getElementById("next").textContent = best.n === 0 ? "🎉 오늘은 " + best.names.join(", ") + " 생일!" : "다음 생일: " + best.names.join(", ") + " (D-" + best.n + ")";
+  })();
+
+  document.getElementById("prev").onclick = () => { M--; if (M < 1) { M = 12; Y--; } render(); };
+  document.getElementById("nextm").onclick = () => { M++; if (M > 12) { M = 1; Y++; } render(); };
+  document.getElementById("today").onclick = () => { Y = now.getFullYear(); M = now.getMonth() + 1; render(); };
+  render();
+</script>
+</body>
+</html>

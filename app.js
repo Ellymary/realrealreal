@@ -226,6 +226,7 @@
       ["gallery.html", "갤러리", "gallery"],
       ["playground.html", "놀이터", "playground"],
       ["couple.html", "커플", "couple"],
+      ["birthday.html", "달력", "birthday"],
     ];
     const h = document.getElementById("site-header");
     if (h)
