@@ -514,7 +514,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     id: "yeonwoo-rozelin",
     name: "로제린",
     owner: "연우",
-    guild: "백야",
+    guild: "비바람",
     image: "images/characters/31.jpg",
     summary: "",
     info: { "성별": "여성", "나이": "27", "능력": "혈액조종", "등급": "A", "눈 색": "#A63939", "머리색": "#B85252" },
