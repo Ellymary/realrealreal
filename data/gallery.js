@@ -76,4 +76,12 @@ window.GALLERY = [
     characters: ["yena-kail"],
     tags: [],
   },
+  {
+    file: "images/gallery/https://drive.google.com/file/d/1HL4CiRs-d03afnGm4xNODpiDeKhQwJWT/view?usp=sharing",
+    title: "56575",
+    artist: "시현",
+    date: "2026-10-24",
+    characters: ["sieun-e","sieun-f","sihyeon-lanhwa","sihyeon-dong","yeonwoo-hyeonrang","harin-baekjeomyuheuksae"],
+    tags: [],
+  },
 ];
