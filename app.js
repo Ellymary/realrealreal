@@ -184,12 +184,12 @@
   const guildList = () => (CHARS.some((c) => guildOf(c) === UNKNOWN_GUILD) ? GUILDS.concat([UNKNOWN_GUILD]) : GUILDS);
   const guildById = (id) => guildList().find((g) => g.id === id);
 
-  function charCard(c) {
+  function charCard(c, note) {
     const n = galleryOf(c.id).length;
     return '<a class="card" style="--mc:' + guildOf(c).color + '" href="character.html?id=' + encodeURIComponent(c.id) + '">' +
       '<div class="pic">' + avatar(c) + "</div>" +
       '<div class="body"><div class="nm">' + esc(c.name) + '</div><div class="sub">' + fmt(c.summary || "") + "</div>" +
-      '<div class="cnt">' + esc([c.owner, n ? "그림 " + n : ""].filter(Boolean).join(" · ")) + "</div></div></a>";
+      '<div class="cnt">' + esc([c.owner, n ? "그림 " + n : ""].filter(Boolean).join(" · ")) + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + esc(note) : "") + "</div></div></a>";
   }
 
   const galleryOf = (id) => GALLERY.filter((g) => (g.characters || []).includes(id));
@@ -241,6 +241,48 @@
     const out = {};
     Object.keys(raw).forEach((k) => { out[FIELD_ALIAS[k.trim().toLowerCase()] || FIELD_ALIAS[k.trim()] || k.trim()] = raw[k]; });
     return out;
+  }
+
+  // ── 등급 정렬 ──  S 계열 > A > B > C > D > E > F, +/- 는 같은 등급 안에서 위/아래, 등급이 없는 캐릭터는 항상 맨 뒤
+  const gradeOf = (c) => String(infoOf(c)["등급"] == null ? "" : infoOf(c)["등급"]).trim();
+  function gradeRank(c) {
+    const t = gradeOf(c).toUpperCase().replace(/\s+/g, "");
+    const m = t.match(/^(S{1,3}|[A-F])([+-]?)$/);
+    if (!m) return null;
+    const base = m[1][0] === "S" ? 60 + (m[1].length - 1) * 10 : { A: 50, B: 40, C: 30, D: 20, E: 10, F: 0 }[m[1]];
+    return base + (m[2] === "+" ? 3 : m[2] === "-" ? -3 : 0);
+  }
+  // ── 나이 / 나온 순서 ──
+  function ageOf(c) { const m = String(infoOf(c)["나이"] == null ? "" : infoOf(c)["나이"]).match(/\d+/); return m ? +m[0] : null; }
+  const DEBUT = window.DEBUT || [];   // data/order.js
+  const debutIndex = (c) => DEBUT.findIndex((d) => (d.who || []).includes(c.id));   // 없으면 -1
+  const debutDate = (c) => { const i = debutIndex(c); return i < 0 ? "" : DEBUT[i].date || ""; };
+  // 정렬 방식 목록 (새 정렬을 만들려면 여기에 한 줄 추가하고 sortChars 에 계산을 넣어요)
+  const SORTS = [
+    { id: "", label: "기본 순서" },
+    { id: "grade", label: "등급 높은순" },
+    { id: "grade-asc", label: "등급 낮은순" },
+    { id: "age", label: "나이 많은순" },
+    { id: "age-asc", label: "나이 적은순" },
+    { id: "debut", label: "나온 순서", note: "(잘 모름, 정확한 날짜 있으면 알려줘)" },
+    { id: "debut-desc", label: "최근에 나온 순" },
+  ];
+  // 값이 없는 캐릭터(등급 미정, 나이 미정 등)는 항상 맨 뒤
+  const keyOf = { grade: gradeRank, age: ageOf, debut: (c) => { const i = debutIndex(c); return i < 0 ? null : i; } };
+  function sortChars(list, key) {
+    const out = list.slice();
+    const base = String(key || "").replace(/-(asc|desc)$/, "");
+    const get = keyOf[base];
+    if (!get) return out;
+    // 등급·나이는 기본이 높은/많은 순(내림차순), 나온 순서는 기본이 먼저 나온 순(오름차순)
+    const asc = base === "debut" ? key !== "debut-desc" : key === base + "-asc";
+    return out.sort((a, b) => {
+      const ra = get(a), rb = get(b);
+      if (ra == null && rb == null) return a.name.localeCompare(b.name, "ko");
+      if (ra == null) return 1;
+      if (rb == null) return -1;
+      return (asc ? ra - rb : rb - ra) || a.name.localeCompare(b.name, "ko");
+    });
   }
   function fieldValue(c, key) {
     if (key === "주인") return c.owner || "";
@@ -383,7 +425,7 @@
 
   window.App = {
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
-    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf,
+    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, SORTS, sortChars,
     esc, param, store, tagText, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
     GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,

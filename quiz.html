@@ -24,13 +24,14 @@
 <script src="data/world.js"></script>
 <script src="data/guildquiz.js"></script>
 <script src="data/abilityquiz.js"></script>
+<script src="data/abilityquiz-detail.js"></script>
 <script src="app.js"></script>
 <script src="data/music.js"></script>
 <script src="player.js"></script>
 <script>
   const { esc } = App;
-  // 심리테스트 목록: 주소 quiz.html?id=guild / quiz.html?id=ability
-  const QUIZZES = { guild: window.GUILD_QUIZ, ability: window.ABILITY_QUIZ };
+  // 심리테스트 목록: 주소 quiz.html?id=guild / ability / ability-detail
+  const QUIZZES = { guild: window.GUILD_QUIZ, ability: window.ABILITY_QUIZ, "ability-detail": window.ABILITY_QUIZ_DETAIL };
   const Q = QUIZZES[App.param("id")] || QUIZZES.guild;
   const $ = (id) => document.getElementById(id);
   App.nav("playground", Q.title);
@@ -40,23 +41,32 @@
   const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const para = (s) => String(s || "").split(/\n+/).map((t) => "<p>" + esc(t) + "</p>").join("");
 
-  let idx = 0, score = {}, last = null, opts = [];
+  // 질문 목록(list)을 차례로 풀어요. followups 가 있는 테스트는 1단계(계열) → 2단계(계열 안의 결과) 두 번에 나눠 풀어요.
+  let list = Q.questions, idx = 0, score = {}, last = null, opts = [], offset = 0, stage2 = false, cat = null;
+  const totalQ = () => Q.questions.length + (Q.followups ? 3 : 0);
 
   function start() {
-    idx = 0; score = {}; last = null;
+    list = Q.questions; idx = 0; score = {}; last = null; offset = 0; stage2 = false; cat = null;
     $("quiz").innerHTML =
       '<div class="quiz-box"><p>' + esc(Q.intro) + '</p><button class="btn btn-primary" id="go" type="button">시작하기</button></div>';
     $("go").addEventListener("click", ask);
   }
 
   function ask() {
-    const q = Q.questions[idx];
+    const q = list[idx];
     opts = shuffle(q.a);   // 보기 순서는 매번 랜덤
     $("quiz").innerHTML =
-      '<div class="quiz-bar"><span style="width:' + (idx / Q.questions.length * 100) + '%"></span></div>' +
-      '<p class="muted small">' + (idx + 1) + " / " + Q.questions.length + "</p>" +
+      '<div class="quiz-bar"><span style="width:' + ((offset + idx) / totalQ() * 100) + '%"></span></div>' +
+      '<p class="muted small">' + (offset + idx + 1) + " / " + totalQ() + (stage2 ? " · 마지막 단계!" : "") + "</p>" +
       '<h2 class="quiz-q">' + esc(q.q) + "</h2>" +
       '<div class="quiz-opts">' + opts.map((o, i) => '<button class="quiz-opt" type="button" data-i="' + i + '">' + esc(o.t) + "</button>").join("") + "</div>";
+  }
+
+  // 가장 점수가 높은 결과. 동점이면 마지막 질문에서 고른 답, 그래도 여러 개면 랜덤
+  function winner(ids) {
+    const top = Math.max(...ids.map((id) => score[id] || 0));
+    const tied = ids.filter((id) => (score[id] || 0) === top);
+    return tied.length === 1 ? tied[0] : tied.includes(last) ? last : tied[Math.floor(Math.random() * tied.length)];
   }
 
   function pick(i) {
@@ -64,14 +74,18 @@
     score[g] = (score[g] || 0) + 1;
     last = g;
     idx++;
-    idx < Q.questions.length ? ask() : finish();
+    if (idx < list.length) return ask();
+    if (Q.followups && !stage2) {            // 1단계 끝 → 계열을 정하고 그 계열의 추가 질문으로
+      cat = winner(Object.keys(Q.categories));
+      list = Q.followups[cat]; offset = Q.questions.length; idx = 0; score = {}; last = null; stage2 = true;
+      return ask();
+    }
+    finish();
   }
 
   function finish() {
-    const ids = Object.keys(Q.results);
-    const top = Math.max(...ids.map((id) => score[id] || 0));
-    let tied = ids.filter((id) => (score[id] || 0) === top);
-    const win = tied.length === 1 ? tied[0] : tied.includes(last) ? last : tied[Math.floor(Math.random() * tied.length)]; // 동점이면 마지막 질문 답
+    const ids = stage2 ? [...new Set(list.flatMap((q) => q.a.map((o) => o.g)))] : Object.keys(Q.results);
+    const win = winner(ids);
     const r = Q.results[win];
     const isGuild = Q.type === "guild";
     const g = isGuild ? (App.guildById(win) || { name: win, color: "#98a2b6" }) : null;

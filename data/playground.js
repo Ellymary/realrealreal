@@ -7,4 +7,5 @@
 window.PLAYGROUND = [
   { title: "나는 어느 길드에 어울릴까?", desc: "심리테스트 · 8문제 · 전갈 / 비바람 / 백야", href: "quiz.html?id=guild", icon: "🧪" },
   { title: "내가 갖게 될 능력은?", desc: "심리테스트 · 8문제 · 6가지 능력 계열", href: "quiz.html?id=ability", icon: "✨" },
+  { title: "내 능력은 정확히 뭘까? (자세한 버전)", desc: "심리테스트 · 11문제 · 25가지 능력 중 하나", href: "quiz.html?id=ability-detail", icon: "🔮" },
 ];
