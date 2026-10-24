@@ -16,17 +16,18 @@
   .q-lab::placeholder { color: #b5b9c4; }
   .q-lab.title { font-size: 3.4cqw; font-weight: 800; }
   /* 배치된 사진: 한 사분면(판의 35%)에 16개 = 가로 4개 → 판 너비의 8.75% */
-  .qi { position: absolute; width: 8.75%; aspect-ratio: 1; transform: translate(-50%, -50%); touch-action: none; cursor: grab; z-index: 2; }
+  .qi { position: absolute; width: calc(8.75% * var(--ps, 1)); aspect-ratio: 1; transform: translate(-50%, -50%); touch-action: none; cursor: grab; z-index: 2; }
   .qi.drag { cursor: grabbing; z-index: 9; filter: drop-shadow(0 4px 8px rgba(0,0,0,.35)); }
   .qi .ph { width: 100%; height: 100%; overflow: hidden; border: .25cqw solid var(--mc, #888); background: #eee; }
   .qi img, .qi .avatar-fb { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
   .qi .avatar-fb { font-size: 3.2cqw; --on: 60%; }
-  .qi .qn { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); font-size: 1.25cqw; line-height: 1.15; white-space: nowrap; color: #111; background: rgba(255,255,255,.8); padding: 0 .3cqw; pointer-events: none; }
+  .qi .qn { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); font-size: calc(1.25cqw * var(--ps, 1)); line-height: 1.15; white-space: nowrap; color: #111; background: rgba(255,255,255,.8); padding: 0 .3cqw; pointer-events: none; }
   .qi .x { position: absolute; right: -1.2cqw; top: -1.2cqw; width: 3cqw; height: 3cqw; border-radius: 50%; border: 0; background: #e5484d; color: #fff; font-size: 2cqw; line-height: 3cqw; padding: 0; display: none; cursor: pointer; }
   .qi.sel .x { display: block; }
   .qi.sel .ph { outline: .35cqw solid #8a6212; }
 
   .q-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 12px; }
+  .q-tools .btn.on { border-color: var(--accent); background: var(--panel); font-weight: 700; }
   .q-tools .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
   .q-tools label.chk { margin: 0; }
   /* 사진 보관함 */
@@ -71,6 +72,7 @@
 
   <div class="q-tools">
     <button class="btn btn-primary" id="save" type="button">이미지로 저장 (PNG)</button>
+    <span class="muted small">사진 크기</span><button class="btn" id="sz-l" type="button">큰 사진</button><button class="btn" id="sz-s" type="button">작은 사진</button>
     <label class="chk"><input type="checkbox" id="names"> 사진에 이름 표시</label>
     <span class="sep"></span>
     <button class="btn" id="clear-pics" type="button">사진 모두 빼기</button>
@@ -115,6 +117,8 @@
   const KEY = "hw-quadrant-v1";
   let items = [];    // { id, x, y }  x, y = 판 안의 위치 (0~1)
   let showNames = false;
+  let small = false;   // 작은 사진 = 큰 사진의 2/3
+  const SMALL = 2 / 3;
   const byId = App.byId;
   const store = {
     get() { try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } },
@@ -122,13 +126,13 @@
   };
   function save() {
     const labels = {}; Object.keys(LABELS).forEach((k) => (labels[k] = $(LABELS[k]).value));
-    store.set({ labels, items, showNames });
+    store.set({ labels, items, showNames, small });
   }
   function load() {
     const s = store.get(); if (!s) return;
     Object.keys(LABELS).forEach((k) => ($(LABELS[k]).value = (s.labels && s.labels[k]) || ""));
     items = (s.items || []).filter((it) => byId[it.id]);
-    showNames = !!s.showNames; $("names").checked = showNames;
+    showNames = !!s.showNames; $("names").checked = showNames; small = !!s.small;
   }
 
   // ───────── 사진 조각 ─────────
@@ -138,7 +142,14 @@
 
   // ───────── 판에 그리기 ─────────
   const board = $("board");
+  function applySize() {
+    board.style.setProperty("--ps", small ? SMALL : 1);
+    $("sz-l").classList.toggle("on", !small); $("sz-s").classList.toggle("on", small);
+  }
+  $("sz-l").addEventListener("click", () => { small = false; save(); applySize(); });
+  $("sz-s").addEventListener("click", () => { small = true; save(); applySize(); });
   function drawBoard() {
+    applySize();
     board.querySelectorAll(".qi").forEach((n) => n.remove());
     items.forEach((it) => {
       const c = byId[it.id]; if (!c) return;
@@ -288,7 +299,7 @@
     box("l-title", 720, 15, 270, 34, true); box("l-n", 300, 45, 400, 23); box("l-s", 300, 880, 400, 23);
     box("l-w", 5, 455, 140, 23); box("l-e", 855, 455, 140, 23);
     // 사진
-    const ph = 87.5;
+    const ph = 87.5 * (small ? SMALL : 1);
     const imgs = await Promise.all(items.map((it) => { const c = byId[it.id]; return c && c.image ? loadImg(fileUrl(c.image)) : Promise.resolve(null); }));
     items.forEach((it, i) => {
       const c = byId[it.id]; if (!c) return;
@@ -298,12 +309,12 @@
         const m = Math.min(im.width, im.height); ctx.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, R(x), R(y), R(ph), R(ph));
       } else {
         ctx.fillStyle = colorOf(c); ctx.globalAlpha = .35; ctx.fillRect(R(x), R(y), R(ph), R(ph)); ctx.globalAlpha = 1;
-        ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "700 " + R(34) + "px sans-serif"; ctx.fillText([...c.name][0], R(x + ph / 2), R(y + ph / 2));
+        ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "700 " + R(34 * (small ? SMALL : 1)) + "px sans-serif"; ctx.fillText([...c.name][0], R(x + ph / 2), R(y + ph / 2));
       }
       ctx.restore();
       ctx.strokeStyle = colorOf(c); ctx.lineWidth = R(2.5); ctx.strokeRect(R(x), R(y), R(ph), R(ph));
       if (showNames) {
-        ctx.font = "400 " + R(12.5) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        ctx.font = "400 " + R(small ? 10 : 12.5) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "top";
         const w = ctx.measureText(c.name).width + R(6);
         ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.fillRect(R(x + ph / 2) - w / 2, R(y + ph), w, R(16));
         ctx.fillStyle = "#111"; ctx.fillText(c.name, R(x + ph / 2), R(y + ph + 1));
