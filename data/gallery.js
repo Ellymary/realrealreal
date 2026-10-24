@@ -52,4 +52,12 @@ window.GALLERY = [
     characters: ["yena-jiruciel","yena-jiien","sihyeon-dong"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1dcqhguMiuQUaayY7PpWAaTvf57Gu_u4a/view?usp=sharing",
+    title: "9795",
+    artist: "예나",
+    date: "2026-10-24",
+    characters: ["yena-jangcheongil","yena-karia"],
+    tags: [],
+  },
 ];
