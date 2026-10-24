@@ -818,4 +818,12 @@ window.GALLERY = [
     characters: ["yena-chi"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261024_224354127_03.jpg",
+    title: "KakaoTalk_20261024_224354127_03",
+    artist: "시은",
+    date: "2026-10-24",
+    characters: ["yena-gangchun","sieun-e"],
+    tags: [],
+  },
 ];
