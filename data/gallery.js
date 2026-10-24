@@ -866,4 +866,12 @@ window.GALLERY = [
     characters: ["andrei","hoyeon","rimina"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_042618332_07.jpg",
+    title: "KakaoTalk_20261025_042618332_07",
+    artist: "시은",
+    date: "2026-10-25",
+    characters: ["andrei","hoyeon","rimina"],
+    tags: [],
+  },
 ];
