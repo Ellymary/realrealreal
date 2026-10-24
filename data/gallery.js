@@ -68,4 +68,12 @@ window.GALLERY = [
     characters: ["yena-jiien","sihyeon-lanhwa","sihyeon-dong","harin-dobu","harin-mun"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/10aELvdxaatDtxCqMT0UdWppoFGWRr3gU/view?usp=sharing",
+    title: "6767676",
+    artist: "예나",
+    date: "2026-10-24",
+    characters: ["yena-kail"],
+    tags: [],
+  },
 ];
