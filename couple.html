@@ -68,19 +68,20 @@
 
   function couple(cp, custom) {
     const ms = (cp.members || []).map(norm);
-    if (ms.length !== 2 || ms.includes(null)) return '<p class="empty">커플에 쓴 캐릭터 id 를 찾을 수 없어요. data/couples.js 를 확인해 주세요.</p>';
+    if (ms.length < 2 || ms.length > 3 || ms.includes(null)) return '<p class="empty">커플에 쓴 캐릭터 id 를 찾을 수 없어요. data/couples.js 를 확인해 주세요.</p>';
     const [a, b] = ms;
+    const three = ms.length === 3;
     const info = cp.info || {};
     const keys = FIELDS.concat(Object.keys(info).filter((k) => !FIELDS.includes(k)));
     const rows = keys.filter((k) => info[k]).map((k) => "<tr><th>" + esc(k) + "</th><td>" + fmt(info[k]) + "</td></tr>").join("");
     const has = (g, m) => (g.characters || []).some((id) => m.chars.some((c) => c.id === id));
-    const pics = App.GALLERY.filter((g) => has(g, a) && has(g, b)).sort(App.byDateDesc);
+    const pics = App.GALLERY.filter((g) => (three ? ms.filter((m) => has(g, m)).length >= 2 : has(g, a) && has(g, b))).sort(App.byDateDesc);
     // 갤러리 검색은 AND 라서, 여러 모습인 쪽은 빼고 한 명짜리 태그로 찾아요
-    const single = ms.filter((m) => !m.group);
+    const single = three ? [ms[1]] : ms.filter((m) => !m.group);
     const q = encodeURIComponent((single.length ? single : [a]).map((m) => App.tagText(m.first.label)).join(" "));
     const empty = !custom && !cp.summary && !rows && !cp.desc;
     return '<section class="couple">' +
-      '<div class="cp-head">' + member(a) + '<span class="cp-x" aria-label="커플">×</span>' + member(b) + "</div>" +
+      '<div class="cp-head">' + ms.map(member).join('<span class="cp-x" aria-label="커플">×</span>') + "</div>" +
       '<div class="cp-body">' +
         (cp.summary ? '<p class="lead">' + fmt(cp.summary) + "</p>" : "") +
         (rows ? '<table class="info sheet">' + rows + "</table>" : "") +
