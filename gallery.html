@@ -16,7 +16,7 @@
     <button>검색</button>
   </form>
   <div class="chips" id="types"></div>
-  <p class="hint">만화도 여기 같이 있어요 · 여러 태그는 띄어쓰기로 · 제외는 -태그 · 앞부분 검색은 태그* · 이름에 띄어쓰기가 있으면 _ 로 (공_유안). 옆 목록을 눌러도 돼요.</p>
+  <p class="hint">만화도 여기 같이 있어요 · 여러 태그는 띄어쓰기로 · 제외는 -태그 (태그 옆 − 버튼으로도 돼요) · 앞부분 검색은 태그* · 이름에 띄어쓰기가 있으면 _ 로 (공_유안). 옆 목록을 눌러도 돼요.</p>
   <div class="active" id="active"></div>
   <div class="browser">
     <aside class="side" id="side"></aside>
@@ -71,7 +71,9 @@
     render();
   }
   function addTerm(t) {
-    const terms = q.split(/\s+/).filter(Boolean);
+    // 같은 태그의 반대 조건(포함 ↔ 제외)은 빼고 넣어요
+    const opp = t[0] === "-" ? t.slice(1) : "-" + t;
+    const terms = q.split(/\s+/).filter(Boolean).filter((x) => x !== opp);
     if (!terms.includes(t)) terms.push(t);
     setQ(terms.join(" "));
   }
@@ -93,7 +95,7 @@
     shown = byQ.filter((it) => !type || cat(it) === type);
     imgs = shown.filter((it) => it.kind === "image");
     const terms = q.split(/\s+/).filter(Boolean);
-    $("active").innerHTML = terms.map((t) => '<button class="chip" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
+    $("active").innerHTML = terms.map((t) => '<button class="chip' + (t.length > 1 && t[0] === "-" ? " neg" : "") + '" data-rm="' + esc(t) + '">' + esc(t) + " ✕</button>").join("");
     const sn = { image: 0, video: 0, comic: 0 };
     shown.forEach((it) => sn[cat(it)]++);
     $("count").textContent = shown.length + "개 (그림 " + sn.image + " · 영상 " + sn.video + " · 만화 " + sn.comic + ")";
@@ -118,8 +120,8 @@
       "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
       '<p class="muted small">' + [App.artistsOf(it).length && "그림: " + App.artistsOf(it).join(", "), it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
       (it.desc ? "<p>" + esc(it.desc) + "</p>" : "") +
-      '<h3 class="side-h">태그 (누르면 검색)</h3><div>' +
-      App.tagsOf(it).map((t) => '<button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + "</button>").join("") + "</div>" +
+      '<h3 class="side-h">태그 (누르면 검색 · − 는 빼고 보기)</h3><div>' +
+      App.tagsOf(it).map((t) => '<span class="tag-wrap"><button class="tag t-' + t.type + '" data-tag="' + esc(t.text) + '">' + esc(t.show) + '</button><button class="tag-x" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></span>').join("") + "</div>" +
       (chars.length ? '<h3 class="side-h">캐릭터 페이지</h3><div>' + chars.map((c) => '<a class="tag t-character" href="character.html?id=' + encodeURIComponent(c.id) + '">' + esc(c.label) + "</a>").join("") + "</div>" : "") +
       (vd ? "" : '<p><a class="link" href="' + esc(it.file) + '" target="_blank" rel="noopener">원본 열기 ↗</a></p>') +
       '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";
@@ -130,13 +132,19 @@
 
   $("f").addEventListener("submit", (e) => { e.preventDefault(); setQ($("q").value); });
   $("types").addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) setType(b.dataset.type); });
-  $("side").addEventListener("click", (e) => { const b = e.target.closest("[data-tag]"); if (b) addTerm(b.dataset.tag); });
+  $("side").addEventListener("click", (e) => {
+    const x = e.target.closest("[data-ex]"); if (x) { addTerm("-" + x.dataset.ex); return; }
+    const b = e.target.closest("[data-tag]"); if (b) addTerm(b.dataset.tag);
+  });
   $("active").addEventListener("click", (e) => {
     const b = e.target.closest("[data-rm]");
     if (b) setQ(q.split(/\s+/).filter((t) => t !== b.dataset.rm).join(" "));
   });
   $("grid").addEventListener("click", (e) => { const b = e.target.closest("[data-i]"); if (b) openLb(+b.dataset.i); });
-  $("lb-info").addEventListener("click", (e) => { const b = e.target.closest("button[data-tag]"); if (b) { closeLb(); addTerm(b.dataset.tag); } });
+  $("lb-info").addEventListener("click", (e) => {
+    const x = e.target.closest("button[data-ex]"); if (x) { closeLb(); addTerm("-" + x.dataset.ex); return; }
+    const b = e.target.closest("button[data-tag]"); if (b) { closeLb(); addTerm(b.dataset.tag); }
+  });
   $("lb-close").addEventListener("click", closeLb);
   $("lb-main").addEventListener("click", (e) => { if (e.target === $("lb-main") || e.target === $("lb-img")) closeLb(); });
   $("lb-prev").addEventListener("click", () => openLb(cur - 1));

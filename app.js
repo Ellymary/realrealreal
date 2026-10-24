@@ -101,7 +101,7 @@
         if (!list.length) return "";
         return (
           '<h3 class="side-h">' + title + "</h3>" +
-          list.map((t) => '<button class="tag-row t-' + type + '" data-tag="' + esc(t.text) + '"><span>' + esc(t.show) + '</span><span class="n">' + t.n + "</span></button>").join("")
+          list.map((t) => '<div class="tag-line"><button class="tag-row t-' + type + '" data-tag="' + esc(t.text) + '"><span>' + esc(t.show) + '</span><span class="n">' + t.n + '</span></button><button class="tag-ex" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></div>').join("")
         );
       })
       .join("");

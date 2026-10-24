@@ -523,3 +523,16 @@ a.rel-name:hover { text-decoration: underline; }
   #chips-g::-webkit-scrollbar, #chips-o::-webkit-scrollbar, #chips-s::-webkit-scrollbar, #g-sort::-webkit-scrollbar { display: none; }
   #chips-g .chip, #chips-o .chip, #chips-s .chip, #g-sort .chip { white-space: nowrap; flex: none; }
 }
+
+/* 태그 제외(−) 버튼 */
+.tag-line { display: flex; align-items: stretch; }
+.tag-line .tag-row { flex: 1; width: auto; min-width: 0; }
+.tag-ex, .tag-x { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 8px; font-size: 14px; line-height: 1; }
+.tag-ex { visibility: hidden; }
+.tag-line:hover .tag-ex, .tag-ex:focus-visible { visibility: visible; }
+@media (hover: none) { .tag-ex { visibility: visible; } }
+.tag-ex:hover, .tag-x:hover { color: #ff6b6b; }
+.tag-wrap { display: inline-flex; align-items: center; margin: 0 4px 4px 0; }
+.tag-wrap .tag { margin: 0; }
+.tag-x { padding: 0 4px; }
+.chip.neg { border-color: #ff6b6b; color: #ff6b6b; }

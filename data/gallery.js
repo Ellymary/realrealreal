@@ -59,6 +59,14 @@ window.GALLERY = [
     tags: [],
   },
   {
+    video: "https://drive.google.com/file/d/1HL4CiRs-d03afnGm4xNODpiDeKhQwJWT/view?usp=sharing",
+    title: "787978",
+    artist: "시현",
+    date: "2026-10-24",
+    characters: ["sieun-e","sieun-f","sihyeon-lanhwa","sihyeon-dong","yeonwoo-hyeonrang","harin-baekjeomyuheuksae"],
+    tags: [],
+  },
+  {
     file: "images/gallery/a70.png",
     title: "70",
     artist: "시은",
