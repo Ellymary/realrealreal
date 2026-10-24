@@ -13,3 +13,9 @@ window.COUPLES = [
   { members: ["yeonwoo-gongyuan", { name: "트랜스", ids: ["sihyeon-trans-f", "sihyeon-trans-m"] }], summary: "", info: {}, desc: "" },
   { members: ["harin-mun", "harin-dobu"],             summary: "", info: {}, desc: "" },
 ];
+
+// 2차 커플링 (커플 페이지의 "2차 커플링" 란에 나와요. 적는 방법은 위 COUPLES 와 똑같아요)
+window.COUPLES2 = [
+  { members: ["harin-dobu", "sihyeon-lanhwa"],        summary: "", info: {}, desc: "" },
+  { members: ["yeonwoo-hyeon", "yena-chi"],           summary: "", info: {}, desc: "" },
+];

@@ -14,6 +14,17 @@
 
   <div id="list"></div>
 
+  <h2 class="sec-h">커스텀 <small>원하는 두 캐릭터를 골라 보기</small></h2>
+  <div class="cp-pick">
+    <select id="pa" aria-label="첫 번째 캐릭터"></select>
+    <span class="cp-x">×</span>
+    <select id="pb" aria-label="두 번째 캐릭터"></select>
+  </div>
+  <div id="custom"></div>
+
+  <h2 class="sec-h">2차 커플링</h2>
+  <div id="list2"></div>
+
 </main>
 <footer class="site-footer" id="site-footer"></footer>
 
@@ -55,7 +66,7 @@
       "</div>";
   }
 
-  function couple(cp) {
+  function couple(cp, custom) {
     const ms = (cp.members || []).map(norm);
     if (ms.length !== 2 || ms.includes(null)) return '<p class="empty">커플에 쓴 캐릭터 id 를 찾을 수 없어요. data/couples.js 를 확인해 주세요.</p>';
     const [a, b] = ms;
@@ -67,7 +78,7 @@
     // 갤러리 검색은 AND 라서, 여러 모습인 쪽은 빼고 한 명짜리 태그로 찾아요
     const single = ms.filter((m) => !m.group);
     const q = encodeURIComponent((single.length ? single : [a]).map((m) => App.tagText(m.first.label)).join(" "));
-    const empty = !cp.summary && !rows && !cp.desc;
+    const empty = !custom && !cp.summary && !rows && !cp.desc;
     return '<section class="couple">' +
       '<div class="cp-head">' + member(a) + '<span class="cp-x" aria-label="커플">×</span>' + member(b) + "</div>" +
       '<div class="cp-body">' +
@@ -83,7 +94,24 @@
   }
 
   const list = window.COUPLES || [];
-  document.getElementById("list").innerHTML = list.length ? list.map(couple).join("") : '<p class="empty">아직 등록된 커플이 없어요. data/couples.js 에서 추가해 주세요.</p>';
+  document.getElementById("list").innerHTML = list.length ? list.map((cp) => couple(cp)).join("") : '<p class="empty">아직 등록된 커플이 없어요. data/couples.js 에서 추가해 주세요.</p>';
+  const list2 = window.COUPLES2 || [];
+  document.getElementById("list2").innerHTML = list2.length ? list2.map((cp) => couple(cp)).join("") : '<p class="empty">아직 없어요. data/couples.js 의 COUPLES2 에 추가해 주세요.</p>';
+
+  // 커스텀: 두 캐릭터를 고르면 둘이 같이 나온 그림이 나와요
+  const $ = (id) => document.getElementById(id);
+  const opts = '<option value="">캐릭터 고르기</option>' + App.CHARS.map((c) => '<option value="' + esc(c.id) + '">' + esc(c.label || c.name) + "</option>").join("");
+  $("pa").innerHTML = opts; $("pb").innerHTML = opts;
+  const KEY = "hw-couple-custom";
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { if (byId[s[0]]) $("pa").value = s[0]; if (byId[s[1]]) $("pb").value = s[1]; } } catch (e) {}
+  function drawCustom() {
+    const a = $("pa").value, b = $("pb").value;
+    try { localStorage.setItem(KEY, JSON.stringify([a, b])); } catch (e) {}
+    $("custom").innerHTML = !a || !b ? '<p class="muted">두 캐릭터를 모두 고르면 둘이 같이 있는 그림이 나와요.</p>'
+      : a === b ? '<p class="empty">서로 다른 두 캐릭터를 골라 주세요.</p>' : couple({ members: [a, b] }, true);
+  }
+  $("pa").addEventListener("change", drawCustom); $("pb").addEventListener("change", drawCustom);
+  drawCustom();
 </script>
 </body>
 </html>
