@@ -89,7 +89,6 @@ window.CHARACTERS = [
       { who: "yeonwoo-ethan", rel: "친구", dir: "<>", color: "초록" },
       { who: "yeonwoo-leon", rel: "소꿉친구", dir: "<>", color: "초록" },
       { who: "harin-gongseoan", rel: "불편", dir: ">", color: "파랑" },
-      { who: "harin-gongseoan", dir: ">", color: "파랑" },
       { who: "yeonwoo-ethan", rel: "돌봐줄게", dir: ">", color: "초록" },
       { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" }
     ]
@@ -369,7 +368,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
 인간관계: 동(제자)(3년 전에 동을 구해서(주워서) 제자로 삼음), 부(갖고싶다), 지루시엘(귀여워함)
 기타 특징: 붉은 눈, 검은색 긴 머리카락을 낮게, 아주 느슨하게 묶음. 왼쪽 눈을 가린 앞머리에 붉은색 브릿지. 검은색에 간간히 붉은 색이 섞인 중국식 복장. 연약해보이는 사람들을 귀여워함. 반말캐릭터. `,
     relations: [
-      { who: "harin-dobu", rel: "♥", dir: ">", color: "빨강", main: true },
+      { who: "harin-dobu", rel: "♥", dir: "<", color: "빨강", main: true },
       { who: ["yeonwoo-ethan", "yena-jiien"], rel: "원조 28모임", dir: "<>", color: "초록" },
       { who: "yeonwoo-muk", rel: "중학교 고등학교 동창", dir: "<>", color: "초록" },
       { who: "yeonwoo-hyeonrang", rel: "개", dir: "<", color: "주황" },
@@ -594,7 +593,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     guild: "백야",
     image: "images/characters/20.png",
     summary: "",
-    info: { "성별": "남성", "나이": "22", "생일": "9월 9일", "키": "175cm", "MBTI": "ISFJ", "포지션": "힐러", "능력": "안개 (후방지원)", "등급": "B", "눈 색": "#842B1C", "머리색": "#1C1C1C" },
+    info: { "성별": "남성", "나이": "22", "생일": "9월 9일", "키": "174cm", "MBTI": "ISFJ", "포지션": "힐러", "능력": "안개 (후방지원)", "등급": "B", "눈 색": "#842B1C", "머리색": "#1C1C1C" },
     desc: "",
     sheet: "",
     relations: [
@@ -696,7 +695,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
 말투: 자신의 생각을 주장하기 전에 '다 그런건 아니지만',  '아닌사람도 있겠지만' 이라는 식의 말을 자주 붙인다. 길드원들은 선배라 부르고, 다른 사람들은 씨 를 붙여 말한다. 너무, 엄청 등등의 말을 많이 쓴다. 주로 존댓말을 사용한다. 자신을 '저'라고 지칭하고, 요 로 말을 끝낸다. 감정표현이 풍부하다. 예시: 재밌네요! 제 맘에 드는 것 같아요. 이번 마물은 상대하기 너무 어렵네요. 저는 이게 좋은 것 같아요.`,
     relations: [
       { who: "harin-baekjeomyuheuksae", rel: "구원받음", dir: ">", color: "초록", main: true },
-      { who: "sihyeon-lanhwa", rel: "♥", dir: "<", color: "빨강", main: true },
+      { who: "sihyeon-lanhwa", rel: "♥", dir: ">", color: "빨강", main: true },
       { who: "죠마", rel: "♥", dir: "<>", color: "빨강", main: true },
       { who: "sieun-e", rel: "친구", dir: "<>", color: "초록" },
       { who: "yeonwoo-mir", rel: "친구", dir: "<>", color: "초록" },

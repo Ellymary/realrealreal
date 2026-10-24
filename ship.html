@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>커플링 잇기</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  .s-title { width: 100%; max-width: 780px; display: block; margin: 12px auto 0; padding: 10px 14px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 18px; font-weight: 700; text-align: center; }
+  .s-board { width: 100%; max-width: 780px; margin: 10px auto; background: #fff; border: 1px solid var(--line); aspect-ratio: 1000 / 780; touch-action: pan-y; }
+  .s-board svg { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+  .s-node { cursor: crosshair; touch-action: none; }
+  .s-edge { cursor: pointer; }
+  .s-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; max-width: 780px; margin: 8px auto; }
+  .s-col { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 2px solid var(--line); background: var(--panel); }
+  .s-col i { width: 22px; height: 6px; border-radius: 3px; background: var(--c); display: block; }
+  .s-col.on { border-color: var(--c); background: var(--panel2); font-weight: 700; }
+  .s-tools .btn.on { border-color: var(--accent); background: var(--panel); font-weight: 700; }
+  .s-msg { text-align: center; color: var(--muted); font-size: 14px; min-height: 1.4em; }
+  .s-pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 4px; border: 1px solid var(--line); background: var(--panel); }
+  .s-pal .pi { position: relative; aspect-ratio: 1; border: 2px solid var(--mc, var(--line)); background: var(--panel2); cursor: pointer; padding: 0; overflow: hidden; }
+  .s-pal .pi img, .s-pal .pi .avatar-fb { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; font-size: 22px; }
+  .s-pal .pi.off { opacity: .3; }
+  .s-pal .pi .nm { position: absolute; left: 0; right: 0; bottom: 0; font-size: 10px; line-height: 1.2; text-align: center; background: rgba(0,0,0,.6); color: #fff; padding: 1px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  .s-result { margin: 12px auto; max-width: 780px; text-align: center; }
+  .s-result img { max-width: 100%; border: 1px solid var(--line); background: #fff; }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">커플링 잇기</h1>
+  <p class="muted">아래 보관함에서 원에 놓을 캐릭터를 고르고, <b>한 캐릭터를 눌러 다른 캐릭터까지 끌면</b> 선이 이어져요. 끌기 시작한 쪽이 상대를 바라보는 마음이에요 (화살표 끝이 상대). 선을 누르면 선택돼서 색을 바꾸거나 지울 수 있어요.</p>
+
+  <input class="s-title" id="title" placeholder="제목 (예: 누가 누구를 먹을 수 있나)" maxlength="60">
+  <div class="s-board" id="board"><svg id="svg" viewBox="0 110 1000 780"></svg></div>
+
+  <div class="s-tools" id="cols"></div>
+  <div class="s-tools">
+    <button class="btn" id="del" type="button">선택한 선 지우기</button>
+    <button class="btn" id="clear-edges" type="button">선 모두 지우기</button>
+    <label class="chk"><input type="checkbox" id="arrows" checked> 화살표</label>
+    <button class="btn btn-primary" id="save" type="button">이미지로 저장 (PNG)</button>
+  </div>
+  <div class="s-msg" id="msg" role="status" aria-live="polite"></div>
+  <div class="s-result" id="result"></div>
+
+  <h2 class="sec-h">원에 놓을 캐릭터 <small id="pal-n"></small></h2>
+  <div class="s-tools">
+    <button class="btn" id="all" type="button">보이는 캐릭터 모두 넣기</button>
+    <button class="btn" id="none" type="button">모두 빼기</button>
+    <span class="muted small">순서</span>
+    <button class="btn" id="o-guild" type="button">길드순</button>
+    <button class="btn" id="o-shuffle" type="button">섞기</button>
+  </div>
+  <div class="chips" id="pal-g"></div>
+  <form class="searchbar" id="pal-f"><input id="pal-q" placeholder="이름으로 찾기" autocomplete="off"></form>
+  <div class="s-pal" id="pal"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { CHARS, esc, byId } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "커플링 잇기");
+
+  // 색 = 마음.  (바꾸고 싶으면 여기만 고치면 돼요)
+  const COLS = [
+    { k: "red", c: "#e5484d", label: "최애" },
+    { k: "orange", c: "#f97316", label: "좋아" },
+    { k: "yellow", c: "#eab308", label: "먹을 수 있음" },
+    { k: "green", c: "#22a06b", label: "흠.." },
+    { k: "blue", c: "#3b82f6", label: "못 먹음" },
+  ];
+  const colOf = (k) => (COLS.find((x) => x.k === k) || COLS[0]).c;
+
+  const CX = 500, CY = 500, R = 330;
+  const KEY = "hw-ship-v1";
+  let ids = [];       // 원에 놓인 캐릭터 (순서대로)
+  let edges = [];     // { a, b, k }   a 가 b 를 바라봄
+  let cur = "red";    // 지금 그리는 색
+  let selE = null;    // 선택한 선 "a|b"
+  let focus = null;   // 눌러서 강조한 캐릭터
+  let arrows = true;
+
+  const store = {
+    get() { try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} },
+  };
+  const save = () => store.set({ ids, edges, cur, arrows, title: $("title").value });
+  (function load() {
+    const s = store.get(); if (!s) return;
+    ids = (s.ids || []).filter((i) => byId[i]);
+    edges = (s.edges || []).filter((e) => byId[e.a] && byId[e.b] && ids.includes(e.a) && ids.includes(e.b));
+    cur = s.cur || "red"; arrows = s.arrows !== false; $("title").value = s.title || ""; $("arrows").checked = arrows;
+  })();
+
+  const fileUrl = (p) => String(p == null ? "" : p).replace(/[%#?]/g, (c) => encodeURIComponent(c));
+  const gcol = (c) => App.guildOf(c).color;
+
+  // ───────── 위치 / 곡선 ─────────
+  function layout() {
+    const n = ids.length, nr = Math.max(16, Math.min(46, (2 * Math.PI * R / Math.max(n, 1)) * 0.42));
+    const pos = {};
+    ids.forEach((id, i) => {
+      const t = -Math.PI / 2 + (2 * Math.PI * i) / n;
+      pos[id] = { x: CX + R * Math.cos(t), y: CY + R * Math.sin(t), t };
+    });
+    return { pos, nr };
+  }
+  // 곡선: 두 점의 가운데를 원 중심쪽으로 끌어당겨요. 옆에 있는 캐릭터끼리는 안쪽으로 크게 휘고, 반대편끼리는 거의 곧게 가요.
+  function edgePts(e, L) {
+    const P0 = L.pos[e.a], P2 = L.pos[e.b];
+    const mx = (P0.x + P2.x) / 2, my = (P0.y + P2.y) / 2;
+    let cx = CX + (mx - CX) * 0.35, cy = CY + (my - CY) * 0.35;
+    const dx = P2.x - P0.x, dy = P2.y - P0.y, len = Math.hypot(dx, dy) || 1;
+    if (edges.some((o) => o.a === e.b && o.b === e.a)) {   // 서로 바라보면 두 선이 겹치지 않게 반대쪽으로 살짝
+      const sg = ids.indexOf(e.a) < ids.indexOf(e.b) ? 1 : -1;
+      cx += (-dy / len) * len * 0.1 * sg; cy += (dx / len) * len * 0.1 * sg;
+    }
+    let pts = [];
+    for (let i = 0; i <= 60; i++) {
+      const t = i / 60, u = 1 - t;
+      pts.push({ x: u * u * P0.x + 2 * u * t * cx + t * t * P2.x, y: u * u * P0.y + 2 * u * t * cy + t * t * P2.y });
+    }
+    const gap = L.nr + 4;
+    while (pts.length > 3 && Math.hypot(pts[0].x - P0.x, pts[0].y - P0.y) < gap) pts.shift();
+    while (pts.length > 3 && Math.hypot(pts[pts.length - 1].x - P2.x, pts[pts.length - 1].y - P2.y) < gap) pts.pop();
+    return pts;
+  }
+  function arrowHead(pts, size) {
+    const b = pts[pts.length - 1], a = pts[Math.max(0, pts.length - 6)];
+    const ang = Math.atan2(b.y - a.y, b.x - a.x), s = size;
+    return [[b.x, b.y], [b.x - s * Math.cos(ang - 0.4), b.y - s * Math.sin(ang - 0.4)], [b.x - s * Math.cos(ang + 0.4), b.y - s * Math.sin(ang + 0.4)]];
+  }
+  const poly = (pts) => "M" + pts.map((p) => p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" L");
+
+  // ───────── 그리기 ─────────
+  const svg = $("svg");
+  function draw() {
+    const L = layout(), n = ids.length;
+    let h = "";
+    if (!n) h += '<text x="500" y="500" text-anchor="middle" fill="#b5b9c4" font-size="26">아래에서 캐릭터를 골라 원에 놓아요</text>';
+    const lines = edges.map((e) => {
+      const key = e.a + "|" + e.b, pts = edgePts(e, L), sel = key === selE;
+      const dim = focus && e.a !== focus && e.b !== focus;
+      const d = poly(pts), col = colOf(e.k);
+      let s = '<g class="s-edge" data-e="' + esc(key) + '" opacity="' + (dim ? 0.12 : 1) + '">';
+      if (sel) s += '<path d="' + d + '" fill="none" stroke="#222" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>';
+      s += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>';
+      if (arrows) s += '<polygon points="' + arrowHead(pts, 22).map((p) => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ") + '" fill="' + col + '"/>';
+      s += '<path d="' + d + '" fill="none" stroke="transparent" stroke-width="26" pointer-events="stroke"/></g>';
+      return s;
+    });
+    h += lines.join("");
+    ids.forEach((id) => {
+      const c = byId[id], p = L.pos[id], nr = L.nr, gc = gcol(c);
+      const right = Math.cos(p.t) > 0.2, left = Math.cos(p.t) < -0.2;
+      const lx = p.x + Math.cos(p.t) * (nr + 8), ly = p.y + Math.sin(p.t) * (nr + 8);
+      const anchor = right ? "start" : left ? "end" : "middle";
+      const dy = Math.sin(p.t) > 0.5 ? 16 : Math.sin(p.t) < -0.5 ? -4 : 7;
+      const dim = focus && focus !== id && !edges.some((e) => (e.a === focus && e.b === id) || (e.b === focus && e.a === id));
+      h += '<g class="s-node" data-n="' + esc(id) + '" opacity="' + (dim ? 0.35 : 1) + '">' +
+        '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + nr + '" fill="' + gc + '" fill-opacity=".35" stroke="' + gc + '" stroke-width="4"/>' +
+        '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + nr * 0.3).toFixed(1) + '" text-anchor="middle" font-size="' + Math.round(nr * 0.9) + '" font-weight="700" fill="#222">' + esc([...c.name][0]) + "</text>" +
+        (c.image ? '<clipPath id="cp-' + esc(id) + '"><circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (nr - 2) + '"/></clipPath>' +
+          '<image href="' + esc(fileUrl(c.image)) + '" x="' + (p.x - nr).toFixed(1) + '" y="' + (p.y - nr).toFixed(1) + '" width="' + nr * 2 + '" height="' + nr * 2 + '" preserveAspectRatio="xMidYMid slice" clip-path="url(#cp-' + esc(id) + ')" onerror="this.remove()"/>' : "") +
+        '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + nr + '" fill="transparent" stroke="' + (focus === id ? "#222" : "none") + '" stroke-width="5"/>' +
+        '<text x="' + lx.toFixed(1) + '" y="' + (ly + dy).toFixed(1) + '" text-anchor="' + anchor + '" font-size="21" fill="#111">' + esc(c.name) + "</text></g>";
+    });
+    h += '<path id="drag" d="" fill="none" stroke="#999" stroke-width="5" stroke-dasharray="10 8" pointer-events="none"/>';
+    svg.innerHTML = h;
+  }
+
+  // 선 긋기: 캐릭터에서 눌러서 다른 캐릭터까지 끌기
+  const toSvg = (ev) => { const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+  svg.addEventListener("pointerdown", (ev) => {
+    const n = ev.target.closest("[data-n]");
+    if (!n) return;
+    ev.preventDefault();
+    const from = n.dataset.n, sx = ev.clientX, sy = ev.clientY; let moved = false;
+    const L = layout(), p0 = L.pos[from];
+    const mv = (e) => {
+      if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 6) return;
+      moved = true;
+      const q = toSvg(e), d = $("drag");
+      if (d) d.setAttribute("d", "M" + p0.x + " " + p0.y + " L" + q.x + " " + q.y);
+    };
+    const up = (e) => {
+      window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
+      if (!moved) { focus = focus === from ? null : from; selE = null; draw(); return; }
+      const el = document.elementFromPoint(e.clientX, e.clientY), t = el && el.closest && el.closest("[data-n]");
+      if (t && t.dataset.n !== from) {
+        const ex = edges.find((x) => x.a === from && x.b === t.dataset.n);
+        if (ex) ex.k = cur; else edges.push({ a: from, b: t.dataset.n, k: cur });
+        selE = from + "|" + t.dataset.n; focus = null; save();
+      }
+      draw();
+    };
+    window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+  });
+  svg.addEventListener("click", (ev) => {
+    const e = ev.target.closest("[data-e]");
+    if (e) { selE = selE === e.dataset.e ? null : e.dataset.e; focus = null; draw(); return; }
+    if (!ev.target.closest("[data-n]") && (selE || focus)) { selE = null; focus = null; draw(); }
+  });
+
+  // ───────── 색 / 도구 ─────────
+  function drawCols() {
+    $("cols").innerHTML = COLS.map((x) => '<button class="s-col' + (cur === x.k ? " on" : "") + '" data-k="' + x.k + '" type="button" style="--c:' + x.c + '"><i></i>' + esc(x.label) + "</button>").join("");
+  }
+  $("cols").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-k]"); if (!b) return;
+    cur = b.dataset.k;
+    if (selE) { const [a, bb] = selE.split("|"); const ed = edges.find((x) => x.a === a && x.b === bb); if (ed) ed.k = cur; }
+    save(); drawCols(); draw();
+  });
+  $("del").addEventListener("click", () => {
+    if (!selE) { $("msg").textContent = "지울 선을 먼저 눌러서 선택해요."; return; }
+    const [a, b] = selE.split("|"); edges = edges.filter((x) => !(x.a === a && x.b === b)); selE = null; $("msg").textContent = ""; save(); draw();
+  });
+  $("clear-edges").addEventListener("click", () => { if (!edges.length || confirm("선을 모두 지울까요?")) { edges = []; selE = null; save(); draw(); } });
+  $("arrows").addEventListener("change", (e) => { arrows = e.target.checked; save(); draw(); });
+  $("title").addEventListener("input", save);
+
+  // ───────── 보관함 ─────────
+  let gfilter = "", kw = "";
+  const visible = () => CHARS.filter((c) => (!gfilter || App.guildOf(c).id === gfilter) && (!kw || c.name.toLowerCase().includes(kw)));
+  function drawPal() {
+    const gl = App.guildList();
+    $("pal-g").innerHTML = ['<button class="chip' + (gfilter ? "" : " on") + '" data-g="" type="button">전체 ' + CHARS.length + "</button>"]
+      .concat(gl.map((g) => '<button class="chip' + (gfilter === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '" type="button">' + esc(g.name) + " " + App.charsOfGuild(g).length + "</button>")).join("");
+    const on = new Set(ids);
+    $("pal").innerHTML = visible().map((c) =>
+      '<button class="pi' + (on.has(c.id) ? "" : " off") + '" type="button" data-id="' + esc(c.id) + '" style="--mc:' + gcol(c) + '" title="' + esc(c.label || c.name) + '">' + App.avatar(c) + '<span class="nm">' + esc(c.name) + "</span></button>").join("") || '<p class="empty">찾는 캐릭터가 없어요.</p>';
+    $("pal-n").textContent = "원 위 " + ids.length + "명";
+  }
+  function setIds(next) {
+    ids = next; edges = edges.filter((e) => ids.includes(e.a) && ids.includes(e.b));
+    if (selE && !edges.some((e) => e.a + "|" + e.b === selE)) selE = null;
+    if (focus && !ids.includes(focus)) focus = null;
+    save(); drawPal(); draw();
+  }
+  $("pal").addEventListener("click", (e) => {
+    const b = e.target.closest(".pi"); if (!b) return;
+    const id = b.dataset.id;
+    setIds(ids.includes(id) ? ids.filter((x) => x !== id) : ids.concat(id));
+  });
+  $("pal-g").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { gfilter = b.dataset.g; drawPal(); } });
+  $("pal-q").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); drawPal(); });
+  $("pal-f").addEventListener("submit", (e) => e.preventDefault());
+  $("all").addEventListener("click", () => setIds(ids.concat(visible().map((c) => c.id).filter((i) => !ids.includes(i)))));
+  $("none").addEventListener("click", () => { if (!ids.length || confirm("원에서 모두 뺄까요? (선도 같이 지워져요)")) setIds([]); });
+  $("o-guild").addEventListener("click", () => {
+    const gi = (c) => App.guildList().findIndex((g) => g.id === App.guildOf(c).id);
+    setIds(ids.slice().sort((a, b) => gi(byId[a]) - gi(byId[b]) || CHARS.indexOf(byId[a]) - CHARS.indexOf(byId[b])));
+  });
+  $("o-shuffle").addEventListener("click", () => {
+    const a = ids.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    setIds(a);
+  });
+
+  // ───────── 이미지로 저장 ─────────
+  const loadImg = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+  async function exportPng() {
+    const U = 2, W = 1000, TOP = 90, H = TOP + 860, cv = document.createElement("canvas");
+    cv.width = W * U; cv.height = H * U;
+    const ctx = cv.getContext("2d"), L = layout(), FONT = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+    ctx.scale(U, U); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+    const title = $("title").value.trim();
+    if (title) { ctx.fillStyle = "#111"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 40px " + FONT; ctx.fillText(title, W / 2, 48, 940); }
+    ctx.translate(0, TOP - 110);
+    edges.forEach((e) => {
+      const pts = edgePts(e, L), col = colOf(e.k);
+      ctx.strokeStyle = col; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y))); ctx.stroke();
+      if (arrows) { const h = arrowHead(pts, 22); ctx.fillStyle = col; ctx.beginPath(); h.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill(); }
+    });
+    const imgs = await Promise.all(ids.map((id) => (byId[id].image ? loadImg(fileUrl(byId[id].image)) : null)));
+    ids.forEach((id, i) => {
+      const c = byId[id], p = L.pos[id], nr = L.nr, gc = gcol(c), im = imgs[i];
+      ctx.beginPath(); ctx.arc(p.x, p.y, nr, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+      if (im) {
+        ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, nr - 2, 0, Math.PI * 2); ctx.clip();
+        const m = Math.min(im.width, im.height); ctx.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, p.x - nr, p.y - nr, nr * 2, nr * 2); ctx.restore();
+      } else {
+        ctx.globalAlpha = .35; ctx.fillStyle = gc; ctx.beginPath(); ctx.arc(p.x, p.y, nr, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+        ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "700 " + Math.round(nr * 0.9) + "px " + FONT; ctx.fillText([...c.name][0], p.x, p.y);
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, nr, 0, Math.PI * 2); ctx.strokeStyle = gc; ctx.lineWidth = 4; ctx.stroke();
+      const cs = Math.cos(p.t), sn = Math.sin(p.t);
+      ctx.fillStyle = "#111"; ctx.font = "400 21px " + FONT; ctx.textAlign = cs > 0.2 ? "left" : cs < -0.2 ? "right" : "center"; ctx.textBaseline = "middle";
+      ctx.fillText(c.name, p.x + cs * (nr + 8), p.y + sn * (nr + 8) + (sn > 0.5 ? 9 : sn < -0.5 ? -11 : 0));
+    });
+    // 범례
+    ctx.translate(0, 890);
+    ctx.font = "400 24px " + FONT; ctx.textBaseline = "middle"; ctx.textAlign = "left";
+    const widths = COLS.map((x) => 44 + ctx.measureText(x.label).width), gapW = 36, total = widths.reduce((a, b) => a + b, 0) + gapW * (COLS.length - 1);
+    let x = (W - total) / 2;
+    COLS.forEach((cl, i) => {
+      ctx.strokeStyle = cl.c; ctx.lineWidth = 7; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x + 30, 40); ctx.stroke();
+      ctx.fillStyle = "#111"; ctx.fillText(cl.label, x + 40, 40); x += widths[i] + gapW;
+    });
+    return cv;
+  }
+  $("save").addEventListener("click", async () => {
+    const msg = $("msg"); msg.textContent = "이미지를 만드는 중…"; $("result").innerHTML = "";
+    try {
+      const url = (await exportPng()).toDataURL("image/png");
+      const a = document.createElement("a"); a.href = url; a.download = "커플링-" + ($("title").value.trim() || "잇기") + ".png"; document.body.appendChild(a); a.click(); a.remove();
+      $("result").innerHTML = '<img src="' + url + '" alt="저장된 커플링 이미지"><p class="hint">자동으로 저장되지 않았다면 위 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
+      msg.textContent = "만들었어요!";
+    } catch (e) {
+      msg.textContent = "저장하지 못했어요. 사이트 주소에서 다시 해 보세요. (" + e.message + ")";
+    }
+  });
+
+  drawCols(); drawPal(); draw();
+</script>
+</body>
+</html>
