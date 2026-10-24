@@ -84,4 +84,12 @@ window.GALLERY = [
     characters: ["sieun-e","sieun-f","sihyeon-lanhwa","sihyeon-dong","yeonwoo-hyeonrang","harin-baekjeomyuheuksae"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1sD-_0cG6Vrco_2K4VlkAui3GBwDwEW4w/view?usp=drive_link",
+    title: "58585",
+    artist: "시현",
+    date: "2026-10-24",
+    characters: ["yena-jangcheongil","yena-jiruciel","sieun-vanilla","sihyeon-lanhwa","yeonwoo-gongyuan","harin-gongseoan"],
+    tags: [],
+  },
 ];
