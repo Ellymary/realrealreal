@@ -780,4 +780,22 @@ window.COMICS = [
     tags: ["프로필"],
     series: true,
   },
+  {
+    id: "ojpjojpojo",
+    title: "jojojp",
+    artist: "예나",
+    date: "2026-10-25",
+    cover: "images/comics/ojpjojpojo/b1.webp",
+    pages: [
+      "images/comics/ojpjojpojo/b1.webp",
+      "images/comics/ojpjojpojo/b2.webp",
+      "images/comics/ojpjojpojo/b3.webp",
+      "images/comics/ojpjojpojo/b4.webp",
+      "images/comics/ojpjojpojo/b5.webp",
+      "images/comics/ojpjojpojo/b6.webp",
+      "images/comics/ojpjojpojo/b7.webp",
+    ],
+    characters: ["andrei","hoyeon","rimina"],
+    tags: [],
+  },
 ];
