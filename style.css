@@ -435,9 +435,9 @@ h1, h2, h3 { font-family: var(--serif); letter-spacing: -.01em; }
 .rel-star { align-self: center; margin-left: 4px; }
 .rel-name { padding: 1px 12px; background: var(--rc); color: #fff; font-weight: 600; border: 1px solid transparent; }
 a.rel-name:hover { text-decoration: underline; }
-:root:not([data-theme="light"]) .rel.c-black { border-left-color: #8b92a6; }
-:root:not([data-theme="light"]) .rel.c-black .rel-mid { color: #aab0c2; }
-:root:not([data-theme="light"]) .rel-name { border-color: rgba(255,255,255,.28); }
+:root:not([data-theme="light"]):not([data-theme="pastel"]) .rel.c-black { border-left-color: #8b92a6; }
+:root:not([data-theme="light"]):not([data-theme="pastel"]) .rel.c-black .rel-mid { color: #aab0c2; }
+:root:not([data-theme="light"]):not([data-theme="pastel"]) .rel-name { border-color: rgba(255,255,255,.28); }
 .rel-kind { color: var(--muted); font-size: 12px; line-height: 1.3; }
 .rel-star { color: var(--accent); }
 .rel-text { margin-top: 6px; }
@@ -532,3 +532,90 @@ a.rel-name:hover { text-decoration: underline; }
 .tag-line .tag-row { flex: 1; min-width: 0; }
 .tag-ex { flex: none; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--panel2); color: var(--muted); font-size: 15px; line-height: 1; opacity: .6; }
 .tag-ex:hover, .tag-ex:focus-visible { opacity: 1; color: #e5484d; border-color: #e5484d; }
+
+
+/* ══ 테마 선택 칸 (헤더 오른쪽 위) ══ */
+select.theme-btn { appearance: none; -webkit-appearance: none; padding: 6px 28px 6px 12px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+select.theme-btn option { background: var(--panel); color: var(--text); }
+
+/* ══ 파스텔 테마 ══ 말랑한 분홍·라벤더·민트, 둥근 모서리 */
+:root[data-theme="pastel"] {
+  color-scheme: light;
+  --on: 62%;
+  --header-bg: rgba(255,246,251,.9);
+  --bg: #fff6fb;
+  --panel: #ffffff;
+  --panel2: #f6eafa;
+  --line: #ecd9ee;
+  --text: #4b3b5c;
+  --muted: #917fa3;
+  --accent: #d96aa0;
+  --on-accent: #ffffff;
+  --t-character: #2fa885;
+  --t-artist: #e0716b;
+  --t-general: #7a86e0;
+  --r-lg: 18px;
+  --r-sm: 12px;
+}
+:root[data-theme="pastel"] body {
+  background: radial-gradient(900px 500px at 10% -5%, #ffe3f1 0, transparent 60%), radial-gradient(800px 500px at 100% 0%, #e3ecff 0, transparent 55%), radial-gradient(900px 600px at 50% 110%, #e1fbf0 0, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme="pastel"] .site-header::after { background: linear-gradient(90deg, #ffb3d4, #cdb4ff, #a8e6cf); height: 2px; }
+:root[data-theme="pastel"] .brand { color: #d96aa0; }
+:root[data-theme="pastel"] .sec-h::before { background: linear-gradient(#ffb3d4, #cdb4ff); border-radius: 3px; }
+:root[data-theme="pastel"] .card, :root[data-theme="pastel"] .gcard, :root[data-theme="pastel"] .quick a, :root[data-theme="pastel"] .play-card, :root[data-theme="pastel"] .couple { box-shadow: 0 4px 14px rgba(180,140,200,.16); }
+:root[data-theme="pastel"] .btn-primary { background: linear-gradient(135deg, #ff9ec7, #c3a5ff); border-color: transparent; }
+:root[data-theme="pastel"] .chip.on, :root[data-theme="pastel"] .chip:hover { background: #ffe9f4; }
+:root[data-theme="pastel"] .nav a.on { color: #d96aa0; box-shadow: inset 0 -2px 0 #ffb3d4; }
+:root[data-theme="pastel"] .rel-name { border-color: transparent; }
+:root[data-theme="pastel"] .modal { background: rgba(120,90,150,.35); }
+
+/* ══ 헌터 테마 ══ 게이트 / 시스템 창 느낌: 깊은 밤색 바탕 + 마나 같은 파란 빛 + 각진 모서리 */
+:root[data-theme="hunter"] {
+  color-scheme: dark;
+  --on: 100%;
+  --header-bg: rgba(4,8,20,.9);
+  --bg: #04070f;
+  --panel: #0a1226;
+  --panel2: #101c38;
+  --line: #1b3563;
+  --text: #dcebff;
+  --muted: #7f9cc6;
+  --accent: #4cc3ff;
+  --on-accent: #02101c;
+  --t-character: #5fe3c0;
+  --t-artist: #ff9d6b;
+  --t-general: #8fb4ff;
+  --serif: "Nanum Myeongjo", "Noto Serif KR", "Batang", serif;
+  --r-lg: 0;
+  --r-sm: 0;
+}
+:root[data-theme="hunter"] body {
+  background: radial-gradient(1000px 520px at 50% -12%, rgba(40,110,255,.28) 0, transparent 62%), radial-gradient(700px 420px at 100% 100%, rgba(120,60,255,.16) 0, transparent 60%), linear-gradient(rgba(76,195,255,.035) 1px, transparent 1px) 0 0 / 100% 36px, linear-gradient(90deg, rgba(76,195,255,.035) 1px, transparent 1px) 0 0 / 36px 100%, var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme="hunter"] .site-header { border-bottom-color: #1d4a8a; box-shadow: 0 0 22px rgba(76,195,255,.12); }
+:root[data-theme="hunter"] .site-header::after { background: linear-gradient(90deg, transparent, #4cc3ff, transparent); height: 1px; }
+:root[data-theme="hunter"] .brand, :root[data-theme="hunter"] .nav a.on { text-shadow: 0 0 10px rgba(76,195,255,.65); }
+:root[data-theme="hunter"] h1, :root[data-theme="hunter"] .page-title { text-shadow: 0 0 14px rgba(76,195,255,.35); letter-spacing: .02em; }
+:root[data-theme="hunter"] .sec-h::before { box-shadow: 0 0 10px #4cc3ff; }
+/* 파란 테두리 + 안쪽 빛 + 모서리 꺾쇠(시스템 창 느낌) */
+:root[data-theme="hunter"] .card, :root[data-theme="hunter"] .gcard, :root[data-theme="hunter"] .gbanner, :root[data-theme="hunter"] .quick a, :root[data-theme="hunter"] .play-card,
+:root[data-theme="hunter"] .couple, :root[data-theme="hunter"] .gmini, :root[data-theme="hunter"] .member, :root[data-theme="hunter"] .quiz-box, :root[data-theme="hunter"] .quiz-result,
+:root[data-theme="hunter"] .rel, :root[data-theme="hunter"] .info.sheet, :root[data-theme="hunter"] .modal-box, :root[data-theme="hunter"] .mp-bar, :root[data-theme="hunter"] .mp-panel {
+  border-color: #1d4177; box-shadow: inset 0 0 18px rgba(60,140,255,.10), 0 0 0 1px rgba(76,195,255,.05);
+}
+:root[data-theme="hunter"] .card:hover, :root[data-theme="hunter"] .gcard:hover, :root[data-theme="hunter"] .quick a:hover, :root[data-theme="hunter"] .play-card:hover, :root[data-theme="hunter"] .gmini:hover {
+  box-shadow: inset 0 0 22px rgba(76,195,255,.16), 0 0 16px rgba(76,195,255,.28);
+}
+:root[data-theme="hunter"] .card, :root[data-theme="hunter"] .gcard, :root[data-theme="hunter"] .gbanner, :root[data-theme="hunter"] .quick a, :root[data-theme="hunter"] .play-card, :root[data-theme="hunter"] .couple {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+:root[data-theme="hunter"] .chip.on, :root[data-theme="hunter"] .chip:hover, :root[data-theme="hunter"] .btn:hover { box-shadow: 0 0 10px rgba(76,195,255,.3); }
+:root[data-theme="hunter"] .btn-primary { background: linear-gradient(135deg, #4cc3ff, #3a7bff); border-color: #4cc3ff; color: #02101c; box-shadow: 0 0 14px rgba(76,195,255,.45); }
+:root[data-theme="hunter"] .quote::before, :root[data-theme="hunter"] .quote::after { text-shadow: 0 0 10px currentColor; }
+:root[data-theme="hunter"] .modal { background: rgba(0,4,14,.75); }
+:root[data-theme="hunter"] ::selection { background: rgba(76,195,255,.35); }

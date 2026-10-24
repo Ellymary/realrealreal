@@ -234,12 +234,12 @@
         '<div class="wrap"><a class="brand" href="index.html">' + esc(SITE.title) + '</a><nav class="nav">' +
         links.map((l) => '<a href="' + l[0] + '"' + (l[2] === active ? ' class="on"' : "") + ">" + l[1] + "</a>").join("") +
         "</nav>" +
-        '<button class="theme-btn" id="theme-btn" type="button"></button></div>';
+        '<select class="theme-btn" id="theme-btn" aria-label="테마"></select></div>';
     const tb = document.getElementById("theme-btn");
-    if (tb) {
-      const paint = () => (tb.textContent = window.Theme && Theme.get() === "light" ? "☾ 다크" : "☀ 라이트");
-      paint();
-      tb.addEventListener("click", () => { if (window.Theme) { Theme.toggle(); paint(); } });
+    if (tb && window.Theme) {
+      tb.innerHTML = Theme.list.map((x) => '<option value="' + x[0] + '">' + x[1] + "</option>").join("");
+      tb.value = Theme.get();
+      tb.addEventListener("change", () => Theme.set(tb.value));
     }
     const f = document.getElementById("site-footer");
     if (f) f.innerHTML = esc(SITE.title) + ' · <a class="link" href="add.html">그림 추가 도우미</a>';
