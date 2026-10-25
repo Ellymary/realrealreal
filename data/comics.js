@@ -798,4 +798,18 @@ window.COMICS = [
     characters: ["andrei","hoyeon","rimina"],
     tags: [],
   },
+  {
+    id: "yfydydyr",
+    title: "dyrdy",
+    artist: "시은",
+    date: "2026-10-25",
+    cover: "images/comics/yfydydyr/KakaoTalk_20261025_230941635_01.jpg",
+    pages: [
+      "images/comics/yfydydyr/KakaoTalk_20261025_230941635_01.jpg",
+      "images/comics/yfydydyr/KakaoTalk_20261025_230941635_02.jpg",
+    ],
+    characters: ["hoyeon","sihyeon-lanhwa"],
+    tags: [],
+    series: true,
+  },
 ];
