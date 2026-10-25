@@ -51,7 +51,8 @@ window.CHARACTERS = [
       { who: "yena-kail", rel: "친구", dir: "<>", color: "초록" },
       { who: "harin-mun", dir: "<", color: "검정" },
       { who: "yeonwoo-hyeon", rel: "주움", dir: ">", color: "초록" },
-      { who: "harin-yangyu", rel: "존못에 노잼.", dir: ">", color: "검정" }
+      { who: "harin-yangyu", rel: "존못에 노잼.", dir: ">", color: "검정" },
+      { who: "rimina", rel: "다음 소매치기 타겟", dir: ">", color: "초록" }
     ]
   },
   {
@@ -69,7 +70,8 @@ window.CHARACTERS = [
       { who: "yeonwoo-gongyuan", rel: "친해지고 싶다", dir: ">", color: "초록" },
       { who: "yeonwoo-muk", dir: ">", color: "파랑" },
       { who: "harin-baekjeomyuheuksae", rel: "쫄았어요", dir: ">", color: "검정" },
-      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" }
+      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" },
+      { who: "yena-karia", rel: "지인", dir: "<>" }
     ]
   },
   {
@@ -90,7 +92,11 @@ window.CHARACTERS = [
       { who: "yeonwoo-leon", rel: "소꿉친구", dir: "<>", color: "초록" },
       { who: "harin-gongseoan", rel: "불편", dir: ">", color: "파랑" },
       { who: "yeonwoo-ethan", rel: "돌봐줄게", dir: ">", color: "초록" },
-      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" }
+      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" },
+      { who: "eun", rel: "교육담당", dir: "<", color: "초록" },
+      { who: ["sieun-e", "eun"], rel: "여동생 모임", dir: "<>", color: "초록" },
+      { who: "rimina", rel: "다음 피싱 타겟", dir: ">", color: "초록" },
+      { who: "yena-karia", dir: ">", color: "주황" }
     ]
   },
   {
@@ -108,7 +114,8 @@ window.CHARACTERS = [
       { who: ["yeonwoo-ethan", "sihyeon-lanhwa"], rel: "원조 28모임", dir: "<>", color: "초록" },
       { who: ["sihyeon-trans-f", "sihyeon-trans-m"], rel: "혐오", dir: "<>", color: "검정" },
       { who: "harin-gongseoan", rel: "불편", dir: ">", color: "파랑" },
-      { who: "yeonwoo-muk", dir: ">", color: "파랑" }
+      { who: "yeonwoo-muk", dir: ">", color: "파랑" },
+      { who: "yena-karia", rel: "싫어함", dir: ">", color: "파랑" }
     ]
   },
   {
@@ -126,7 +133,9 @@ window.CHARACTERS = [
       { who: "yeonwoo-ethan", dir: "<>", color: "초록" },
       { who: "yeonwoo-mir", dir: "<>", color: "초록" },
       { who: "sieun-vanilla", rel: "불편", dir: "<", color: "파랑" },
-      { who: "yeonwoo-hyeon", rel: "주움", dir: ">", color: "초록" }
+      { who: "yeonwoo-hyeon", rel: "주움", dir: ">", color: "초록" },
+      { who: "hoyeon", rel: "여사친", dir: "<", color: "초록" },
+      { who: "hoyeon", rel: "친구", dir: ">", color: "초록" }
     ]
   },
   {
@@ -141,7 +150,12 @@ window.CHARACTERS = [
 
 머리가 좋다. 은근 아가리파이터`,
     sheet: "",
-    relations: []
+    relations: [
+      { who: "sieun-ruti", rel: "호감", dir: "<", color: "주황" },
+      { who: "yena-jangcheongil", rel: "지인", dir: "<>" },
+      { who: ["yena-jiien", "harin-yangyu", "yeonwoo-ethan", "sieun-vanilla"], rel: "싫어함", dir: "<", color: "파랑" },
+      { who: ["sihyeon-lanhwa", "yeonwoo-leon", "harin-gongseoan", "yena-jiruciel"], dir: "<", color: "주황" }
+    ]
   },
   {
     id: "yena-kail",
@@ -159,7 +173,8 @@ window.CHARACTERS = [
       { who: "harin-yangyu", dir: ">", color: "빨강" },
       { who: "harin-yangyu", rel: "잘생겼어♥", dir: ">", color: "빨강" },
       { who: "yeonwoo-rozelin", rel: "팬(집착)", dir: ">", color: "빨강" },
-      { who: "sieun-ruti", rel: "팬", dir: ">", color: "빨강" }
+      { who: "sieun-ruti", rel: "팬", dir: ">", color: "빨강" },
+      { who: "연상", rel: "연상콤", dir: "<", color: "주황" }
     ]
   },
 
@@ -201,7 +216,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sieun-f", rel: "남매", dir: "<>", color: "주황", main: true },
       { who: "harin-dobu", rel: "친구", dir: "<>", color: "초록" },
       { who: "yeonwoo-hyeonrang", rel: "F동생", dir: ">", color: "초록" },
-      { who: "sihyeon-lulu", rel: "실험체", dir: ">", color: "초록" }
+      { who: "sihyeon-lulu", rel: "실험체", dir: ">", color: "초록" },
+      { who: ["yena-jiruciel", "eun"], rel: "여동생 모임", dir: "<>", color: "초록" }
     ]
   },
   {
@@ -260,7 +276,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "yeonwoo-gongyuan", rel: "친구", dir: "<>", color: "초록" },
       { who: "모두", rel: "유튜브 소재", dir: "<", color: "초록" },
       { who: "yena-kail", rel: "팬", dir: "<", color: "빨강" },
-      { who: "yeonwoo-muk", dir: ">", color: "파랑" }
+      { who: "yeonwoo-muk", dir: ">", color: "파랑" },
+      { who: "yena-karia", rel: "호감", dir: ">", color: "주황" }
     ]
   },
   {
@@ -303,7 +320,10 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
 '제가 왜 그랫을까요ㅠㅠ" `,
     relations: [
       { who: "sihyeon-dong", rel: "짝사랑", dir: "<>", color: "빨강", main: true },
-      { who: "yeonwoo-rozelin", rel: "친구", dir: "<>", color: "초록" }
+      { who: "yeonwoo-rozelin", rel: "친구", dir: "<>", color: "초록" },
+      { who: "eun", rel: "옆집동생", dir: "<", color: "주황" },
+      { who: "eun", rel: "짝사랑", dir: ">", color: "빨강" },
+      { who: "rimina", rel: "이미 지갑 털었음", dir: ">", color: "초록" }
     ]
   },
   {
@@ -322,7 +342,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sihyeon-trans-f", rel: "친구", dir: "<>", color: "초록" },
       { who: "harin-dobu", rel: "친구", dir: "<>", color: "초록" },
       { who: "harin-yangyu", rel: "친구", dir: "<>", color: "초록" },
-      { who: ["yena-jangcheongil", "yena-jiruciel", "harin-gongseoan", "sihyeon-dong", "yeonwoo-leon"], rel: "무섭다", dir: "<", color: "파랑" }
+      { who: ["yena-jangcheongil", "yena-jiruciel", "harin-gongseoan", "sihyeon-dong", "yeonwoo-leon"], rel: "무섭다", dir: "<", color: "파랑" },
+      { who: ["eun", "harin-dobu"], rel: "같은 학교", dir: "<>", color: "초록" }
     ]
   },
   {
@@ -343,7 +364,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "yeonwoo-muk", rel: "신도님", dir: "<", color: "주황" },
       { who: "yeonwoo-muk", rel: "교주님", dir: ">", color: "주황" },
       { who: "harin-yangyu", rel: "종교 얘기하면 넘어오겠네", dir: ">", color: "빨강" },
-      { who: "sihyeon-dong", dir: ">", color: "검정" }
+      { who: "sihyeon-dong", dir: ">", color: "검정" },
+      { who: "yena-karia", rel: "싫어함", dir: ">", color: "파랑" }
     ]
   },
 
@@ -374,7 +396,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "yeonwoo-hyeonrang", rel: "개", dir: "<", color: "주황" },
       { who: "yeonwoo-muk", rel: "♥, 무서워...", dir: ">", color: "빨강" },
       { who: "harin-mun", dir: "<", color: "검정" },
-      { who: "harin-yangyu", rel: "저 여자만 아니면...", dir: ">", color: "검정" }
+      { who: "harin-yangyu", rel: "저 여자만 아니면...", dir: ">", color: "검정" },
+      { who: ["sihyeon-dong", "eun", "hoyeon"], rel: "팀 중국", dir: "<>" },
+      { who: "yena-karia", dir: ">", color: "주황" }
     ]
   },
   {
@@ -483,7 +507,10 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "yeonwoo-muk", rel: "why?", dir: "<", color: "파랑" },
       { who: "sieun-vanilla", dir: "<", color: "검정" },
       { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" },
-      { who: "harin-yangyu", rel: "쓸모있네", dir: ">", color: "빨강" }
+      { who: "harin-yangyu", rel: "쓸모있네", dir: ">", color: "빨강" },
+      { who: ["eun", "sihyeon-lanhwa", "hoyeon"], rel: "팀 중국", dir: "<>" },
+      { who: "eun", rel: "남매", dir: "<>", color: "초록" },
+      { who: "harin-mun", rel: "혐오", dir: "<", color: "검정" }
     ]
   },
 
@@ -564,7 +591,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sihyeon-lulu", rel: "커미션", dir: "<", color: "초록" },
       { who: "harin-gongseoan", dir: ">", color: "파랑" },
       { who: "sihyeon-trans-m", dir: ">", color: "파랑" },
-      { who: "harin-yangyu", rel: "잘생겼어♥", dir: ">", color: "빨강" }
+      { who: "harin-yangyu", rel: "잘생겼어♥", dir: ">", color: "빨강" },
+      { who: "yena-karia", rel: "싫어함", dir: ">", color: "파랑" },
+      { who: ["andrei", "hoyeon", "rimina"], rel: "사촌동생같다", dir: "<", color: "#27869d" }
     ]
   },
   {
@@ -625,7 +654,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "harin-dobu", rel: "측은", dir: ">", color: "초록" },
       { who: "sihyeon-dong", rel: "불쌍한 척 하지마", dir: "<", color: "파랑" },
       { who: "sihyeon-dong", rel: "why?", dir: ">", color: "파랑" },
-      { who: "harin-yangyu", rel: "장난감", dir: ">", color: "주황" }
+      { who: "harin-yangyu", rel: "장난감", dir: ">", color: "주황" },
+      { who: ["andrei", "hoyeon", "rimina"], rel: "무서워", dir: ">", color: "파랑" }
     ]
   },
   {
@@ -643,7 +673,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "yeonwoo-ethan", rel: "동료", dir: "<", color: "초록" },
       { who: "harin-gongseoan", rel: "불편", dir: ">", color: "파랑" },
       { who: "yeonwoo-muk", dir: ">", color: "파랑" },
-      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" }
+      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" },
+      { who: "yena-karia", dir: ">", color: "주황" }
     ]
   },
 
@@ -671,7 +702,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sihyeon-trans-f", rel: "성가셔", dir: ">", color: "파랑" },
       { who: "sihyeon-trans-m", rel: "혐오", dir: "<>", color: "검정" },
       { who: "yeonwoo-muk", dir: ">", color: "파랑" },
-      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" }
+      { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" },
+      { who: "yena-karia", dir: ">", color: "주황" },
+      { who: "hwawol", rel: "장발최고", dir: "<", color: "주황" }
     ]
   },
   {
@@ -705,7 +738,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sihyeon-dong", rel: "(¬_¬)", dir: "<", color: "파랑" },
       { who: "yeonwoo-muk", rel: "측은", dir: "<", color: "초록" },
       { who: "yeonwoo-hyeon", rel: "저희 대화해요", dir: "<", color: "초록" },
-      { who: "harin-yangyu", rel: "네가?? 왜??", dir: ">", color: "검정" }
+      { who: "harin-yangyu", rel: "네가?? 왜??", dir: ">", color: "검정" },
+      { who: ["sieun-mina", "eun"], rel: "같은 학교", dir: "<>", color: "초록" },
+      { who: ["andrei", "hoyeon", "rimina"], rel: "범죄자라던데", dir: "<", color: "검정" }
     ]
   },
   {
@@ -733,7 +768,10 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sieun-f", dir: ">", color: "검정" },
       { who: "sihyeon-lanhwa", dir: ">", color: "검정" },
       { who: "sihyeon-lulu", rel: "무섭지만 어리네", dir: "<", color: "빨강" },
-      { who: "harin-yangyu", rel: "잘생겼어♥", dir: ">", color: "빨강" }
+      { who: "harin-yangyu", rel: "잘생겼어♥", dir: ">", color: "빨강" },
+      { who: ["andrei", "hoyeon", "rimina"], rel: "괴롭힘", dir: ">", color: "파랑" },
+      { who: "sihyeon-dong", rel: "혐오", dir: ">", color: "검정" },
+      { who: "eun", rel: "♥", dir: "<", color: "빨강" }
     ]
   },
   {
@@ -757,7 +795,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sieun-vanilla", rel: "함께합시다..", dir: ">", color: "초록" },
       { who: "sieun-vanilla", rel: "ㄲㅈ", dir: "<", color: "검정" },
       { who: "sihyeon-lulu", rel: "눈...", dir: ">", color: "초록" },
-      { who: "yena-jangcheongil", rel: "쫄았어요", dir: "<", color: "검정" }
+      { who: "yena-jangcheongil", rel: "쫄았어요", dir: "<", color: "검정" },
+      { who: "hoyeon", rel: "만만하다 (전갈이라 싫어)", dir: ">", color: "파랑" },
+      { who: "hoyeon", rel: "그 인간 부류", dir: "<", color: "검정" }
     ]
   },
   {
@@ -785,7 +825,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "harin-dobu", rel: "네가?? 왜??", dir: "<", color: "검정" },
       { who: "sihyeon-lanhwa", rel: "저 여자만 아니면...", dir: "<", color: "검정" },
       { who: ["sihyeon-trans-f", "sihyeon-trans-m"], rel: "경계", dir: ">", color: "파랑" },
-      { who: "yeonwoo-muk", dir: ">", color: "파랑" }
+      { who: "yeonwoo-muk", dir: ">", color: "파랑" },
+      { who: "andrei", rel: "박력있다", dir: "<", color: "빨강" },
+      { who: "yena-karia", rel: "싫어함", dir: ">", color: "파랑" }
     ]
   },
 
@@ -800,7 +842,11 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     info: { "능력": "환각(현실 조종)", "등급": "S", "패시브": "복종 (자신보다 능력이 낮으면 디버프를 먹인다.)" },
     desc: "",
     sheet: "",
-    relations: []
+    relations: [
+      { who: "eun", rel: "보살핌", dir: "<", color: "초록" },
+      { who: "harin-gongseoan", rel: "장발최고", dir: ">", color: "주황" },
+      { who: ["andrei", "hoyeon", "rimina"], rel: "귀엽네", dir: "<", color: "초록" }
+    ]
   },
   {
     id: "andrei",
@@ -812,7 +858,16 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     info: { "성별": "남성", "나이": "25", "키": "186cm", "능력": "손에 달린 입으로 뭐든 먹을 수 있다.", "능력 부연설명": "대신 본인 위 용량 만큼만 가능하고, 한번 먹이면 못 뱉어서 의미가 없다.", "등급": "C" },
     desc: "도박중독자이다.",
     sheet: "",
-    relations: []
+    relations: [
+      { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
+      { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
+      { who: "harin-dobu", rel: "범죄자라던데", dir: ">", color: "검정" },
+      { who: "harin-yangyu", rel: "박력있다", dir: ">", color: "빨강" },
+      { who: ["hoyeon", "rimina"], rel: "가좍", dir: "<>" },
+      { who: "hoyeon", rel: "돈 좀 빌려좌", dir: ">", color: "주황" },
+      { who: "yeonwoo-ethan", rel: "사촌동생같다", dir: ">", color: "#27869d" },
+      { who: "hwawol", rel: "귀엽네", dir: ">", color: "초록" }
+    ]
   },
   {
     id: "hoyeon",
@@ -825,7 +880,20 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     info: { "성별": "남성", "나이": "25", "생일": "4월 26일", "키": "180cm", "MBTI": "ENTP", "무기": "대나무봉", "포지션": "서포터", "능력": "경계를 허문다", "능력 부연설명": "문따개. 상자따개. 잠긴 곳은 어디든 들어갈 수 있음. 단, 대상을 부수지 않고 열리거나 들어갈 수 있는 가능성이 있어야 한다. 그냥 벽은 통과하지 못한다.\n\n특정 인물만 들어갈 수 있는 경계도 허물 수 있다. 마법으로 만든 경계에도 적용된다.\n\n잠겨있는 상자도 열 수 있다. 단순하게 자물쇠를 푸는 능력은 아니다. 안에 손 정도는 들어갈 공간이 있어야 한다.\n\n능력을 해제하면 다시 닫히거나 잠긴 상태로 돌아온다.", "등급": "C", "눈 색": "#677F83", "머리색": "#1c1c1c" },
     desc: "",
     sheet: "",
-    relations: []
+    relations: [
+      { who: ["sihyeon-dong", "eun", "sihyeon-lanhwa"], rel: "팀 중국", dir: "<>" },
+      { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
+      { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
+      { who: "yena-chi", rel: "여사친", dir: ">", color: "초록" },
+      { who: "yena-chi", rel: "친구", dir: "<", color: "초록" },
+      { who: "harin-dobu", rel: "범죄자라던데", dir: ">", color: "검정" },
+      { who: ["andrei", "rimina"], rel: "가좍", dir: "<>" },
+      { who: "andrei", rel: "돈 좀 빌려좌", dir: "<", color: "주황" },
+      { who: "yeonwoo-ethan", rel: "사촌동생같다", dir: ">", color: "#27869d" },
+      { who: "harin-baekjeomyuheuksae", rel: "만만하다 (전갈이라 싫어)", dir: "<", color: "파랑" },
+      { who: "harin-baekjeomyuheuksae", rel: "그 인간 부류", dir: ">", color: "검정" },
+      { who: "hwawol", rel: "귀엽네", dir: ">", color: "초록" }
+    ]
   },
   {
     id: "rimina",
@@ -837,6 +905,38 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     info: { "성별": "여성", "나이": "25", "능력": "세계의 시선 집중 (타인의 관심을 특정 사물로 옮길 수 있음. 2초 정도. 쿨타임 3분.)", "등급": "C" },
     desc: "",
     sheet: "",
-    relations: []
+    relations: [
+      { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
+      { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
+      { who: "harin-dobu", rel: "범죄자라던데", dir: ">", color: "검정" },
+      { who: ["andrei", "hoyeon"], rel: "가좍", dir: "<>" },
+      { who: "yena-gangchun", rel: "다음 소매치기 타겟", dir: "<", color: "초록" },
+      { who: "yena-jiruciel", rel: "다음 피싱 타겟", dir: "<", color: "초록" },
+      { who: "sieun-macao", rel: "이미 지갑 털었음", dir: "<", color: "초록" },
+      { who: "yeonwoo-ethan", rel: "사촌동생같다", dir: ">", color: "#27869d" },
+      { who: "hwawol", rel: "귀엽네", dir: ">", color: "초록" }
+    ]
+  },
+  {
+    id: "eun",
+    name: "은",
+    owner: "",
+    guild: "비바람",
+    image: "images/characters/116.webp",
+    summary: "",
+    info: { "나이": "18", "능력": "미래예지", "능력 설명": "가까운 미래만", "등급": "B" },
+    desc: "병약하다.",
+    sheet: "",
+    relations: [
+      { who: ["sihyeon-dong", "sihyeon-lanhwa", "hoyeon"], rel: "팀 중국", dir: "<>" },
+      { who: "hwawol", rel: "보살핌", dir: ">", color: "초록" },
+      { who: "yena-jiruciel", rel: "교육담당", dir: ">", color: "초록" },
+      { who: ["yena-jiruciel", "sieun-e"], rel: "여동생 모임", dir: "<>", color: "초록" },
+      { who: "sieun-macao", rel: "옆집동생", dir: ">", color: "주황" },
+      { who: "sieun-macao", rel: "짝사랑", dir: "<", color: "빨강" },
+      { who: ["sieun-mina", "harin-dobu"], rel: "같은 학교", dir: "<>", color: "초록" },
+      { who: "sihyeon-dong", rel: "남매", dir: "<>", color: "초록" },
+      { who: "harin-mun", rel: "♥", dir: ">", color: "빨강" }
+    ]
   }
 ];
