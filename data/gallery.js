@@ -930,4 +930,12 @@ window.GALLERY = [
     characters: ["sieun-ruti","sihyeon-dong","hwawol"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_231949769.jpg",
+    title: "KakaoTalk_20261025_231949769",
+    artist: "시은",
+    date: "2026-10-23",
+    characters: ["sieun-ruti"],
+    tags: ["프로필"],
+  },
 ];
