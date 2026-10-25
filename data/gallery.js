@@ -946,4 +946,12 @@ window.GALLERY = [
     characters: ["sihyeon-lulu","sihyeon-trans-m","yeonwoo-gongyuan"],
     tags: [],
   },
+  {
+    file: "images/gallery/3396_20261025233059.webp",
+    title: "3396_20261025233059",
+    artist: "예나",
+    date: "2026-10-26",
+    characters: ["yena-karia","sieun-ruti"],
+    tags: [],
+  },
 ];
