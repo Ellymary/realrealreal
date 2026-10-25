@@ -824,4 +824,18 @@ window.COMICS = [
     characters: ["sieun-f","yeonwoo-hyeonrang"],
     tags: [],
   },
+  {
+    id: "gdgdgd",
+    title: "dggdg",
+    artist: "시현",
+    date: "2026-10-23",
+    cover: "images/comics/gdgdgd/KakaoTalk_20261025_230941635_03.png",
+    pages: [
+      "images/comics/gdgdgd/KakaoTalk_20261025_230941635_03.png",
+      "images/comics/gdgdgd/KakaoTalk_20261025_230941635_04.png",
+      "images/comics/gdgdgd/KakaoTalk_20261025_230941635_05.png",
+    ],
+    characters: ["yena-jangcheongil","sieun-vanilla","sihyeon-lanhwa","yeonwoo-muk","harin-dobu","harin-mun","harin-baekjeomyuheuksae"],
+    tags: [],
+  },
 ];
