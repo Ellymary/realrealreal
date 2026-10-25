@@ -922,4 +922,12 @@ window.GALLERY = [
     characters: ["sihyeon-lanhwa","sihyeon-dong","harin-dobu","harin-baekjeomyuheuksae"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_230941635.png",
+    title: "KakaoTalk_20261025_230941635",
+    artist: ["예나","시은","연우"],
+    date: "2026-10-23",
+    characters: ["sieun-ruti","sihyeon-dong","hwawol"],
+    tags: [],
+  },
 ];
