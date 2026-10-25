@@ -898,4 +898,20 @@ window.GALLERY = [
     characters: ["rimina"],
     tags: ["프로필"],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_230904905_02.jpg",
+    title: "KakaoTalk_20261025_230904905_02",
+    artist: "시현",
+    date: "2026-10-25",
+    characters: ["sihyeon-dong"],
+    tags: [],
+  },
+  {
+    file: "images/gallery/KakaoTalk_20261025_230904905_03.png",
+    title: "KakaoTalk_20261025_230904905_03",
+    artist: "시현",
+    date: "2026-10-25",
+    characters: ["sihyeon-dong","sihyeon-lanhwa"],
+    tags: [],
+  },
 ];
