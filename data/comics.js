@@ -812,4 +812,16 @@ window.COMICS = [
     tags: [],
     series: true,
   },
+  {
+    id: "cbcbcbb",
+    title: "cbcbc",
+    artist: "연우",
+    date: "2026-10-23",
+    cover: "images/comics/cbcbcbb/KakaoTalk_20261025_230904905_01.png",
+    pages: [
+      "images/comics/cbcbcbb/KakaoTalk_20261025_230904905_01.png",
+    ],
+    characters: ["sieun-f","yeonwoo-hyeonrang"],
+    tags: [],
+  },
 ];
