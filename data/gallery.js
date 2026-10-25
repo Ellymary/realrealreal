@@ -914,4 +914,12 @@ window.GALLERY = [
     characters: ["sihyeon-dong","sihyeon-lanhwa"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261025_230904905.png",
+    title: "KakaoTalk_20261025_230904905",
+    artist: "시현",
+    date: "2026-10-23",
+    characters: ["sihyeon-lanhwa","sihyeon-dong","harin-dobu","harin-baekjeomyuheuksae"],
+    tags: [],
+  },
 ];
