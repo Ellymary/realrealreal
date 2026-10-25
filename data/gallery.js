@@ -938,4 +938,12 @@ window.GALLERY = [
     characters: ["sieun-ruti"],
     tags: ["프로필"],
   },
+  {
+    file: "images/gallery/12_20261025233210.webp",
+    title: "12_20261025233210",
+    artist: "시현",
+    date: "2026-10-26",
+    characters: ["sihyeon-lulu","sihyeon-trans-m","yeonwoo-gongyuan"],
+    tags: [],
+  },
 ];
