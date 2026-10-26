@@ -491,6 +491,6 @@
     SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
     esc, param, store, tagText, imgFail, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
-    GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard,
+    GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard, infoOf, fieldValue,
   };
 })();

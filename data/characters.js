@@ -7,7 +7,7 @@
 //    summary : 한 줄 소개
 //    info    : 캐릭터 정보 표. 주인·소속은 위의 owner / guild 에서 자동으로 나옴. 나머지는 여기에 적음 (안 적은 칸은 - 로 나옴)
 //              칸 이름: 성별 / 나이 / 생일 / 키 / MBTI / 무기 / 포지션 / 능력 / 등급 / 눈 색 / 머리색
-//              예) info: { "성별": "여", "나이": "24", "생일": "8월 29일", "키": "170cm", "MBTI": "INFP", "등급": "S", "눈 색": "#4a90d9", "머리색": "은발 rgb(200,210,255)" }
+//              예) info: { "성별": "여성", "나이": "24", "생일": "8월 29일", "키": "170cm", "MBTI": "INFP", "등급": "S", "눈 색": "#4a90d9", "머리색": "은발 rgb(200,210,255)" }
 //              생일은 "8월 29일" / "8/29" 처럼 적으면 계절 색(봄 분홍·여름 파랑·가을 갈색·겨울 연회색)으로 나와요. 모르면 안 적어도 돼요.
 //              눈 색 / 머리색은 #색코드 또는 rgb(r,g,b) 로 적으면 색 네모와 RGB 값이 같이 나옴. (앞에 글자를 붙여도 됨: "은발 #c8d2ff")
 //              색이 여러 개면 / 로 나눠서 적으면 한 줄에 하나씩 나옴. 예) "눈 색": "#405EBA / #B60024"
@@ -145,7 +145,7 @@ window.CHARACTERS = [
     guild: "전갈",
     image: "images/characters/4.png",
     summary: "",
-    info: { "성별": "여자", "나이": "29", "생일": "3월 31일", "능력": "뭐든지 꿰뚫어 볼 수 있음. 투시 가능. 생각도 읽을 수 있음. 자세하게는 못 읽고 분위기, 기분 판별 가능. (진실 거짓 판별 O), 능력 발현 가능성 등. 시야에만 들어오면 다 볼 수 있음.", "등급": "B", "눈 색": "#B68425", "머리색": "#A3A870" },
+    info: { "성별": "여성", "나이": "29", "생일": "3월 31일", "능력": "뭐든지 꿰뚫어 볼 수 있음. 투시 가능. 생각도 읽을 수 있음. 자세하게는 못 읽고 분위기, 기분 판별 가능. (진실 거짓 판별 O), 능력 발현 가능성 등. 시야에만 들어오면 다 볼 수 있음.", "등급": "B", "눈 색": "#B68425", "머리색": "#A3A870" },
     desc: `공격력 0 / 개초딩 S+, 약 싸패. 솔직한 사람 좋아함.
 
 머리가 좋다. 은근 아가리파이터`,
@@ -322,7 +322,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sihyeon-dong", rel: "짝사랑", dir: "<>", color: "빨강", main: true },
       { who: "yeonwoo-rozelin", rel: "친구", dir: "<>", color: "초록" },
       { who: "eun", rel: "옆집동생", dir: "<", color: "주황" },
-      { who: "eun", rel: "짝사랑", dir: ">", color: "빨강" },
+      { who: "eun", rel: "짝사랑", dir: ">", color: "빨강", main: true },
       { who: "rimina", rel: "이미 지갑 털었음", dir: ">", color: "초록" }
     ]
   },
@@ -397,7 +397,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "yeonwoo-muk", rel: "♥, 무서워...", dir: ">", color: "빨강" },
       { who: "harin-mun", dir: "<", color: "검정" },
       { who: "harin-yangyu", rel: "저 여자만 아니면...", dir: ">", color: "검정" },
-      { who: ["sihyeon-dong", "eun", "hoyeon"], rel: "팀 중국", dir: "<>" },
+      { who: ["sihyeon-dong", "eun", "hoyeon"], rel: "팀 중국", dir: "<>", color: "초록" },
       { who: "yena-karia", dir: ">", color: "주황" }
     ]
   },
@@ -508,8 +508,8 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sieun-vanilla", dir: "<", color: "검정" },
       { who: "sieun-mina", rel: "무섭다", dir: ">", color: "파랑" },
       { who: "harin-yangyu", rel: "쓸모있네", dir: ">", color: "빨강" },
-      { who: ["eun", "sihyeon-lanhwa", "hoyeon"], rel: "팀 중국", dir: "<>" },
-      { who: "eun", rel: "남매", dir: "<>", color: "초록" },
+      { who: ["eun", "sihyeon-lanhwa", "hoyeon"], rel: "팀 중국", dir: "<>", color: "초록" },
+      { who: "eun", rel: "남매", dir: "<>", color: "초록", main: true },
       { who: "harin-mun", rel: "혐오", dir: "<", color: "검정" }
     ]
   },
@@ -665,7 +665,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     guild: "비바람",
     image: "images/characters/22.png",
     summary: "",
-    info: { "생일": "1월 1일", "눈 색": "#A37303", "머리색": "#9A0000" },
+    info: { "나이": "25", "생일": "1월 1일", "키": "178cm", "MBTI": "ESTJ", "포지션": "딜러/서포터", "능력": "그림자 장악", "등급": "A", "눈 색": "#A37303", "머리색": "#9A0000" },
     desc: "",
     sheet: "",
     relations: [
@@ -881,7 +881,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     desc: "",
     sheet: "",
     relations: [
-      { who: ["sihyeon-dong", "eun", "sihyeon-lanhwa"], rel: "팀 중국", dir: "<>" },
+      { who: ["sihyeon-dong", "eun", "sihyeon-lanhwa"], rel: "팀 중국", dir: "<>", color: "초록" },
       { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
       { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
       { who: "yena-chi", rel: "여사친", dir: ">", color: "초록" },
@@ -920,7 +920,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
   {
     id: "eun",
     name: "은",
-    owner: "",
+    owner: "시현",
     guild: "비바람",
     image: "images/characters/116.webp",
     summary: "",
@@ -928,14 +928,14 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     desc: "병약하다.",
     sheet: "",
     relations: [
-      { who: ["sihyeon-dong", "sihyeon-lanhwa", "hoyeon"], rel: "팀 중국", dir: "<>" },
+      { who: ["sihyeon-dong", "sihyeon-lanhwa", "hoyeon"], rel: "팀 중국", dir: "<>", color: "초록" },
       { who: "hwawol", rel: "보살핌", dir: ">", color: "초록" },
       { who: "yena-jiruciel", rel: "교육담당", dir: ">", color: "초록" },
       { who: ["yena-jiruciel", "sieun-e"], rel: "여동생 모임", dir: "<>", color: "초록" },
       { who: "sieun-macao", rel: "옆집동생", dir: ">", color: "주황" },
-      { who: "sieun-macao", rel: "짝사랑", dir: "<", color: "빨강" },
+      { who: "sieun-macao", rel: "짝사랑", dir: "<", color: "빨강", main: true },
       { who: ["sieun-mina", "harin-dobu"], rel: "같은 학교", dir: "<>", color: "초록" },
-      { who: "sihyeon-dong", rel: "남매", dir: "<>", color: "초록" },
+      { who: "sihyeon-dong", rel: "남매", dir: "<>", color: "초록", main: true },
       { who: "harin-mun", rel: "♥", dir: ">", color: "빨강" }
     ]
   }

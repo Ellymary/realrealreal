@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>정보 정리</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  .tb-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 8px; }
+  .tb-bar input, .tb-bar select { padding: 8px 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; min-width: 0; }
+  .tb-bar input { flex: 1; min-width: 140px; max-width: 240px; }
+  .tb-fields { margin: 0 0 8px; }
+  .tb-fields summary { cursor: pointer; color: var(--muted); }
+  .tb-fields .box { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 10px 0 2px; }
+  .tb-fields label { display: inline-flex; gap: 5px; align-items: center; font-size: 14px; cursor: pointer; }
+  .tb-wrap { overflow: auto; max-height: 78vh; border: 1px solid var(--line); background: var(--panel); }
+  table.tb { border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  .tb th, .tb td { padding: 7px 12px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); vertical-align: top; min-width: 120px; max-width: 280px; text-align: left; background: var(--panel); }
+  .tb thead th { position: sticky; top: 0; z-index: 3; background: var(--panel2); text-align: center; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
+  .tb thead th:hover { color: var(--text); }
+  .tb thead th.on { color: var(--accent); }
+  .tb thead th:first-child { left: 0; z-index: 4; min-width: 150px; max-width: 170px; font-size: 13px; }
+  .tb tbody th.nm { position: sticky; left: 0; z-index: 2; min-width: 150px; max-width: 170px; background: var(--panel2); border-left: 4px solid var(--mc, var(--line)); }
+  .tb tbody th.nm a { display: flex; align-items: center; gap: 10px; font-family: var(--serif); font-weight: 800; font-size: 15px; color: var(--text); white-space: nowrap; }
+  .tb tbody th.nm a:hover { color: var(--accent); }
+  .tb .av { flex: none; width: 36px; height: 48px; overflow: hidden; border: 1px solid var(--mc, var(--line)); background: var(--panel2); }
+  .tb .av img { width: 100%; height: 100%; object-fit: cover; }
+  .tb .av .avatar-fb { font-size: 18px; }
+  .tb td { white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
+  .tb .sw { display: inline-block; width: 14px; height: 14px; margin-right: 5px; vertical-align: -2px; border: 1px solid rgba(128,128,128,.6); border-radius: 3px; }
+  .tb .hex { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+  .tb .fam { font-size: 12px; color: var(--muted); }
+  .tb .cl { display: block; }
+  .tb tbody tr:hover td { background: var(--panel2); }
+  .tb .clip { max-height: 8.5em; overflow-y: auto; }
+  /* 가로세로 바꾼 모양 (이름이 가로) */
+  .tb.flip thead th.ch { text-align: center; border-top: 3px solid var(--mc, var(--line)); cursor: default; color: var(--text); }
+  .tb.flip thead th.ch a { display: flex; flex-direction: column; align-items: center; gap: 4px; white-space: normal; }
+  .tb.flip .av { width: 48px; height: 64px; }
+  .tb.flip tbody th.fk2 { position: sticky; left: 0; z-index: 2; min-width: 96px; max-width: 120px; background: var(--panel2); color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
+  .tb.flip tbody th.fk2:hover { color: var(--text); }
+  .tb.flip tbody th.fk2.on { color: var(--accent); }
+  .tb.flip thead th:first-child { min-width: 96px; max-width: 120px; }
+  .tb-hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="characters.html">← 캐릭터</a>
+  <h1 class="page-title">정보 정리</h1>
+  <p class="hint">모든 캐릭터의 정보를 한 표로 봐요. <b>정보 이름(나이, 등급 …)을 누르면</b> 그 정보로 캐릭터가 정렬돼요. "가로세로 바꾸기"로 모양을 바꿀 수 있어요. (한 번 = 오름차순, 두 번 = 내림차순, 세 번 = 원래대로)</p>
+  <div class="tb-bar">
+    <input id="kw" placeholder="이름으로 찾기" autocomplete="off">
+    <select id="g" aria-label="길드"></select>
+    <select id="o" aria-label="만든 사람"></select>
+    <button class="btn" id="flip" type="button" title="가로 세로 바꾸기">⇄ 가로세로 바꾸기</button>
+  </div>
+  <details class="tb-fields2"><summary>보여줄 정보 고르기</summary><div class="box" id="fields"></div></details>
+  <div class="tb-wrap" id="wrap"></div>
+  <p class="tb-hint" id="count"></p>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/order.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { SITE, CHARS, esc, fmt } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("characters", "정보 정리");
+
+  const NOTE_KEYS = ["능력 부연설명", "능력 설명"];
+  // 행(정보) 목록: 기본 칸 + 캐릭터들이 따로 적은 칸 + 능력 설명
+  const base = App.SHEET_FIELDS.slice();
+  const extra = [];
+  CHARS.forEach((c) => Object.keys(App.infoOf(c)).forEach((k) => { if (!base.includes(k) && !NOTE_KEYS.includes(k) && !extra.includes(k)) extra.push(k); }));
+  const hasNote = CHARS.some((c) => NOTE_KEYS.some((k) => App.infoOf(c)[k]));
+  const HIDE = ["패시브"];   // 표에서 뺄 정보
+  const ALL = base.concat(extra.filter((k) => !HIDE.includes(k)), hasNote ? ["능력 설명"] : []);
+  const val = (c, k) => k === "능력 설명" ? String((NOTE_KEYS.map((n) => App.infoOf(c)[n]).find(Boolean)) || "") : App.fieldValue(c, k);
+
+  // 보여줄 정보 (기억해 둬요)
+  let shown;
+  try { shown = JSON.parse(App.store.get("tb-fields2") || "null"); } catch (e) { shown = null; }
+  if (!Array.isArray(shown)) shown = ALL.filter((k) => k !== "능력 설명");
+  const saveShown = () => App.store.set("tb-fields2", JSON.stringify(shown));
+
+  let flip = App.store.get("tb-flip") === "1";
+  let sortKey = "", dir = 1, kw = "", gid = "", owner = "";
+
+
+  // 눈 색 / 머리색 정렬: 색 계열 순서 (빨강 → 주황 → 노랑 → 초록 → 청록 → 파랑 → 보라 → 분홍 → 갈색 → 흰색 → 회색 → 검정)
+  const FAM = ["빨강", "주황", "노랑", "초록", "청록", "파랑", "보라", "분홍", "갈색", "흰색", "회색", "검정"];
+  function family(rgb) {
+    const [r, g, b] = rgb.map((x) => x / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    let h = 0;
+    if (d) { h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; }
+    if (l < 0.13) return "검정";
+    if (l > 0.9 && s < 0.5) return "흰색";
+    if (s < 0.14) return l > 0.78 ? "흰색" : l < 0.25 ? "검정" : "회색";
+    if (h >= 12 && h < 50 && (l < 0.45 || s < 0.45)) return "갈색";
+    if (h < 12 || h >= 345) return l > 0.75 ? "분홍" : "빨강";
+    if (h < 40) return "주황";
+    if (h < 70) return "노랑";
+    if (h < 165) return "초록";
+    if (h < 200) return "청록";
+    if (h < 255) return "파랑";
+    if (h < 290) return "보라";
+    return "분홍";
+  }
+  function colorKey(v) {
+    const ps = String(v).split("/").map((x) => App.parseColor(x.trim())).filter(Boolean);
+    if (!ps.length) return null;
+    return ps.slice(0, 2).reduce((n, p, i) => n + (FAM.indexOf(family(p.rgb)) + 1) * (i ? 1 : 100), 0);
+  }
+
+  // 정렬값: 숫자 / 등급 / 생일 / 글자
+  function key(c, k) {
+    const v = val(c, k);
+    if (v === "" || v == null) return null;
+    if (k === "등급") { const r = App.gradeRank(c); return r == null ? null : r; }
+    if (k === "생일") { const b = App.bdayOf(c); return b ? b.m * 100 + b.d : null; }
+    if (k === "눈 색" || k === "머리색") return colorKey(v);
+    if (k === "나이" || k === "키") { const m = String(v).match(/\d+(\.\d+)?/); return m ? +m[0] : null; }
+    return String(v);
+  }
+  function cmp(a, b) {
+    if (typeof a === "number" && typeof b === "number") return a - b;
+    return String(a).localeCompare(String(b), "ko");
+  }
+
+  function cell(c, k) {
+    const v = val(c, k);
+    if (v === "") return '<span class="muted">-</span>';
+    if (k === "눈 색" || k === "머리색") {
+      return String(v).split("/").map((x) => x.trim()).filter(Boolean).map((x) => {
+        const p = App.parseColor(x);
+        return p ? '<span class="cl"><span class="sw" style="background:' + p.css + '"></span><span class="hex">' + esc(p.hex.toUpperCase()) + "</span>" + (p.label ? " " + esc(p.label) : "") + "</span>" : '<span class="cl">' + fmt(x) + "</span>";
+      }).join("");
+    }
+    if (k === "등급") return App.infoVal(k, v);
+    if (k === "생일") return App.birthdayHTML(String(v));
+    if (k === "소속") return esc(v);
+    return fmt(v);
+  }
+
+  function list() {
+    const gl = App.guildList();
+    let arr = gl.flatMap((g) => App.charsOfGuild(g));
+    const gsel = gid ? gl.find((g) => g.id === gid) : null;
+    arr = arr.filter((c) => (!gsel || App.guildOf(c) === gsel) && (!owner || c.owner === owner) && (!kw || (c.label || c.name).toLowerCase().includes(kw)));
+    if (sortKey) {
+      arr = arr.map((c, i) => ({ c, i, k: key(c, sortKey) })).sort((x, y) => {
+        if (x.k == null && y.k == null) return x.i - y.i;
+        if (x.k == null) return 1;      // 비어 있는 캐릭터는 항상 맨 뒤
+        if (y.k == null) return -1;
+        return dir * cmp(x.k, y.k) || x.i - y.i;
+      }).map((x) => x.c);
+    }
+    return arr;
+  }
+
+  function render() {
+    const cs = list();
+    const cols = ALL.filter((k) => shown.includes(k));
+    const arrow = (k) => (sortKey === k ? (dir === 1 ? " ▲" : " ▼") : "");
+    const nameLink = (c) => '<a href="character.html?id=' + encodeURIComponent(c.id) + '"><span class="av">' + App.avatar(c) + "</span><span>" + esc(c.label || c.name) + "</span></a>";
+    const kth = (k, cls) => '<' + 'th class="' + cls + (sortKey === k ? " on" : "") + '" data-k="' + esc(k) + '" title="눌러서 정렬">' + esc(k) + arrow(k) + "</th>";
+    let html;
+    if (!flip) {   // 이름이 세로, 정보가 가로
+      html = '<tr><th title="눌러서 원래 순서로" data-reset>이름 \\ 정보</th>' + cols.map((k) => kth(k, "fk")).join("") + "</tr>";
+      html = "<thead>" + html + "</thead><tbody>" + cs.map((c) => '<tr style="--mc:' + App.guildOf(c).color + '"><th class="nm">' + nameLink(c) + "</th>" +
+        cols.map((k) => '<td><div class="clip">' + cell(c, k) + "</div></td>").join("") + "</tr>").join("") + "</tbody>";
+    } else {       // 이름이 가로, 정보가 세로
+      html = "<thead><tr><th title=\"눌러서 원래 순서로\" data-reset>정보 \\ 이름</th>" + cs.map((c) => '<th class="ch" style="--mc:' + App.guildOf(c).color + '">' + nameLink(c) + "</th>").join("") + "</tr></thead>" +
+        "<tbody>" + cols.map((k) => "<tr>" + kth(k, "fk2") + cs.map((c) => '<td><div class="clip">' + cell(c, k) + "</div></td>").join("") + "</tr>").join("") + "</tbody>";
+    }
+    $("wrap").innerHTML = cs.length ? '<table class="tb' + (flip ? " flip" : "") + '">' + html + "</table>" : '<p class="empty" style="padding:20px">찾는 캐릭터가 없어요.</p>';
+    $("count").textContent = cs.length + "명" + (sortKey ? " · " + sortKey + (dir === 1 ? " 오름차순" : " 내림차순") + " 정렬 중" : "");
+  }
+
+  $("g").innerHTML = '<option value="">길드 전체</option>' + App.guildList().map((g) => '<option value="' + esc(g.id) + '">' + esc(g.name) + "</option>").join("");
+  $("o").innerHTML = '<option value="">만든 사람 전체</option>' + SITE.members.map((m) => '<option value="' + esc(m) + '">' + esc(m) + "</option>").join("");
+  $("fields").innerHTML = ALL.map((k) => '<label><input type="checkbox" data-f="' + esc(k) + '"' + (shown.includes(k) ? " checked" : "") + "> " + esc(k) + "</label>").join("");
+
+  $("flip").addEventListener("click", () => { flip = !flip; App.store.set("tb-flip", flip ? "1" : "0"); render(); });
+  $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); render(); });
+  $("g").addEventListener("change", (e) => { gid = e.target.value; render(); });
+  $("o").addEventListener("change", (e) => { owner = e.target.value; render(); });
+  $("fields").addEventListener("change", (e) => {
+    const k = e.target.dataset.f; if (!k) return;
+    shown = e.target.checked ? shown.concat(k) : shown.filter((x) => x !== k);
+    if (sortKey && !shown.includes(sortKey)) sortKey = "";
+    saveShown(); render();
+  });
+  $("wrap").addEventListener("click", (e) => {
+    if (e.target.closest("[data-reset]")) { sortKey = ""; dir = 1; render(); return; }
+    const th = e.target.closest("th[data-k]"); if (!th) return;
+    const k = th.dataset.k;
+    if (sortKey !== k) { sortKey = k; dir = 1; }
+    else if (dir === 1) dir = -1;
+    else { sortKey = ""; dir = 1; }
+    render();
+  });
+  render();
+</script>
+</body>
+</html>
