@@ -838,4 +838,18 @@ window.COMICS = [
     characters: ["yena-jangcheongil","sieun-vanilla","sihyeon-lanhwa","yeonwoo-muk","harin-dobu","harin-mun","harin-baekjeomyuheuksae"],
     tags: [],
   },
+  {
+    id: "90798574",
+    title: "yy8",
+    artist: "예나",
+    date: "2026-10-27",
+    cover: "images/comics/90798574/1793009766189.webp",
+    pages: [
+      "images/comics/90798574/1793009766189.webp",
+      "images/comics/90798574/1793009768042.webp",
+      "images/comics/90798574/1793009768168.webp",
+    ],
+    characters: ["andrei","harin-yangyu"],
+    tags: [],
+  },
 ];
