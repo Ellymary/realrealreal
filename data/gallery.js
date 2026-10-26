@@ -962,4 +962,12 @@ window.GALLERY = [
     characters: ["eun"],
     tags: [],
   },
+  {
+    file: "images/gallery/1792942291006.webp",
+    title: "1792942291006",
+    artist: "시현",
+    date: "2026-10-27",
+    characters: ["eun"],
+    tags: ["프로필"],
+  },
 ];
