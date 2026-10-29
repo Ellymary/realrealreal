@@ -12,4 +12,6 @@ window.PLAYGROUND = [
   { title: "커플링 잇기", desc: "원에 캐릭터를 놓고 선으로 잇기 · 최애/좋아/먹을 수 있음/흠/못 먹음", href: "ship.html", icon: "💞" },
   { title: "궁합 테스트", desc: "두 캐릭터를 골라 보는 랜덤 궁합 · 재미로만!", href: "compat.html", icon: "💘" },
   { title: "랜덤 파티 짜기", desc: "파티를 짜서 게이트 공략! · 포지션별 / 직접 / 전부 랜덤 · 등급에 따라 성공 확률", href: "party.html", icon: "⚔️" },
+  { title: "이상형 월드컵", desc: "캐릭터 토너먼트 · 둘 중 하나씩 골라서 최종 우승자 뽑기 · 범위/강수 선택", href: "worldcup.html", icon: "🏆" },
+  { title: "길드 재배치", desc: "캐릭터를 다른 길드로 옮겨 보기 · 새 길드 만들기 · 랜덤 재배치", href: "guildmix.html", icon: "🏰" },
 ];

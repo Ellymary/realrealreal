@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이상형 월드컵</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  .wc-setup { display: grid; gap: 14px; margin-top: 18px; padding: 18px; background: var(--panel); border: 1px solid var(--line); }
+  .wc-setup label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+  .wc-setup select { padding: 10px 12px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); font: inherit; }
+  .wc-setup input[type=text], .wc-setup textarea { padding: 10px 12px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); font: inherit; width: 100%; box-sizing: border-box; resize: vertical; }
+  .wc-topic { margin-top: 18px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); }
+  .wc-topic b { color: var(--accent); }
+  .wc-topic p { margin: 4px 0 0; font-size: 14px; color: var(--muted); white-space: pre-wrap; line-height: 1.5; }
+  .wc-card .ex { margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--text); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .wc-card .ex b { color: var(--accent); margin-right: 4px; }
+  .wc-stats { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .wc-stats th, .wc-stats td { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: center; }
+  .wc-stats th { color: var(--muted); font-weight: 500; }
+  .wc-stats td:nth-child(2) { text-align: left; }
+  .wc-stats a { color: var(--text); }
+  .wc-note { font-size: 13px; color: var(--muted); margin: 0; }
+
+  .wc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 20px; }
+  .wc-round { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .wc-count { color: var(--muted); font-size: 14px; }
+  .wc-bar { height: 4px; background: var(--panel2); margin: 8px 0 16px; }
+  .wc-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+
+  .wc-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; }
+  .wc-vs::after { content: "VS"; position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 2;
+    padding: 6px 10px; font-weight: 800; font-size: 15px; letter-spacing: 1px; background: var(--bg); color: var(--accent);
+    border: 1px solid var(--accent); pointer-events: none; }
+  .wc-card { all: unset; box-sizing: border-box; display: block; cursor: pointer; background: var(--panel); border: 2px solid var(--line);
+    overflow: hidden; transition: transform .15s, border-color .15s, opacity .3s; text-align: left; }
+  .wc-card:hover, .wc-card:focus-visible { border-color: var(--mc, var(--accent)); transform: translateY(-3px); }
+  .wc-card .pic { aspect-ratio: 3 / 4; background: var(--panel2); }
+  .wc-card .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .wc-card .body { padding: 10px 12px 14px; }
+  .wc-card .nm { font-weight: 700; font-size: 18px; }
+  .wc-card .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .wc-card .sum { color: var(--text); font-size: 13px; margin-top: 8px; line-height: 1.5; min-height: 2.6em; }
+  .wc-card .prof { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--accent); }
+  .wc-card.win { border-color: var(--accent); transform: scale(1.02); }
+  .wc-card.lose { opacity: .25; }
+  .wc-ctrl { display: flex; justify-content: space-between; gap: 8px; margin-top: 16px; }
+  .wc-hint { text-align: center; color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+  .wc-final { text-align: center; margin-top: 22px; }
+  .wc-final h2 { margin: 0 0 4px; color: var(--accent); }
+  .wc-champ { width: min(280px, 70%); margin: 14px auto 8px; border: 2px solid var(--accent); background: var(--panel); overflow: hidden; }
+  .wc-champ .pic { aspect-ratio: 3 / 4; background: var(--panel2); }
+  .wc-champ .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .wc-champ-nm { font-size: 26px; font-weight: 800; }
+  .wc-champ-sub { color: var(--muted); font-size: 14px; }
+  .wc-champ-sum { max-width: 460px; margin: 10px auto 0; font-size: 14px; line-height: 1.6; }
+  .wc-rank { display: grid; gap: 8px; margin: 22px 0 6px; text-align: left; }
+  .wc-rank-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: var(--panel); border: 1px solid var(--line); }
+  .wc-rank-row .n { width: 54px; font-weight: 700; color: var(--accent); font-size: 14px; }
+  .wc-rank-row .pic { width: 40px; height: 40px; flex: none; overflow: hidden; }
+  .wc-rank-row .pic img, .wc-rank-row .pic .avatar-fb { width: 100%; height: 100%; object-fit: cover; font-size: 20px; }
+  .wc-rank-row a { color: var(--text); }
+  .wc-rank-row small { color: var(--muted); }
+  .wc-all { text-align: left; margin-top: 10px; }
+  .wc-all summary { cursor: pointer; color: var(--muted); }
+  .wc-all .grp { margin-top: 8px; font-size: 14px; }
+  .wc-all .grp b { color: var(--accent); margin-right: 6px; }
+  .wc-final-ctrl { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+  @media (max-width: 520px) {
+    .wc-card .nm { font-size: 15px; }
+    .wc-card .sum { display: none; }
+    .wc-card .body { padding: 8px 10px 12px; }
+    .wc-vs::after { top: 34%; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap narrow">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">이상형 월드컵</h1>
+
+  <div id="wc-setup" class="wc-setup">
+    <label>주제
+      <select id="wc-topic"></select>
+    </label>
+    <label id="wc-title-wrap" hidden>월드컵 이름
+      <input type="text" id="wc-title" maxlength="40" placeholder="예: 같이 여행 가고 싶은 월드컵">
+    </label>
+    <label>설명 <small>(상황이나 규칙을 적어요. 게임 중 위쪽에 계속 보여요)</small>
+      <textarea id="wc-desc" rows="3" maxlength="300" placeholder="예: 무인도에 둘이 남겨진다면?"></textarea>
+    </label>
+    <label>범위
+      <select id="wc-pool"></select>
+    </label>
+    <label>라운드
+      <select id="wc-size"></select>
+    </label>
+    <p class="wc-note" id="wc-note"></p>
+    <button type="button" class="btn btn-primary" id="wc-start">시작하기</button>
+    <button type="button" class="btn" id="wc-showstats">이 주제의 내 누적 순위 보기</button>
+    <div id="wc-stats-box" hidden></div>
+  </div>
+
+  <div id="wc-play" hidden></div>
+  <div id="wc-end" hidden></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/worldcup.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, byId, CHARS, SITE } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "이상형 월드컵");
+
+  const KEY = "hw-worldcup";
+  const SIZES = [4, 8, 16, 32, 64, 128];
+
+  // ── 주제 ──
+  const TOPICS = (window.WORLDCUP || []).concat([{ id: "custom", title: "직접 만들기", desc: "" }]);
+  const DKEY = "hw-worldcup-desc";
+  const readJ = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null") || {}; } catch (e) { return {}; } };
+  const writeJ = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const topicById = (id) => TOPICS.find((t) => t.id === id) || TOPICS[0];
+  $("wc-topic").innerHTML = TOPICS.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.title) + "</option>").join("");
+  function loadTopic() {
+    const t = topicById($("wc-topic").value);
+    $("wc-title-wrap").hidden = t.id !== "custom";
+    const d = readJ(DKEY)[t.id];
+    $("wc-desc").value = typeof d === "string" ? d : t.desc || "";
+    $("wc-stats-box").hidden = true;
+  }
+  function curTopic() {
+    const t = topicById($("wc-topic").value);
+    const title = t.id === "custom" ? ($("wc-title").value.trim() || "이상형 월드컵") : t.title;
+    return { id: t.id, key: t.id === "custom" ? "custom:" + title : t.id, title: title, desc: $("wc-desc").value.trim(), field: t.field || "" };
+  }
+
+  // ── 범위 ──
+  function poolOptions() {
+    const owners = SITE.members.filter((m) => CHARS.some((c) => c.owner === m));
+    const guilds = App.guildList().filter((g) => App.charsOfGuild(g).length >= 4);
+    let h = '<option value="all">전체 (' + CHARS.length + "명)</option>";
+    h += '<optgroup label="주인별">' + owners.map((m) => {
+      const n = CHARS.filter((c) => c.owner === m).length;
+      return '<option value="owner:' + esc(m) + '"' + (n < 4 ? " disabled" : "") + ">" + esc(m) + " (" + n + "명)</option>";
+    }).join("") + "</optgroup>";
+    h += '<optgroup label="길드별">' + guilds.map((g) =>
+      '<option value="guild:' + esc(g.id) + '">' + esc(g.name) + " (" + App.charsOfGuild(g).length + "명)</option>").join("") + "</optgroup>";
+    return h;
+  }
+  function poolList(v) {
+    if (v.startsWith("owner:")) return CHARS.filter((c) => c.owner === v.slice(6));
+    if (v.startsWith("guild:")) { const g = App.guildList().find((x) => x.id === v.slice(6)); return g ? App.charsOfGuild(g) : []; }
+    return CHARS.slice();
+  }
+  function sizeFor(n) { return SIZES.filter((s) => s <= n); }
+
+  function refreshSizes(keep) {
+    const n = poolList($("wc-pool").value).length;
+    const ok = sizeFor(n);
+    $("wc-size").innerHTML = ok.map((s) => '<option value="' + s + '">' + roundName(s) + " (" + s + "명)</option>").join("");
+    if (keep && ok.includes(+keep)) $("wc-size").value = keep; else if (ok.length) $("wc-size").value = ok[ok.length - 1];
+    const s = +$("wc-size").value;
+    $("wc-note").textContent = !ok.length ? "4명 이상 있어야 시작할 수 있어요."
+      : (n > s ? n + "명 중 " + s + "명이 무작위로 뽑혀요. " : n + "명 전원이 참가해요. ") + "(매번 대진이 달라져요)";
+    $("wc-start").disabled = !ok.length;
+  }
+
+  const roundName = (n) => (n === 2 ? "결승" : n === 4 ? "4강" : n + "강");
+  const place = (n) => (n === 2 ? "준우승" : n === 4 ? "공동 3위 (4강)" : "공동 " + (n / 2 + 1) + "위 (" + n + "강)");
+
+  $("wc-pool").innerHTML = poolOptions();
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) {}
+  if (saved.pool && [...$("wc-pool").options].some((o) => o.value === saved.pool && !o.disabled)) $("wc-pool").value = saved.pool;
+  if (saved.topic && TOPICS.some((t) => t.id === saved.topic)) $("wc-topic").value = saved.topic;
+  if (saved.title) $("wc-title").value = saved.title;
+  loadTopic();
+  refreshSizes(saved.size);
+  $("wc-topic").addEventListener("change", loadTopic);
+  $("wc-pool").addEventListener("change", () => refreshSizes());
+  $("wc-size").addEventListener("change", () => refreshSizes($("wc-size").value));
+
+  // ── 게임 상태 ──
+  let cur, nxt, idx, elim, hist, busy, total, played, topic, part, size0;
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  function start() {
+    const pool = poolList($("wc-pool").value);
+    const size = +$("wc-size").value;
+    topic = curTopic();
+    try { localStorage.setItem(KEY, JSON.stringify({ pool: $("wc-pool").value, size: size, topic: $("wc-topic").value, title: $("wc-title").value })); } catch (e) {}
+    const dm = readJ(DKEY); dm[$("wc-topic").value] = $("wc-desc").value; writeJ(DKEY, dm);
+    cur = shuffle(pool.slice()).slice(0, size).map((c) => c.id);
+    part = cur.slice(); size0 = size;
+    nxt = []; idx = 0; elim = []; hist = []; busy = false; played = 0; total = size - 1;
+    $("wc-setup").hidden = true; $("wc-end").hidden = true; $("wc-play").hidden = false;
+    drawMatch();
+  }
+
+  function extra(c) {
+    const v = topic && topic.field && c.info && c.info[topic.field];
+    return v ? '<div class="ex"><b>' + esc(topic.field) + "</b>" + esc(String(v)) + "</div>" : "";
+  }
+  function topicBox() {
+    return '<div class="wc-topic"><b>' + esc(topic.title) + "</b>" + (topic.desc ? "<p>" + esc(topic.desc) + "</p>" : "") + "</div>";
+  }
+
+  function card(id, side) {
+    const c = byId[id], gd = App.guildOf(c);
+    return '<button type="button" class="wc-card" data-side="' + side + '" style="--mc:' + gd.color + '" aria-label="' + esc(c.name) + ' 선택">' +
+      '<div class="pic">' + App.avatar(c) + "</div>" +
+      '<div class="body"><div class="nm">' + esc(c.label || c.name) + "</div>" +
+      '<div class="sub">' + esc([c.owner, gd.name].filter(Boolean).join(" · ")) + "</div>" +
+      '<div class="sum">' + esc(c.summary || "") + "</div>" + extra(c) +
+      '<a class="prof" href="character.html?id=' + encodeURIComponent(c.id) + '" target="_blank" rel="noopener">프로필 ↗</a></div></button>';
+  }
+
+  function drawMatch() {
+    busy = false;
+    const a = cur[idx], b = cur[idx + 1];
+    $("wc-play").innerHTML = topicBox() +
+      '<div class="wc-top"><span class="wc-round">' + roundName(cur.length) + '</span><span class="wc-count">' +
+      (idx / 2 + 1) + " / " + cur.length / 2 + "</span></div>" +
+      '<div class="wc-bar"><span style="width:' + (played / total * 100) + '%"></span></div>' +
+      '<div class="wc-vs">' + card(a, 0) + card(b, 1) + "</div>" +
+      '<div class="wc-ctrl"><button type="button" class="btn" id="wc-undo"' + (hist.length ? "" : " disabled") + '>← 되돌리기</button>' +
+      '<button type="button" class="btn" id="wc-quit">그만하기</button></div>' +
+      '<p class="wc-hint">카드를 누르거나, 키보드 ← → (또는 1 · 2) 로 골라요</p>';
+    $("wc-play").querySelectorAll(".wc-card").forEach((el) => {
+      el.addEventListener("click", (e) => { if (e.target.closest(".prof")) return; pick(+el.dataset.side); });
+    });
+    $("wc-undo").addEventListener("click", undo);
+    $("wc-quit").addEventListener("click", quit);
+  }
+
+  function pick(side) {
+    if (busy) return; busy = true;
+    const cards = $("wc-play").querySelectorAll(".wc-card");
+    cards[side].classList.add("win"); cards[1 - side].classList.add("lose");
+    setTimeout(() => {
+      hist.push({ cur: cur.slice(), nxt: nxt.slice(), idx: idx, el: elim.length, played: played });
+      const w = cur[idx + side], l = cur[idx + 1 - side];
+      elim.push({ id: l, round: cur.length });
+      nxt.push(w); idx += 2; played++;
+      if (idx >= cur.length) {
+        if (nxt.length === 1) return finish(nxt[0]);
+        cur = nxt; nxt = []; idx = 0;
+      }
+      drawMatch();
+    }, 380);
+  }
+
+  function undo() {
+    if (busy || !hist.length) return;
+    const s = hist.pop();
+    cur = s.cur; nxt = s.nxt; idx = s.idx; played = s.played; elim.length = s.el;
+    drawMatch();
+  }
+
+  function quit() {
+    if (!confirm("그만할까요? 지금까지의 결과는 사라져요.")) return;
+    $("wc-play").hidden = true; $("wc-setup").hidden = false;
+  }
+
+  // ── 누적 순위 (이 기기에만 저장) ──
+  const SKEY = "hw-worldcup-stats";
+  function record(champ, finalist) {
+    const all = readJ(SKEY), st = (all[topic.key] = all[topic.key] || { runs: 0, c: {} });
+    st.runs++;
+    part.forEach((id) => (st.c[id] = st.c[id] || { n: 0, w: 0, f: 0, s: 0, m: 0 }));
+    part.forEach((id) => st.c[id].n++);
+    st.c[champ].w++; st.c[champ].m += Math.log2(size0);
+    st.c[finalist].f++;
+    elim.forEach((e) => { st.c[e.id].m += Math.log2(size0 / e.round); if (e.round === 4) st.c[e.id].s++; });
+    writeJ(SKEY, all);
+  }
+  function statsHTML(key) {
+    const st = readJ(SKEY)[key];
+    if (!st || !st.runs) return '<p class="muted">아직 기록이 없어요. 한 번 끝까지 해 보세요!</p>';
+    const rows = Object.keys(st.c).filter((id) => byId[id]).sort((a, b) => {
+      const x = st.c[a], y = st.c[b];
+      return y.w - x.w || y.f - x.f || y.s - x.s || y.m - x.m;
+    }).slice(0, 15);
+    return '<p class="wc-note">이 기기에서 ' + st.runs + '번 플레이한 기록이에요. (다른 사람/기기와는 합쳐지지 않아요)</p>' +
+      '<table class="wc-stats"><tr><th>순위</th><th>캐릭터</th><th>우승</th><th>준우승</th><th>4강</th><th>참가</th></tr>' +
+      rows.map((id, i) => "<tr><td>" + (i + 1) + "</td><td>" + link(id) + "</td><td>" + st.c[id].w + "</td><td>" + st.c[id].f + "</td><td>" + st.c[id].s + "</td><td>" + st.c[id].n + "</td></tr>").join("") +
+      '</table><button type="button" class="btn" id="wc-clear" style="margin-top:10px">이 주제 기록 지우기</button>';
+  }
+  function bindClear(box, key) {
+    const b = box.querySelector("#wc-clear");
+    if (b) b.addEventListener("click", () => {
+      if (!confirm("이 주제의 누적 기록을 지울까요?")) return;
+      const all = readJ(SKEY); delete all[key]; writeJ(SKEY, all); box.innerHTML = statsHTML(key);
+    });
+  }
+  $("wc-showstats").addEventListener("click", () => {
+    const box = $("wc-stats-box"), key = curTopic().key;
+    box.hidden = !box.hidden;
+    if (!box.hidden) { box.innerHTML = statsHTML(key); bindClear(box, key); }
+  });
+
+  // ── 결과 ──
+  function avatarBox(id) { return '<div class="pic">' + App.avatar(byId[id]) + "</div>"; }
+  function link(id) { return '<a href="character.html?id=' + encodeURIComponent(id) + '">' + esc(byId[id].label || byId[id].name) + "</a>"; }
+
+  function finish(champ) {
+    $("wc-play").hidden = true; $("wc-end").hidden = false;
+    const c = byId[champ], gd = App.guildOf(c);
+    const finalist = elim.find((e) => e.round === 2).id;
+    record(champ, finalist);
+    const semis = elim.filter((e) => e.round === 4).map((e) => e.id);
+    const rows = [["1위", champ], ["2위", finalist]].concat(semis.map((id) => ["공동 3위", id]));
+    const rest = {};
+    elim.filter((e) => e.round > 4).forEach((e) => (rest[e.round] = rest[e.round] || []).push(e.id));
+    const restKeys = Object.keys(rest).map(Number).sort((a, b) => a - b);
+
+    $("wc-end").innerHTML = '<div class="wc-final">' +
+      "<h2>🏆 우승!</h2><div class=\"muted\">" + esc(topic.title) + " · " + esc(String(size0)) + "강</div>" +
+      '<div class="wc-champ" style="--mc:' + gd.color + '">' + avatarBox(champ) + "</div>" +
+      '<div class="wc-champ-nm">' + esc(c.label || c.name) + "</div>" +
+      '<div class="wc-champ-sub">' + esc([c.owner, gd.name].filter(Boolean).join(" · ")) + "</div>" +
+      (c.summary ? '<div class="wc-champ-sum">' + esc(c.summary) + "</div>" : "") +
+      '<div class="wc-rank">' + rows.map((r) => '<div class="wc-rank-row"><span class="n">' + r[0] + "</span>" + avatarBox(r[1]) + "<span>" + link(r[1]) + "</span></div>").join("") + "</div>" +
+      (restKeys.length ? '<details class="wc-all"><summary>나머지 순위 보기</summary>' + restKeys.map((k) =>
+        '<div class="grp"><b>' + esc(place(k)) + "</b>" + rest[k].map(link).join(", ") + "</div>").join("") + "</details>" : "") +
+      '<details class="wc-all" id="wc-mystats"><summary>이 주제의 내 누적 순위 보기</summary><div id="wc-mystats-box"></div></details>' +
+      '<div class="wc-final-ctrl"><button type="button" class="btn btn-primary" id="wc-again">같은 설정으로 다시</button>' +
+      '<button type="button" class="btn" id="wc-copy">결과 복사</button>' +
+      '<button type="button" class="btn" id="wc-reset">설정 바꾸기</button></div></div>';
+
+    $("wc-mystats").addEventListener("toggle", () => {
+      const box = $("wc-mystats-box");
+      if ($("wc-mystats").open) { box.innerHTML = statsHTML(topic.key); bindClear(box, topic.key); }
+    });
+    $("wc-again").addEventListener("click", start);
+    $("wc-reset").addEventListener("click", () => { $("wc-end").hidden = true; $("wc-setup").hidden = false; });
+    $("wc-copy").addEventListener("click", () => {
+      const nm = (id) => byId[id].label || byId[id].name;
+      const text = "🏆 " + topic.title + " (" + size0 + "강)\n1위 " + nm(champ) + "\n2위 " + nm(finalist) +
+        "\n공동 3위 " + semis.map(nm).join(", ");
+      const done = () => { $("wc-copy").textContent = "복사됐어요!"; setTimeout(() => ($("wc-copy").textContent = "결과 복사"), 1500); };
+      try { navigator.clipboard.writeText(text).then(done, () => prompt("복사해서 쓰세요", text)); }
+      catch (e) { prompt("복사해서 쓰세요", text); }
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if ($("wc-play").hidden) return;
+    if (e.key === "ArrowLeft" || e.key === "1") pick(0);
+    else if (e.key === "ArrowRight" || e.key === "2") pick(1);
+  });
+  $("wc-start").addEventListener("click", start);
+</script>
+</body>
+</html>

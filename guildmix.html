@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>길드 재배치</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  [hidden] { display: none !important; }
+  .gm-box { margin-top: 16px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); }
+  .gm-box h3 { margin: 0 0 10px; font-size: 15px; }
+  .gm-new { display: grid; grid-template-columns: 1fr 52px; gap: 8px; }
+  .gm-new .full { grid-column: 1 / -1; }
+  .gm-new input[type=text] { padding: 10px 12px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); font: inherit; min-width: 0; }
+  .gm-new input[type=color] { width: 52px; height: 100%; min-height: 42px; padding: 2px; background: var(--panel2); border: 1px solid var(--line); cursor: pointer; }
+  .gm-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .gm-note { font-size: 13px; color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
+
+  .gm-sel { position: sticky; top: 56px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; padding: 8px 12px;
+    background: var(--panel2); border: 1px solid var(--accent); font-size: 14px; }
+  .gm-sel b { color: var(--accent); }
+
+  .gm-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 16px; align-items: start; }
+  .gm-col { background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--gc, var(--line)); min-height: 90px; transition: background .12s; }
+  .gm-col.pool { grid-column: 1 / -1; border-top-style: dashed; }
+  .gm-col.over { background: var(--panel2); outline: 2px dashed var(--accent); outline-offset: -2px; }
+  .gm-head { display: flex; align-items: center; gap: 6px; padding: 10px 10px 4px; }
+  .gm-head .nm { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gm-head .cnt { color: var(--muted); font-size: 12px; }
+  .gm-head button.mini { all: unset; cursor: pointer; color: var(--muted); font-size: 13px; padding: 2px 5px; }
+  .gm-head button.mini:hover { color: var(--accent); }
+  .gm-head input[type=color] { width: 20px; height: 20px; padding: 0; margin: 0 2px; border: 1px solid var(--line); background: none; cursor: pointer; flex: none; }
+  .gm-sum { padding: 0 10px; font-size: 12px; color: var(--muted); }
+  .gm-move { display: block; width: calc(100% - 20px); margin: 6px 10px 0; padding: 6px; font-size: 13px; }
+  .gm-move:disabled { opacity: .35; cursor: default; }
+  .gm-list { display: grid; gap: 6px; padding: 8px 10px 12px; }
+  .pool .gm-list { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .gm-empty { color: var(--muted); font-size: 12px; padding: 8px 2px; }
+
+  .gm-chip { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 5px; background: var(--panel2); border: 1px solid var(--line);
+    cursor: pointer; user-select: none; -webkit-user-select: none; font-size: 14px; }
+  .gm-chip:hover { border-color: var(--mc, var(--accent)); }
+  .gm-chip .pic { width: 30px; height: 30px; flex: none; overflow: hidden; border-radius: 50%; }
+  .gm-chip .pic img, .gm-chip .pic .avatar-fb { width: 100%; height: 100%; object-fit: cover; font-size: 14px; }
+  .gm-chip .t { min-width: 0; line-height: 1.2; }
+  .gm-chip .t span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gm-chip .t small { color: var(--muted); font-size: 11px; }
+  .gm-chip.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 20%, var(--panel2)); }
+  .gm-chip.moved .t small::after { content: " · 이동함"; color: var(--accent); }
+  .gm-chip.drag { opacity: .4; }
+
+  .gm-moved { margin-top: 16px; }
+  .gm-moved ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.7; }
+  .gm-moved .arrow { color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">길드 재배치</h1>
+  <p class="muted">캐릭터를 눌러서 고르고(여러 명 OK), 옮기고 싶은 길드의 <b>여기로 이동</b>을 눌러요. 컴퓨터에서는 끌어다 놓아도 돼요. 새 길드도 만들 수 있어요!</p>
+
+  <div class="gm-box">
+    <h3>＋ 새 길드 만들기</h3>
+    <div class="gm-new">
+      <input type="text" id="gn-name" maxlength="20" placeholder="길드 이름">
+      <input type="color" id="gn-color" value="#7c9cff" aria-label="길드 색">
+      <input type="text" id="gn-sum" class="full" maxlength="60" placeholder="한 줄 소개 (안 써도 돼요)">
+      <button type="button" class="btn btn-primary full" id="gn-add">길드 만들기</button>
+    </div>
+  </div>
+
+  <div class="gm-tools">
+    <button type="button" class="btn" id="t-rand">랜덤 (고르게)</button>
+    <button type="button" class="btn" id="t-rand2">랜덤 (완전 무작위)</button>
+    <button type="button" class="btn" id="t-pool">전원 대기석으로</button>
+    <button type="button" class="btn" id="t-reset">원래대로</button>
+  </div>
+  <div class="gm-tools" style="margin-top:8px">
+    <button type="button" class="btn" id="c-result">결과 복사</button>
+    <button type="button" class="btn" id="c-guilds">새 길드 코드 복사</button>
+    <button type="button" class="btn" id="c-moved">바뀐 소속 복사</button>
+  </div>
+  <p class="gm-note">배치는 이 브라우저에 자동 저장돼요. 놀이용이라 사이트의 실제 길드 정보는 바뀌지 않아요. 진짜로 반영하려면 위 복사 버튼으로 코드를 가져가서 <code>data/guilds.js</code> · <code>data/characters.js</code> 에 붙여넣어요.</p>
+
+  <div class="gm-sel" id="gm-sel" hidden></div>
+  <div class="gm-board" id="gm-board"></div>
+  <div class="gm-moved" id="gm-moved"></div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, byId, CHARS } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "길드 재배치");
+
+  const KEY = "hw-guildmix";
+  const POOL = "pool";
+  const PALETTE = ["#7c9cff", "#4cc38a", "#ff8fab", "#ffc857", "#b98cff", "#6fc3d6", "#ff7a66", "#a3e635"];
+
+  // ── 상태 ──
+  const orig = {};
+  CHARS.forEach((c) => { const g = App.guildOf(c); orig[c.id] = g.id === "unknown" ? POOL : g.id; });
+  let custom = [];          // 새로 만든 길드: { id, name, color, summary }
+  let assign = {};          // 캐릭터 id → 길드 id (또는 "pool")
+  const sel = new Set();    // 선택한 캐릭터
+
+  const baseGuilds = () => App.GUILDS.map((g) => ({ id: g.id, name: g.name, color: g.color, summary: g.summary || "", custom: false }));
+  const allGuilds = () => baseGuilds().concat(custom.map((g) => Object.assign({ custom: true }, g)));
+  const guildName = (id) => (id === POOL ? "대기석" : (allGuilds().find((g) => g.id === id) || {}).name || "대기석");
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ assign: assign, custom: custom })); } catch (e) {} }
+  function load() {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    if (s && Array.isArray(s.custom)) {
+      custom = s.custom.filter((g) => g && typeof g.id === "string" && typeof g.name === "string" && /^#[0-9a-f]{6}$/i.test(g.color || ""))
+        .map((g) => ({ id: g.id, name: g.name, color: g.color, summary: String(g.summary || "") }));
+    }
+    const ok = new Set(allGuilds().map((g) => g.id).concat(POOL));
+    CHARS.forEach((c) => { const v = s && s.assign && s.assign[c.id]; assign[c.id] = ok.has(v) ? v : orig[c.id]; });
+  }
+
+  // ── 그리기 ──
+  function chip(c) {
+    const moved = assign[c.id] !== orig[c.id];
+    const gd = App.guildOf(c);
+    return '<div class="gm-chip' + (sel.has(c.id) ? " sel" : "") + (moved ? " moved" : "") + '" draggable="true" data-id="' + esc(c.id) + '" style="--mc:' + gd.color +
+      '" title="' + esc(c.name + " · 원래 " + guildName(orig[c.id])) + '"><div class="pic">' + App.avatar(c) + '</div><div class="t"><span>' +
+      esc(c.label || c.name) + "</span><small>" + esc(c.owner || "") + "</small></div></div>";
+  }
+  function column(g) {
+    const ms = CHARS.filter((c) => assign[c.id] === g.id);
+    const pool = g.id === POOL;
+    const head = '<div class="gm-head"><span class="nm">' + esc(g.name) + '</span><span class="cnt">' + ms.length + "명</span>" +
+      (g.custom ? '<input type="color" data-color="' + esc(g.id) + '" value="' + esc(g.color) + '" title="색 바꾸기">' +
+        '<button type="button" class="mini" data-act="rename" data-g="' + esc(g.id) + '" title="이름 바꾸기">✎</button>' +
+        '<button type="button" class="mini" data-act="del" data-g="' + esc(g.id) + '" title="길드 삭제">✕</button>' : "") + "</div>";
+    return '<div class="gm-col' + (pool ? " pool" : "") + '" data-g="' + esc(g.id) + '" style="--gc:' + esc(g.color) + '">' + head +
+      (g.summary ? '<div class="gm-sum">' + esc(g.summary) + "</div>" : "") +
+      '<button type="button" class="btn gm-move" data-act="move" data-g="' + esc(g.id) + '"' + (sel.size ? "" : " disabled") + ">여기로 이동" + (sel.size ? " (" + sel.size + "명)" : "") + "</button>" +
+      '<div class="gm-list">' + (ms.length ? ms.map(chip).join("") : '<div class="gm-empty">비어 있어요</div>') + "</div></div>";
+  }
+  function render() {
+    const gs = [{ id: POOL, name: "대기석 (소속 없음)", color: "#6b7385", summary: "", custom: false }].concat(allGuilds());
+    $("gm-board").innerHTML = gs.map(column).join("");
+
+    const sb = $("gm-sel");
+    sb.hidden = !sel.size;
+    sb.innerHTML = sel.size ? "<b>" + sel.size + "명 선택됨</b> — 옮길 길드의 \"여기로 이동\"을 눌러요 " +
+      '<button type="button" class="btn" data-act="clearsel">선택 해제</button>' : "";
+
+    const moved = CHARS.filter((c) => assign[c.id] !== orig[c.id]);
+    $("gm-moved").innerHTML = moved.length
+      ? '<div class="gm-box"><h3>바뀐 소속 · ' + moved.length + "명</h3><ul>" + moved.map((c) =>
+          "<li>" + esc(c.label || c.name) + " : " + esc(guildName(orig[c.id])) + ' <span class="arrow">→</span> <b>' + esc(guildName(assign[c.id])) + "</b></li>").join("") + "</ul></div>"
+      : "";
+  }
+
+  // ── 동작 ──
+  function moveTo(gid, ids) {
+    ids.forEach((id) => { if (byId[id]) assign[id] = gid; });
+    sel.clear(); save(); render();
+  }
+  function nameOk(name, selfId) {
+    if (!name) { alert("길드 이름을 적어 주세요."); return false; }
+    if (name === "대기석" || allGuilds().some((g) => g.name === name && g.id !== selfId)) { alert("같은 이름의 길드가 이미 있어요."); return false; }
+    return true;
+  }
+
+  $("gn-add").addEventListener("click", () => {
+    const name = $("gn-name").value.trim();
+    if (!nameOk(name)) return;
+    let n = 1; while (allGuilds().some((g) => g.id === "new" + n)) n++;
+    custom.push({ id: "new" + n, name: name, color: $("gn-color").value, summary: $("gn-sum").value.trim() });
+    $("gn-name").value = ""; $("gn-sum").value = "";
+    $("gn-color").value = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+    save(); render();
+  });
+  $("gn-name").addEventListener("keydown", (e) => { if (e.key === "Enter") $("gn-add").click(); });
+
+  $("gm-sel").addEventListener("click", (e) => { if (e.target.closest("[data-act=clearsel]")) { sel.clear(); render(); } });
+
+  $("gm-board").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-act]");
+    if (btn) {
+      const gid = btn.dataset.g;
+      if (btn.dataset.act === "move" && sel.size) moveTo(gid, [...sel]);
+      else if (btn.dataset.act === "rename") {
+        const g = custom.find((x) => x.id === gid); if (!g) return;
+        const nn = prompt("길드 이름", g.name); if (nn === null) return;
+        if (!nameOk(nn.trim(), gid)) return;
+        g.name = nn.trim();
+        const ss = prompt("한 줄 소개 (비워도 돼요)", g.summary); if (ss !== null) g.summary = ss.trim();
+        save(); render();
+      } else if (btn.dataset.act === "del") {
+        const g = custom.find((x) => x.id === gid); if (!g) return;
+        if (!confirm('"' + g.name + '" 길드를 지울까요? 소속된 캐릭터는 대기석으로 가요.')) return;
+        CHARS.forEach((c) => { if (assign[c.id] === gid) assign[c.id] = POOL; });
+        custom = custom.filter((x) => x.id !== gid); sel.clear(); save(); render();
+      }
+      return;
+    }
+    const ch = e.target.closest(".gm-chip");
+    if (ch) { const id = ch.dataset.id; if (sel.has(id)) sel.delete(id); else sel.add(id); render(); }
+  });
+  $("gm-board").addEventListener("change", (e) => {
+    const inp = e.target.closest("input[data-color]"); if (!inp) return;
+    const g = custom.find((x) => x.id === inp.dataset.color); if (g) { g.color = inp.value; save(); render(); }
+  });
+
+  // 끌어다 놓기 (컴퓨터)
+  let dragIds = null;
+  $("gm-board").addEventListener("dragstart", (e) => {
+    const ch = e.target.closest(".gm-chip"); if (!ch) return;
+    dragIds = sel.has(ch.dataset.id) ? [...sel] : [ch.dataset.id];
+    ch.classList.add("drag");
+    try { e.dataTransfer.setData("text/plain", dragIds.join(",")); e.dataTransfer.effectAllowed = "move"; } catch (x) {}
+  });
+  $("gm-board").addEventListener("dragend", () => { dragIds = null; document.querySelectorAll(".gm-col.over, .gm-chip.drag").forEach((el) => el.classList.remove("over", "drag")); });
+  $("gm-board").addEventListener("dragover", (e) => {
+    const col = e.target.closest(".gm-col"); if (!col || !dragIds) return;
+    e.preventDefault();
+    document.querySelectorAll(".gm-col.over").forEach((el) => { if (el !== col) el.classList.remove("over"); });
+    col.classList.add("over");
+  });
+  $("gm-board").addEventListener("drop", (e) => {
+    const col = e.target.closest(".gm-col"); if (!col || !dragIds) return;
+    e.preventDefault();
+    const ids = dragIds; dragIds = null;
+    moveTo(col.dataset.g, ids);
+  });
+
+  // 도구
+  const guildIds = () => allGuilds().map((g) => g.id);
+  $("t-rand").addEventListener("click", () => {
+    const gs = guildIds(); if (!gs.length) return;
+    const order = shuffle(gs.slice()); let k = 0;
+    shuffle(CHARS.slice()).forEach((c) => { assign[c.id] = order[k++ % order.length]; });
+    sel.clear(); save(); render();
+  });
+  $("t-rand2").addEventListener("click", () => {
+    const gs = guildIds(); if (!gs.length) return;
+    CHARS.forEach((c) => { assign[c.id] = gs[Math.floor(Math.random() * gs.length)]; });
+    sel.clear(); save(); render();
+  });
+  $("t-pool").addEventListener("click", () => { CHARS.forEach((c) => { assign[c.id] = POOL; }); sel.clear(); save(); render(); });
+  $("t-reset").addEventListener("click", () => {
+    if (!confirm("원래 소속으로 되돌릴까요? (새로 만든 길드도 사라져요)")) return;
+    custom = []; CHARS.forEach((c) => { assign[c.id] = orig[c.id]; }); sel.clear(); save(); render();
+  });
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+  // 복사
+  function copyText(text, btn, label) {
+    const done = () => { btn.textContent = "복사됐어요!"; setTimeout(() => (btn.textContent = label), 1500); };
+    try { navigator.clipboard.writeText(text).then(done, () => prompt("복사해서 쓰세요", text)); }
+    catch (e) { prompt("복사해서 쓰세요", text); }
+  }
+  $("c-result").addEventListener("click", () => {
+    const gs = [{ id: POOL, name: "대기석" }].concat(allGuilds());
+    const lines = gs.map((g) => {
+      const ms = CHARS.filter((c) => assign[c.id] === g.id);
+      return ms.length ? "[" + g.name + "] " + ms.map((c) => c.label || c.name).join(", ") : null;
+    }).filter(Boolean);
+    copyText("🏰 길드 재배치\n" + lines.join("\n"), $("c-result"), "결과 복사");
+  });
+  $("c-guilds").addEventListener("click", () => {
+    if (!custom.length) { alert("새로 만든 길드가 아직 없어요."); return; }
+    const t = "// data/guilds.js 의 맨 아래 `];` 바로 위에 붙여넣어요. (id 는 영어로 바꿔도 돼요)\n" +
+      custom.map((g) => "  { id: " + JSON.stringify(g.id) + ", name: " + JSON.stringify(g.name) + ", main: false, color: " + JSON.stringify(g.color) +
+        ", summary: " + JSON.stringify(g.summary) + ", desc: `` },").join("\n");
+    copyText(t, $("c-guilds"), "새 길드 코드 복사");
+  });
+  $("c-moved").addEventListener("click", () => {
+    const moved = CHARS.filter((c) => assign[c.id] !== orig[c.id]);
+    if (!moved.length) { alert("바뀐 소속이 아직 없어요."); return; }
+    const t = "// data/characters.js 에서 각 캐릭터 줄의 guild 칸을 이렇게 바꿔요 (대기석은 빈칸 \"\")\n" +
+      moved.map((c) => c.id + "  →  guild: " + JSON.stringify(assign[c.id] === POOL ? "" : guildName(assign[c.id])) + "   // " + (c.label || c.name) + " (원래 " + guildName(orig[c.id]) + ")").join("\n");
+    copyText(t, $("c-moved"), "바뀐 소속 복사");
+  });
+
+  load();
+  render();
+</script>
+</body>
+</html>
