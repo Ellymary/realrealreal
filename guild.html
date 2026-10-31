@@ -39,12 +39,12 @@
       '<div class="chips" style="margin-top:22px">' +
         App.guildList().map((x) => '<a class="chip' + (x === g ? " on" : "") + '" href="guild.html?id=' + encodeURIComponent(x.id) + '">' + esc(x.name) + "</a>").join("") +
       "</div>" +
-      '<section class="gbanner" style="--gc:' + g.color + '"><h1>' + esc(g.name) + '</h1><div class="muted">캐릭터 ' + cs.length + "명</div>" +
+      '<section class="gbanner" style="--gc:' + g.color + '"><h1>' + esc(g.name) + '</h1><div class="muted">캐릭터 ' + App.countOf(cs) + "명</div>" +
         (g.summary ? '<p class="lead">' + App.fmt(g.summary) + "</p>" : "") +
         App.text(g.desc) +
         (!g.summary && !g.desc ? '<p class="muted">아직 소개가 없어요. data/guilds.js 에서 채워 주세요.</p>' : "") +
       "</section>" +
-      '<h2 class="sec-h">캐릭터 <small>' + cs.length + "</small></h2>" +
+      '<h2 class="sec-h">캐릭터 <small>' + App.countOf(cs) + "</small></h2>" +
       (cs.length > 1 ? '<div class="chips" id="g-sort"></div>' : "") +
       '<div class="cards" id="g-cards"></div>' +
       (pics.length

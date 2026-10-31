@@ -42,7 +42,7 @@
   const { SITE, CHARS, GALLERY, COMICS, esc } = App;
   const $ = (id) => document.getElementById(id);
   App.nav("home");
-  $("n-chars").textContent = "캐릭터 " + CHARS.length + "명";
+  $("n-chars").textContent = "캐릭터 " + App.countOf(CHARS) + "명";
   $("n-gallery").textContent = "그림 " + GALLERY.length + "장 · 만화 " + COMICS.length + "편";
 
   // 길드: 주요 3개는 가운데에 크게, 나머지는 작게
@@ -51,17 +51,17 @@
     const cs = App.charsOfGuild(g);
     return `<a class="gcard" style="--gc:${g.color}" href="guild.html?id=${encodeURIComponent(g.id)}">
       <h2>${esc(g.name)}</h2>
-      <div class="num">캐릭터 ${cs.length}명</div>
+      <div class="num">캐릭터 ${App.countOf(cs)}명</div>
       <div class="sum">${App.fmt(g.summary || "")}</div>
       <div class="names">${esc(cs.slice(0, 6).map((c) => c.label).join(" · "))}${cs.length > 6 ? " …" : ""}</div>
     </a>`;
   }).join("");
   $("guilds-sub").innerHTML = gl.filter((g) => !g.main).map((g) =>
-    `<a class="gmini" style="--gc:${g.color}" href="guild.html?id=${encodeURIComponent(g.id)}"><b>${esc(g.name)}</b><span>캐릭터 ${App.charsOfGuild(g).length}명</span></a>`
+    `<a class="gmini" style="--gc:${g.color}" href="guild.html?id=${encodeURIComponent(g.id)}"><b>${esc(g.name)}</b><span>캐릭터 ${App.countOf(App.charsOfGuild(g))}명</span></a>`
   ).join("");
 
   $("members").innerHTML = SITE.members.map((m) => {
-    const n = CHARS.filter((c) => c.owner === m).length;
+    const n = App.countOf(CHARS.filter((c) => c.owner === m));
     return `<a class="member" style="--mc:${App.color(m)}" href="characters.html?owner=${encodeURIComponent(m)}"><b>${esc(m)}</b><span>캐릭터 ${n}명</span></a>`;
   }).join("");
 

@@ -40,11 +40,11 @@
 
   function render() {
     const gl = App.guildList();
-    $("chips-g").innerHTML = ['<button class="chip' + (gid ? "" : " on") + '" data-g="">길드 전체 ' + CHARS.length + "</button>"]
-      .concat(gl.map((g) => '<button class="chip' + (gid === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '">' + esc(g.name) + " " + App.charsOfGuild(g).length + "</button>"))
+    $("chips-g").innerHTML = ['<button class="chip' + (gid ? "" : " on") + '" data-g="">길드 전체 ' + App.countOf(CHARS) + "</button>"]
+      .concat(gl.map((g) => '<button class="chip' + (gid === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '">' + esc(g.name) + " " + App.countOf(App.charsOfGuild(g)) + "</button>"))
       .join("");
     $("chips-o").innerHTML = ['<button class="chip' + (owner ? "" : " on") + '" data-o="">만든 사람 전체</button>']
-      .concat(SITE.members.map((m) => '<button class="chip' + (owner === m ? " on" : "") + '" data-o="' + esc(m) + '">' + esc(m) + " " + CHARS.filter((c) => c.owner === m).length + "</button>"))
+      .concat(SITE.members.map((m) => '<button class="chip' + (owner === m ? " on" : "") + '" data-o="' + esc(m) + '">' + esc(m) + " " + App.countOf(CHARS.filter((c) => c.owner === m)) + "</button>"))
       .join("");
     $("chips-s").innerHTML = App.SORTS.map((o) => '<button class="chip' + (sort === o.id ? " on" : "") + '" data-s="' + esc(o.id) + '">' + (o.id ? "정렬: " : "") + esc(o.label) + (o.note ? ' <small class="muted">' + esc(o.note) + "</small>" : "") + "</button>").join("");
     const match = (c) => (!owner || c.owner === owner) && (!kw || c.name.toLowerCase().includes(kw));
@@ -55,7 +55,7 @@
       const gsel = gid ? gl.find((g) => g.id === gid) : null;
       const list = App.sortChars(CHARS.filter((c) => (!gsel || App.guildOf(c) === gsel) && match(c)), sort);
       const title = [gsel ? gsel.name : "전체", owner].filter(Boolean).join(" · ") + " (" + App.SORTS.find((o) => o.id === sort).label + ")";
-      html = list.length ? '<section class="group"><h2 class="group-h">' + esc(title) + " <small>" + list.length + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c, noteOf(c))).join("") + "</div></section>" : "";
+      html = list.length ? '<section class="group"><h2 class="group-h">' + esc(title) + " <small>" + App.countOf(list) + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c, noteOf(c))).join("") + "</div></section>" : "";
     } else {
       html = gl.filter((g) => !gid || g.id === gid).map((g) => {
         const list = App.charsOfGuild(g).filter(match);

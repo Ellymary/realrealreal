@@ -199,6 +199,8 @@
   const charsOfGuild = (g) => CHARS.filter((c) => guildOf(c) === g);
   // 길드 목록 (소속 미정 캐릭터가 있으면 맨 뒤에 "소속 미정" 추가)
   const guildList = () => (CHARS.some((c) => guildOf(c) === UNKNOWN_GUILD) ? GUILDS.concat([UNKNOWN_GUILD]) : GUILDS);
+  // 사람 수 세기: 트랜스(F)·트랜스(M) 처럼 "이름(…)" 으로 모습만 다른 캐릭터는 한 명으로 세요 (표시만 그렇게 해요)
+  const countOf = (list) => new Set(list.map((c) => String(c.name).replace(/\s*\([^)]*\)\s*$/, "") + "|" + (c.owner || ""))).size;
   const guildById = (id) => guildList().find((g) => g.id === id);
 
   function charCard(c, note) {
@@ -491,6 +493,6 @@
     SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
     esc, param, store, tagText, imgFail, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
-    GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard, infoOf, fieldValue,
+    GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard, infoOf, fieldValue, countOf,
   };
 })();

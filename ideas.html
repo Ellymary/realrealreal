@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>설정 소재</title>
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<style>
+  .id-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  .id-bar input { flex: 1; min-width: 140px; max-width: 260px; padding: 9px 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; }
+  .id-pick { margin: 12px 0 18px; padding: 16px 18px; border: 1px solid var(--line); border-top: 3px solid var(--accent); background: var(--panel); }
+  .id-pick h3 { margin: 0 0 10px; font-size: 16px; }
+  .id-pick ol { margin: 0; padding-left: 22px; }
+  .id-pick li { margin: 4px 0; font-size: 17px; }
+  .id-pick li small { display: block; color: var(--muted); font-size: 13px; }
+  .id-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .id-chip { padding: 5px 13px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; border-radius: var(--r-sm); text-align: left; }
+  .id-chip:hover { border-color: var(--accent); }
+  .id-chip.on { border-color: var(--accent); background: var(--panel2); color: var(--accent); font-weight: 700; }
+  .id-chip small { color: var(--muted); font-weight: 400; }
+  .id-chip.hide { display: none; }
+  .id-note { margin-top: 18px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">설정 소재 <small class="muted" id="cnt"></small></h1>
+  <p class="hint">캐릭터를 만들 때 생각해 볼 만한 칸들이에요. 칸을 눌러 골라서 복사하거나, 🎲 로 랜덤으로 몇 개 뽑아서 "이 캐릭터는 어떨까?" 하고 생각해 보세요.</p>
+  <div class="id-bar">
+    <input id="q" placeholder="소재 찾기 (예: 좋아하는)" autocomplete="off">
+    <button class="btn btn-primary" id="rand" type="button">🎲 랜덤 5개</button>
+    <button class="btn" id="copy" type="button">📋 고른 것 복사</button>
+    <button class="btn" id="clear" type="button">고른 것 비우기</button>
+    <span class="muted small" id="msg" aria-live="polite"></span>
+  </div>
+  <div class="id-pick" id="pick" hidden></div>
+  <div class="id-grid" id="grid"></div>
+  <p class="id-note">※ D&D 성향은 선악 칸이 "역할 포지션"과 겹쳐서, 선악은 역할 포지션으로 적기로 했어요.</p>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "설정 소재");
+
+  // [칸 이름, 설명(없으면 생략)]
+  const IDEAS = [
+    ["주요 등장"], ["탄생날짜(3차원)"],
+    ["역할", "작품 전개에 영향을 미치는 정도. 단역: 미미함(나오긴 함) / 엑스트라: 없다고 봐도 됨"],
+    ["성"], ["두번째 성"], ["이름"], ["이름을 지어준 자"], ["풀네임"], ["별명"], ["애칭"], ["진명"], ["가명"], ["이명"], ["성별"],
+    ["나이", "세는 나이, 향년, 작품 시작 시점. 세스페는 신아해수 기준, 청아유지 기준이면 +1"],
+    ["대외적 나이"], ["출생년도"], ["생일"],
+    ["직업"], ["과거 직업"], ["미래 직업(확정)"], ["두번째(혹은 위장) 직업"],
+    ["종족", "혼혈: 왼쪽 엄마 오른쪽 아빠"],
+    ["키", "인간폼?"], ["인외님들을 위한 키"], ["몸무게"],
+    ["소속"], ["소속2"], ["이전 소속"], ["국적"], ["거주국"], ["거주지"],
+    ["꿈(직업)"], ["꿈"],
+    ["연인 유무"], ["연인 상대 이름"], ["연애 경험"], ["결혼 여부?"], ["혼인 상대 이름"], ["러브라인 확정(공식)"], ["짝사랑을 하고 있어요(시작시점)"],
+    ["MBTI"],
+    ["살인 횟수", "작품 시작 / 결말"], ["사망"], ["사망 가능성", "자연사 제외"], ["유언"],
+    ["절친이라 여기는 자"], ["가장 싫어하는 자"],
+    ["에고그램"], ["무기"], ["말투"], ["존댓말", "보통 동갑 기준"], ["좌우명"], ["죄악"], ["미덕"], ["이상형"],
+    ["가장 좋아하는 책"], ["가장 좋아하는 계절"], ["가장 좋아하는 사람"], ["인생에 (가장 큰) 영향을 준 사람"], ["좋아하는 것(…가장?)"], ["가장 좋아하는 생물"], ["롤모델"],
+    ["RPG 포지션(간략)"], ["해리포터 기숙사"], ["성적지향"], ["파트너 포켓몬"], ["파트너 디지몬"], ["포켓몬 엔트리"],
+    ["공수..? 2"], ["공수..? (적폐)"], ["낮밤"], ["싫어하는 것"],
+    ["D&D 성향", "선악 칸은 역할 포지션으로 ㄱㄱ"],
+    ["범죄력"], ["요즘 고민"], ["좋아하는 색깔"], ["좋아하는 노래 장르"], ["좋아하는 소설 장르"], ["좋아하는 서적 종류"],
+    ["인생에서 가장 큰 영향을 미친 사건", "객관"],
+    ["좋아하는 음식"], ["싫어하는 음식"], ["종교"], ["가족 관계(친족)"], ["성격"],
+    ["능력 / 마법 / 비스트 / 섭리(보물)?", "해당자만"],
+    ["취미"], ["1인칭"], ["IQ"], ["기타"],
+  ];
+  const picked = new Set();
+  $("cnt").textContent = IDEAS.length + "개";
+  $("grid").innerHTML = IDEAS.map((it, i) => '<button type="button" class="id-chip" data-i="' + i + '" title="' + esc(it[1] || "") + '">' + esc(it[0]) + "</button>").join("");
+
+  function sync() {
+    document.querySelectorAll(".id-chip").forEach((b) => b.classList.toggle("on", picked.has(+b.dataset.i)));
+  }
+  $("grid").addEventListener("click", (e) => {
+    const b = e.target.closest(".id-chip"); if (!b) return;
+    const i = +b.dataset.i;
+    picked.has(i) ? picked.delete(i) : picked.add(i);
+    sync();
+  });
+  $("q").addEventListener("input", (e) => {
+    const k = e.target.value.trim().toLowerCase();
+    document.querySelectorAll(".id-chip").forEach((b) => { const it = IDEAS[+b.dataset.i]; b.classList.toggle("hide", !!k && !(it[0] + " " + (it[1] || "")).toLowerCase().includes(k)); });
+  });
+  $("rand").addEventListener("click", () => {
+    const idx = IDEAS.map((_, i) => i);
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    const five = idx.slice(0, 5);
+    $("pick").hidden = false;
+    $("pick").innerHTML = "<h3>🎲 오늘의 소재</h3><ol>" + five.map((i) => "<li>" + esc(IDEAS[i][0]) + (IDEAS[i][1] ? "<small>" + esc(IDEAS[i][1]) + "</small>" : "") + "</li>").join("") + "</ol>";
+  });
+  $("clear").addEventListener("click", () => { picked.clear(); sync(); $("msg").textContent = ""; });
+  $("copy").addEventListener("click", () => {
+    const list = [...picked].sort((a, b) => a - b).map((i) => IDEAS[i][0] + ":");
+    if (!list.length) { $("msg").textContent = "먼저 칸을 골라 주세요"; return; }
+    const txt = list.join("\n");
+    const done = () => { $("msg").textContent = list.length + "개 복사했어요!"; setTimeout(() => { $("msg").textContent = ""; }, 2200); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(done, () => { $("msg").textContent = "복사 실패"; });
+    else { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { $("msg").textContent = "복사 실패"; } ta.remove(); }
+  });
+</script>
+</body>
+</html>

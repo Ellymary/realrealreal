@@ -35,7 +35,7 @@
     const tag = encodeURIComponent(App.tagText(c.label));
     const gd = App.guildOf(c);
     main.innerHTML =
-      '<a class="back" href="guild.html?id=' + encodeURIComponent(gd.id) + '">← ' + esc(gd.name) + "</a>" +
+      '<a class="back" id="back" href="guild.html?id=' + encodeURIComponent(gd.id) + '">← ' + esc(gd.name) + "</a>" +
       '<div class="profile" style="--mc:' + gd.color + '">' +
         '<div class="p-pic">' + App.avatar(c) + "</div>" +
         '<div class="p-body">' +
@@ -59,6 +59,14 @@
           books.map((b) => '<a class="pcard" href="comic.html?id=' + encodeURIComponent(b.id) + '"><div class="cv">' + App.img(b.cover, b.title) + '</div><div class="body"><div class="nm">' + esc(b.title) + "</div></div></a>").join("") + "</div>"
         : "");
     document.getElementById("sheet-open").addEventListener("click", () => App.openSheet(c));
+    // 뒤로가기: 같은 사이트에서 왔으면 바로 전 화면(그림 작가 검색, 갤러리 등)으로, 아니면 길드로
+    const back = document.getElementById("back");
+    let fromSite = false;
+    try { fromSite = !!document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1; } catch (e) {}
+    if (back && fromSite) {
+      back.textContent = "← 뒤로";
+      back.addEventListener("click", (e) => { e.preventDefault(); history.back(); });
+    }
   }
 </script>
 </body>
