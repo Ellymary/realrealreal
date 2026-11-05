@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주관적 순위 매기기</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .rk-top { margin: 14px 0 6px; display: flex; flex-direction: column; gap: 10px; }
+  .rk-topic { width: 100%; padding: 12px 14px; font: inherit; font-size: 17px; font-weight: 600; color: var(--text, inherit); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg, 10px); }
+  .rk-ex { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .rk-ex small { color: var(--muted); margin-right: 2px; }
+  .rk-ex .chip { font-size: 13px; }
+  .rk-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .rk-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; padding: 7px 12px; border: 1px solid var(--line); background: var(--panel); border-radius: 99px; font-size: 14px; }
+  .rk-switch input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+  .rk-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 16px; align-items: start; }
+  .rk-box { border: 1px solid var(--line); background: var(--panel); border-radius: var(--r-lg, 10px); padding: 14px; }
+  .rk-box h2 { margin: 0 0 10px; font-size: 17px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .rk-box h2 small { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .rk-title { margin: 0 0 12px; font-size: 20px; font-weight: 800; font-family: var(--serif, inherit); text-align: center; }
+  .rk-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .rk-row { --med: var(--line); --tint: transparent; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--med); border-left-width: 5px; background: linear-gradient(90deg, var(--tint), transparent 70%), var(--panel2, var(--panel)); border-radius: 8px; }
+  .rk-row[draggable="true"] { cursor: grab; }
+  .rk-row.drag { opacity: .4; }
+  .rk-row.over { outline: 2px dashed var(--accent); }
+  .rk-row[data-r="1"] { --med: #e8b923; --tint: rgba(232, 185, 35, .20); }
+  .rk-row[data-r="2"] { --med: #c4cad4; --tint: rgba(196, 202, 212, .20); }
+  .rk-row[data-r="3"] { --med: #c9803f; --tint: rgba(201, 128, 63, .22); }
+  .rk-no { flex: none; min-width: 52px; text-align: center; font-weight: 800; font-family: var(--serif, inherit); line-height: 1.1; }
+  .rk-no b { display: block; font-size: 22px; }
+  .rk-no small { display: block; font-size: 11px; font-weight: 600; opacity: .8; }
+  .rk-row[data-r="1"] .rk-no { color: #e8b923; }
+  .rk-row[data-r="2"] .rk-no { color: #c4cad4; }
+  .rk-row[data-r="3"] .rk-no { color: #c9803f; }
+  .rk-row[data-r="1"] .rk-nm { color: #e8b923; }
+  .rk-row[data-r="2"] .rk-nm { color: #c4cad4; }
+  .rk-row[data-r="3"] .rk-nm { color: #c9803f; }
+  .rk-pic { flex: none; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid var(--med); background: var(--panel); }
+  .rk-pic img, .rk-pic .avatar-fb { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; font-size: 18px; }
+  .rk-who { flex: 1; min-width: 0; }
+  .rk-nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rk-sub { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rk-btns { flex: none; display: flex; gap: 4px; align-items: center; }
+  .rk-btns button { min-width: 32px; height: 32px; padding: 0 6px; border: 1px solid var(--line); background: var(--panel); color: inherit; cursor: pointer; border-radius: 6px; font: inherit; font-size: 14px; }
+  .rk-btns button:hover:not(:disabled) { border-color: var(--accent); }
+  .rk-btns button:disabled { opacity: .3; cursor: default; }
+  .rk-btns .rk-tie { font-size: 12px; font-weight: 600; }
+  .rk-btns .rk-tie.on { background: var(--accent); color: #111; border-color: var(--accent); }
+  .rk-empty { padding: 26px 10px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; }
+  .rk-pool-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .rk-pool-bar input { width: 100%; padding: 9px 12px; font: inherit; color: inherit; background: var(--panel2, var(--panel)); border: 1px solid var(--line); border-radius: 8px; }
+  .rk-pool-bar .chips { margin: 0; }
+  .rk-pool { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; max-height: 520px; overflow: auto; padding-right: 2px; }
+  .rk-pick { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); background: var(--panel2, var(--panel)); color: inherit; cursor: pointer; border-radius: 8px; text-align: left; font: inherit; font-size: 13px; min-width: 0; }
+  .rk-pick:hover { border-color: var(--accent); }
+  .rk-pick.in { opacity: .45; border-style: dashed; }
+  .rk-pick .rk-pic { width: 30px; height: 30px; border-width: 1px; }
+  .rk-pick .rk-pic .avatar-fb { font-size: 13px; }
+  .rk-pick span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #rk-result img { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; display: block; }
+  #rk-result .hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+  .rk-copied { font-size: 13px; color: var(--muted); }
+  @media (max-width: 800px) {
+    .rk-grid { grid-template-columns: minmax(0, 1fr); }
+    #rk-rank { order: -1; }
+    .rk-pool { max-height: 420px; }
+  }
+  @media (max-width: 420px) {
+    .rk-row { gap: 6px; padding: 6px; }
+    .rk-pic { width: 36px; height: 36px; }
+    .rk-btns button { min-width: 30px; }
+  }
+</style>
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">주관적 순위 매기기</h1>
+  <p class="muted">주제를 쓰고, 캐릭터를 눌러서 담은 다음 ↑ ↓ 로 순위를 정해요. 100% 내 맘대로!</p>
+
+  <div class="rk-top">
+    <input class="rk-topic" id="topic" maxlength="60" placeholder="주제를 적어요 (예: 결혼하고 싶은 순위)" autocomplete="off">
+    <div class="rk-ex" id="ex"></div>
+    <div class="rk-tools">
+      <label class="rk-switch"><input type="checkbox" id="tie-on"> 공동 순위 허용</label>
+      <button type="button" class="btn" id="b-sample">🎲 예시로 채워보기</button>
+      <button type="button" class="btn" id="b-shuffle">🔀 섞기</button>
+      <button type="button" class="btn" id="b-clear">비우기</button>
+    </div>
+  </div>
+
+  <div class="rk-grid">
+    <section class="rk-box" id="rk-pool-box">
+      <h2>캐릭터 고르기 <small id="pool-n"></small></h2>
+      <div class="rk-pool-bar">
+        <input id="kw" placeholder="이름으로 찾기" autocomplete="off">
+        <div class="chips" id="g-chips"></div>
+        <div class="rk-tools">
+          <button type="button" class="btn" id="b-addall">보이는 캐릭터 전부 담기</button>
+        </div>
+      </div>
+      <div class="rk-pool" id="pool"></div>
+    </section>
+
+    <section class="rk-box" id="rk-rank">
+      <div class="rk-title" id="rk-title"></div>
+      <h2>내 순위 <small id="rank-n"></small></h2>
+      <ol class="rk-list" id="list"></ol>
+      <div class="rk-tools" style="margin-top:12px">
+        <button type="button" class="btn btn-primary" id="b-save">🖼 순위 캡쳐하기</button>
+        <button type="button" class="btn" id="b-copy">📋 결과 복사</button>
+        <span class="rk-copied" id="copied" aria-live="polite"></span>
+      </div>
+      <div id="rk-result" style="margin-top:12px"></div>
+    </section>
+  </div>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="data/ranking.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, byId, CHARS } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "주관적 순위 매기기");
+
+  const KEY = "hw-ranking-v1";
+  // items: 순위 순서대로 [{ id, tie }]  (tie: true → 바로 위 캐릭터와 공동 순위)
+  let st = { topic: "", tieOn: false, items: [] };
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (s && typeof s === "object") {
+      st.topic = String(s.topic || "").slice(0, 60);
+      st.tieOn = !!s.tieOn;
+      st.items = (Array.isArray(s.items) ? s.items : []).filter((x) => x && byId[x.id] && !byId[x.id].extra).map((x) => ({ id: x.id, tie: !!x.tie }));
+    }
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+
+  let gid = "", kw = "";
+
+  // 순위 계산: 1, 1, 3 (공동 1위가 둘이면 다음은 3위)
+  function ranks() {
+    const out = [];
+    st.items.forEach((it, i) => { out.push(st.tieOn && it.tie && i > 0 ? out[i - 1] : i + 1); });
+    return out;
+  }
+
+  // ── 예시 주제 ──
+  (function () {
+    const tp = window.RANKING_TOPICS || [];
+    const groups = [...new Set(tp.map((t) => t.group))];
+    $("ex").innerHTML = '<small>예시 주제</small>' + tp.map((t, i) => '<button type="button" class="chip" data-t="' + i + '" title="' + esc(t.group) + '">' + esc(t.topic) + "</button>").join("");
+    $("ex").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-t]"); if (!b) return;
+      st.topic = tp[+b.dataset.t].topic; $("topic").value = st.topic; save(); renderRank();
+    });
+  })();
+
+  // ── 캐릭터 고르기 ──
+  function pic(c) { return '<span class="rk-pic">' + App.avatar(c) + "</span>"; }
+  function renderPool() {
+    const gl = App.guildList().filter((g) => App.charsOfGuild(g).length);
+    $("g-chips").innerHTML = ['<button type="button" class="chip' + (gid ? "" : " on") + '" data-g="">전체</button>']
+      .concat(gl.map((g) => '<button type="button" class="chip' + (gid === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '">' + esc(g.name) + "</button>")).join("");
+    const inSet = new Set(st.items.map((x) => x.id));
+    const list = visible();
+    $("pool-n").textContent = list.length + "명";
+    $("pool").innerHTML = list.length
+      ? list.map((c) => '<button type="button" class="rk-pick' + (inSet.has(c.id) ? " in" : "") + '" data-id="' + esc(c.id) + '" title="' + (inSet.has(c.id) ? "눌러서 빼기" : "눌러서 담기") + '">' + pic(c) + '<span class="t">' + esc(c.label || c.name) + (inSet.has(c.id) ? " ✓" : "") + "</span></button>").join("")
+      : '<p class="muted">찾는 캐릭터가 없어요.</p>';
+  }
+  function visible() {
+    const gsel = gid ? App.guildById(gid) : null;
+    return CHARS.filter((c) => (!gsel || App.guildOf(c) === gsel) && (!kw || (c.label || c.name).toLowerCase().includes(kw)));
+  }
+
+  // ── 순위 ──
+  function renderRank() {
+    const rk = ranks();
+    $("rk-title").textContent = st.topic.trim() || "(주제를 적어 주세요)";
+    $("rk-title").style.opacity = st.topic.trim() ? 1 : .5;
+    $("rank-n").textContent = st.items.length ? st.items.length + "명" : "";
+    const sizeOf = {}; rk.forEach((r) => { sizeOf[r] = (sizeOf[r] || 0) + 1; });
+    $("list").innerHTML = st.items.length ? st.items.map((it, i) => {
+      const c = byId[it.id], r = rk[i], shared = sizeOf[r] > 1;
+      const gd = App.guildOf(c);
+      return '<li class="rk-row" draggable="true" data-i="' + i + '" data-r="' + (r <= 3 ? r : "") + '">' +
+        '<div class="rk-no"><b>' + r + '</b><small>위' + (shared ? " (공동)" : "") + "</small></div>" +
+        pic(c) +
+        '<div class="rk-who"><div class="rk-nm">' + esc(c.label || c.name) + '</div><div class="rk-sub">' + esc([c.owner, gd.name].filter(Boolean).join(" · ")) + "</div></div>" +
+        '<div class="rk-btns">' +
+          (st.tieOn ? '<button type="button" class="rk-tie' + (it.tie && i > 0 ? " on" : "") + '" data-a="tie" title="바로 위와 공동 순위"' + (i === 0 ? " disabled" : "") + ">공동</button>" : "") +
+          '<button type="button" data-a="up" aria-label="위로"' + (i === 0 ? " disabled" : "") + ">↑</button>" +
+          '<button type="button" data-a="down" aria-label="아래로"' + (i === st.items.length - 1 ? " disabled" : "") + ">↓</button>" +
+          '<button type="button" data-a="del" aria-label="빼기">✕</button>' +
+        "</div></li>";
+    }).join("") : '<li class="rk-empty">아직 아무도 없어요.<br>캐릭터를 눌러서 담아 보세요!</li>';
+  }
+  function renderAll() { renderPool(); renderRank(); save(); }
+
+  function move(i, to) {
+    if (to < 0 || to >= st.items.length || i === to) return;
+    const [x] = st.items.splice(i, 1); st.items.splice(to, 0, x);
+    if (st.items[0]) st.items[0].tie = false;
+  }
+
+  // ── 이벤트 ──
+  $("topic").value = st.topic;
+  $("tie-on").checked = st.tieOn;
+  $("topic").addEventListener("input", (e) => { st.topic = e.target.value; save(); renderRank(); });
+  $("tie-on").addEventListener("change", (e) => {
+    st.tieOn = e.target.checked;
+    if (!st.tieOn) st.items.forEach((x) => { x.tie = false; });   // 해제하면 공동 표시는 다 풀려요
+    renderAll();
+  });
+  $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); renderPool(); });
+  $("g-chips").addEventListener("click", (e) => { const b = e.target.closest("[data-g]"); if (b) { gid = b.dataset.g; renderPool(); } });
+  $("pool").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-id]"); if (!b) return;
+    const id = b.dataset.id, k = st.items.findIndex((x) => x.id === id);
+    if (k >= 0) st.items.splice(k, 1); else st.items.push({ id, tie: false });
+    if (st.items[0]) st.items[0].tie = false;
+    renderAll();
+  });
+  $("b-addall").addEventListener("click", () => {
+    const have = new Set(st.items.map((x) => x.id));
+    visible().forEach((c) => { if (!have.has(c.id)) st.items.push({ id: c.id, tie: false }); });
+    renderAll();
+  });
+  $("list").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    const i = +b.closest("[data-i]").dataset.i, a = b.dataset.a;
+    if (a === "up") move(i, i - 1);
+    else if (a === "down") move(i, i + 1);
+    else if (a === "del") st.items.splice(i, 1);
+    else if (a === "tie") st.items[i].tie = !st.items[i].tie;
+    if (st.items[0]) st.items[0].tie = false;
+    renderAll();
+  });
+  // 컴퓨터에서는 끌어서 옮길 수도 있어요
+  let dragI = null;
+  $("list").addEventListener("dragstart", (e) => {
+    const r = e.target.closest("[data-i]"); if (!r) return;
+    dragI = +r.dataset.i; r.classList.add("drag");
+    try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(dragI)); } catch (e2) {}
+  });
+  $("list").addEventListener("dragover", (e) => {
+    if (dragI == null) return; e.preventDefault();
+    const r = e.target.closest("[data-i]");
+    document.querySelectorAll(".rk-row.over").forEach((x) => x.classList.remove("over"));
+    if (r) r.classList.add("over");
+  });
+  $("list").addEventListener("drop", (e) => {
+    if (dragI == null) return; e.preventDefault();
+    const r = e.target.closest("[data-i]"); if (r) move(dragI, +r.dataset.i);
+    dragI = null; renderAll();
+  });
+  $("list").addEventListener("dragend", () => { dragI = null; renderRank(); });
+
+  $("b-clear").addEventListener("click", () => { if (!st.items.length || confirm("담은 캐릭터를 모두 뺄까요?")) { st.items = []; renderAll(); } });
+  $("b-shuffle").addEventListener("click", () => {
+    for (let i = st.items.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [st.items[i], st.items[j]] = [st.items[j], st.items[i]]; }
+    st.items.forEach((x) => { x.tie = false; });
+    renderAll();
+  });
+  // 예시: 랜덤 주제 + 랜덤 5명 (공동 순위가 켜져 있으면 2번째를 1위와 공동으로)
+  $("b-sample").addEventListener("click", () => {
+    const tp = window.RANKING_TOPICS || [];
+    if (tp.length) { st.topic = tp[Math.floor(Math.random() * tp.length)].topic; $("topic").value = st.topic; }
+    const pool = CHARS.slice(); const pick = [];
+    while (pick.length < 5 && pool.length) pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    st.items = pick.map((c, i) => ({ id: c.id, tie: st.tieOn && i === 1 }));
+    renderAll();
+  });
+  $("b-copy").addEventListener("click", () => {
+    const rk = ranks(); const sizeOf = {}; rk.forEach((r) => { sizeOf[r] = (sizeOf[r] || 0) + 1; });
+    const txt = [st.topic.trim() || "주관적 순위"].concat(st.items.map((it, i) => (sizeOf[rk[i]] > 1 ? "공동 " : "") + rk[i] + "위 " + (byId[it.id].label || byId[it.id].name))).join("\n");
+    const ok = () => { $("copied").textContent = "복사했어요!"; setTimeout(() => { $("copied").textContent = ""; }, 1800); };
+    const fb = () => { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); ok(); } catch (e) { $("copied").textContent = "복사에 실패했어요"; } ta.remove(); };
+    if (!st.items.length) { $("copied").textContent = "복사할 순위가 없어요"; return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fb); else fb();
+  });
+
+  // ───────── 순위 캡쳐하기 (이미지로 저장) ─────────  (화면과 같은 모양을 canvas 에 다시 그려요)
+  const fileUrl = (p) => String(p == null ? "" : p).replace(/[%#?]/g, (c) => encodeURIComponent(c));
+  const loadImg = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+  const FONT = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+  const MEDAL = { 1: "#e8b923", 2: "#c4cad4", 3: "#c9803f" };
+  function wrapText(ctx, text, maxW) {
+    const out = [];
+    String(text).split("\n").forEach((para) => {
+      let line = "";
+      [...para].forEach((ch) => { if (line && ctx.measureText(line + ch).width > maxW) { out.push(line); line = ch; } else line += ch; });
+      out.push(line);
+    });
+    return out;
+  }
+  function fitText(ctx, text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return text;
+    const t = [...text]; while (t.length && ctx.measureText(t.join("") + "…").width > maxW) t.pop();
+    return t.join("") + "…";
+  }
+  async function exportPng() {
+    if (!st.items.length) throw new Error("순위가 비어 있어요");
+    const U = 2, W = 720, PAD = 24, RH = 64, GAP = 8, FH = 34;
+    const rk = ranks(), sizeOf = {}; rk.forEach((r) => { sizeOf[r] = (sizeOf[r] || 0) + 1; });
+    const cv0 = document.createElement("canvas"), c0 = cv0.getContext("2d");
+    c0.font = "800 " + (28 * U) + "px " + FONT;
+    const title = wrapText(c0, st.topic.trim() || "주관적 순위", (W - 2 * PAD) * U).slice(0, 3);
+    const TH = 30 + title.length * 38 + 14;
+    const H = TH + st.items.length * (RH + GAP) + FH;
+    const cv = document.createElement("canvas"); cv.width = W * U; cv.height = H * U;
+    const ctx = cv.getContext("2d"), R = (v) => v * U;
+    ctx.fillStyle = "#12141c"; ctx.fillRect(0, 0, cv.width, cv.height);
+    const imgs = {};
+    await Promise.all(st.items.map(async (it) => { const c = byId[it.id]; imgs[it.id] = c && c.image ? await loadImg(fileUrl(c.image)) : null; }));
+    // 제목
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 " + R(28) + "px " + FONT;
+    title.forEach((ln, i) => ctx.fillText(ln, R(W / 2), R(30 + 19 + i * 38)));
+    let y = TH;
+    st.items.forEach((it, i) => {
+      const c = byId[it.id], r = rk[i], med = MEDAL[r] || "#3a4054", gd = App.guildOf(c);
+      // 줄 바탕 + 메달색 띠
+      const g = ctx.createLinearGradient(R(PAD), 0, R(W - PAD), 0);
+      g.addColorStop(0, MEDAL[r] ? med + "44" : "#1d2030"); g.addColorStop(.7, "#1d2030");
+      ctx.fillStyle = "#1d2030"; ctx.fillRect(R(PAD), R(y), R(W - 2 * PAD), R(RH));
+      ctx.fillStyle = g; ctx.fillRect(R(PAD), R(y), R(W - 2 * PAD), R(RH));
+      ctx.strokeStyle = med; ctx.lineWidth = R(MEDAL[r] ? 2 : 1); ctx.strokeRect(R(PAD) + ctx.lineWidth / 2, R(y) + ctx.lineWidth / 2, R(W - 2 * PAD) - ctx.lineWidth, R(RH) - ctx.lineWidth);
+      ctx.fillStyle = med; ctx.fillRect(R(PAD), R(y), R(6), R(RH));
+      // 순위
+      ctx.fillStyle = MEDAL[r] || "#e6e8f0"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "800 " + R(26) + "px " + FONT; ctx.fillText(String(r), R(PAD + 48), R(y + RH / 2 - 8));
+      ctx.font = "600 " + R(11) + "px " + FONT; ctx.fillText("위" + (sizeOf[r] > 1 ? " (공동)" : ""), R(PAD + 48), R(y + RH / 2 + 14));
+      // 사진 (동그랗게)
+      const cx = PAD + 112, cy = y + RH / 2, d = 44;
+      ctx.save(); ctx.beginPath(); ctx.arc(R(cx), R(cy), R(d / 2), 0, Math.PI * 2); ctx.clip();
+      const im = imgs[it.id];
+      if (im) { const m = Math.min(im.width, im.height); ctx.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, R(cx - d / 2), R(cy - d / 2), R(d), R(d)); }
+      else { ctx.fillStyle = gd.color; ctx.globalAlpha = .4; ctx.fillRect(R(cx - d / 2), R(cy - d / 2), R(d), R(d)); ctx.globalAlpha = 1; ctx.fillStyle = "#fff"; ctx.font = "700 " + R(20) + "px " + FONT; ctx.fillText([...c.name][0], R(cx), R(cy)); }
+      ctx.restore();
+      ctx.beginPath(); ctx.arc(R(cx), R(cy), R(d / 2) - R(1), 0, Math.PI * 2); ctx.strokeStyle = med; ctx.lineWidth = R(2); ctx.stroke();
+      // 이름 / 소속
+      const tx = cx + d / 2 + 14, mw = W - PAD - 14 - tx;
+      ctx.textAlign = "left"; ctx.fillStyle = MEDAL[r] || "#fff"; ctx.font = "700 " + R(20) + "px " + FONT;
+      ctx.fillText(fitText(ctx, c.label || c.name, R(mw)), R(tx), R(y + RH / 2 - 8));
+      ctx.fillStyle = "#98a2b6"; ctx.font = "400 " + R(12) + "px " + FONT;
+      ctx.fillText(fitText(ctx, [c.owner, gd.name].filter(Boolean).join(" · "), R(mw)), R(tx), R(y + RH / 2 + 13));
+      y += RH + GAP;
+    });
+    ctx.fillStyle = "#5d667a"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.font = "400 " + R(11) + "px " + FONT;
+    ctx.fillText((App.SITE && App.SITE.title) || "헌터 세계관", R(W - PAD), R(H - FH / 2 + 2));
+    return cv;
+  }
+  $("b-save").addEventListener("click", async () => {
+    const msg = $("copied"); msg.textContent = "이미지를 만드는 중…"; $("rk-result").innerHTML = "";
+    try {
+      const url = (await exportPng()).toDataURL("image/png");
+      const a = document.createElement("a"); a.href = url; a.download = "순위-" + (st.topic.trim().replace(/[\\/:*?"<>|]/g, "") || "주관적 순위") + ".png"; document.body.appendChild(a); a.click(); a.remove();
+      $("rk-result").innerHTML = '<img src="' + url + '" alt="저장된 순위 이미지"><p class="hint">자동으로 저장되지 않았다면 위 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
+      msg.textContent = "만들었어요!";
+    } catch (e) {
+      msg.textContent = "저장하지 못했어요. (" + e.message + ")";
+    }
+  });
+
+  renderAll();
+</script>
+</body>
+</html>
