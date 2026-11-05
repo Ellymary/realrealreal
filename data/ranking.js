@@ -4,7 +4,7 @@
 //   topic : 주제 (누르면 주제 칸에 들어가요)
 window.RANKING_TOPICS = [
   { group: "싸움", topic: "내가 팔씨름으로 떠서 이길 것 같은 순위" },
-  { group: "싸움", topic: "내가 싸워서 이길 수 있을 것 같은 순위" },
+  { group: "싸움", topic: "내가 싸우면 이길 것 같은 순위" },
   { group: "싸움", topic: "팔씨름 순위" },
   { group: "연애 · 관계", topic: "결혼하고 싶은 순위" },
   { group: "연애 · 관계", topic: "사귀면 잘해줄 것 같은 순위" },

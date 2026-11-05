@@ -286,7 +286,7 @@
   const SHEET_FIELDS = ["주인", "성별", "나이", "생일", "키", "소속", "MBTI", "무기", "포지션", "능력", "등급", "눈 색", "머리색"];
   const COLOR_FIELDS = ["눈 색", "머리색"];
   // info 에 비슷한 이름으로 써도 알아봐요 (예: "랭크" → "등급")
-  const FIELD_ALIAS = { "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "신장": "키", "생년월일": "생일", "birthday": "생일" };
+  const FIELD_ALIAS = { "배경": "배경/과거", "과거": "배경/과거", "배경 / 과거": "배경/과거", "배경과거": "배경/과거", "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "신장": "키", "생년월일": "생일", "birthday": "생일" };
 
   function infoOf(c) {
     const raw = c.info || {};
@@ -416,11 +416,13 @@
     if (parts.length > 1 && parts.filter((x) => parseColor(x)).length > 1) return parts.map(colorOne).join("<br>");
     return colorOne(v);
   }
+  const BG_KEY = "배경/과거";
   function sheetRowsHTML(c) {
     const used = new Set(SHEET_FIELDS);
     const NOTE_KEYS = ["능력 부연설명", "능력 설명"];   // 능력 칸 안에 접어서 보여줘요
     const noteKey = NOTE_KEYS.find((k) => infoOf(c)[k]);
-    const extra = Object.keys(infoOf(c)).filter((k) => !used.has(k) && !NOTE_KEYS.includes(k));
+    const extra = Object.keys(infoOf(c)).filter((k) => !used.has(k) && !NOTE_KEYS.includes(k) && k !== BG_KEY);
+    const bg = infoOf(c)[BG_KEY];   // 배경/과거: 맨 아래에 접어서 보여줘요 (적은 캐릭터에만 나와요)
     return SHEET_FIELDS.concat(extra).map((k) => {
       const v = fieldValue(c, k);
       let cell;
@@ -431,7 +433,7 @@
       else cell = v ? fmt(v) : '<span class="muted">-</span>';
       if (k === "능력" && noteKey) cell += '<details class="ab-note"><summary>설명 보기</summary><div class="ab-note-body">' + text(String(infoOf(c)[noteKey])) + "</div></details>";
       return "<tr><th>" + esc(k) + "</th><td>" + cell + "</td></tr>";
-    }).join("");
+    }).join("") + (bg ? '<tr><th>' + esc(BG_KEY) + '</th><td><details class="ab-note bg-note"><summary>배경/과거 보기</summary><div class="ab-note-body">' + text(String(bg)) + "</div></details></td></tr>" : "");
   }
   // ── 관계 (캐릭터 페이지 맨 아래) ──
   // relations: [{ who, rel, dir, color, main, text }]

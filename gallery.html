@@ -181,27 +181,45 @@
       '<p class="muted small">' + (cur + 1) + " / " + imgs.length + "</p>";
     $("lb").hidden = false;
     document.body.style.overflow = "hidden";
+    if (vd && window.matchMedia && matchMedia("(pointer: coarse)").matches) toggleVFull(true);   // 폰: 영상 열면 바로 가로 전체화면
   }
-  // 영상 전체화면: 기기가 지원하면 진짜 전체화면, 아니면(아이폰 등) 화면 가득 채우는 방식으로
-  function toggleVFull() {
+  // 영상 전체화면: 기기가 지원하면 진짜 전체화면 + 가로 고정, 안 되면(아이폰 등) 화면 가득 + 눕혀서 보여줘요.
+  // 끄거나(전체화면 끄기 / 뒤로가기 / 영상 창 닫기) 나오면 가로 고정이 풀려서 세로로 돌아가요.
+  let rotLocked = false;
+  const inFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function unlockRot() { rotLocked = false; try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} }
+  // 가로 고정이 안 되는 기기(아이폰)에서 세로로 들고 있으면, 화면을 90도 눕혀서 보여줘요
+  function applyRot() {
     const w = $("vwrap"); if (!w) return;
-    const on = !w.classList.contains("vfull");
+    w.classList.toggle("vrot", w.classList.contains("vfull") && !rotLocked && window.innerHeight > window.innerWidth);
+  }
+  async function toggleVFull(force) {
+    const w = $("vwrap"); if (!w) return;
+    const on = typeof force === "boolean" ? force : !w.classList.contains("vfull");
     w.classList.toggle("vfull", on);
     document.body.classList.toggle("vfull-on", on);
-    $("vfull").textContent = on ? "✕ 전체화면 끄기" : "⛶ 전체화면";
-    try {
-      if (on && w.requestFullscreen) w.requestFullscreen().catch(() => {});
-      else if (on && w.webkitRequestFullscreen) w.webkitRequestFullscreen();
-      else if (!on && (document.fullscreenElement || document.webkitFullscreenElement)) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-    } catch (e) {}
+    const btn = $("vfull"); if (btn) btn.textContent = on ? "✕ 전체화면 끄기" : "⛶ 전체화면";
+    if (on) {
+      try {
+        if (w.requestFullscreen) await w.requestFullscreen();
+        else if (w.webkitRequestFullscreen) w.webkitRequestFullscreen();
+      } catch (e) {}
+      try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock("landscape"); rotLocked = true; } } catch (e) { rotLocked = false; }
+      applyRot();
+    } else {
+      unlockRot(); w.classList.remove("vrot");
+      try { if (inFs()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+    }
   }
+  window.addEventListener("resize", applyRot);
+  window.addEventListener("orientationchange", () => setTimeout(applyRot, 200));
   document.addEventListener("click", (e) => { if (e.target.closest("#vfull")) toggleVFull(); });
   // 진짜 전체화면에서 뒤로가기/ESC 로 나가면 버튼 상태도 같이 돌려놔요
   ["fullscreenchange", "webkitfullscreenchange"].forEach((ev) => document.addEventListener(ev, () => {
     const w = $("vwrap");
-    if (w && w.classList.contains("vfull") && !(document.fullscreenElement || document.webkitFullscreenElement)) toggleVFull();
+    if (w && w.classList.contains("vfull") && !inFs() && !w.classList.contains("vrot")) toggleVFull(false);
   }));
-  function closeLb() { document.body.classList.remove("vfull-on"); $("lb").hidden = true; $("lb-img").innerHTML = ""; /* 영상 소리 멈추기 */ document.body.style.overflow = ""; }
+  function closeLb() { unlockRot(); try { if (inFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} document.body.classList.remove("vfull-on"); $("lb").hidden = true; $("lb-img").innerHTML = ""; /* 영상 소리 멈추기 */ document.body.style.overflow = ""; }
 
   $("f").addEventListener("submit", (e) => { e.preventDefault(); setQ($("q").value); });
   $("types").addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) setType(b.dataset.type); });
