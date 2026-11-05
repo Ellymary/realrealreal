@@ -41,6 +41,12 @@
   .q-result { margin: 12px 0; }
   .q-result img { max-width: 100%; border: 1px solid var(--line); background: #fff; }
   .q-sd { margin-top: 28px; font-size: 10px; color: var(--muted); opacity: .35; text-align: center; }
+  /* 같이 한 사분면 사진을 배경에 깔기 */
+  .q-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 0; pointer-events: none; display: none; }
+  .q-board.has-bg .q-bg { display: block; }
+  .q-board.has-bg svg, .q-board.has-bg .q-lab { display: none; }
+  .q-tog { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 10px; padding: 8px 10px; border: 1px solid var(--line); background: var(--panel); }
+  .q-tog .btn.on { border-color: var(--accent); font-weight: 700; }
   .q-msg { min-height: 1.4em; color: var(--muted); font-size: 14px; }
 </style>
 </head>
@@ -52,9 +58,11 @@
   <p class="muted">네 끝과 오른쪽 위 칸에 글자를 쓰고(비워 둬도 돼요), 아래 보관함에서 프로필 사진을 판 위로 끌어다 놓아요. 사진을 누르면 ✕ 가 나와요.</p>
 
   <div class="q-tools" id="presets"></div>
+  <div class="q-tog" id="together"></div>
 
   <div class="q-scroll">
     <div class="q-board" id="board">
+      <img class="q-bg" id="q-bg" alt="" draggable="false">
       <svg viewBox="0 0 1000 1000" aria-hidden="true">
         <rect x="150" y="150" width="700" height="700" fill="none" stroke="#e3e5ec" stroke-width="2" stroke-dasharray="8 8"/>
         <line x1="150" y1="500" x2="838" y2="500" stroke="#222" stroke-width="3"/>
@@ -94,6 +102,7 @@
 <script src="data/site.js"></script>
 <script src="data/guilds.js"></script>
 <script src="data/characters.js"></script>
+<script src="data/quadrant.js"></script>
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
 <script src="data/world.js"></script>
@@ -114,21 +123,26 @@
   const LABELS = { title: "l-title", n: "l-n", s: "l-s", w: "l-w", e: "l-e" };
 
   // ───────── 상태 ─────────
-  const KEY = "hw-quadrant-v1";
+  const KEY0 = "hw-quadrant-v1";
+  const TOGETHER = window.QUADRANT_TOGETHER || [];
+  const MODE_KEY = "hw-quadrant-mode";
+  let mode = -1;   // -1 = 자유 판, 0.. = "같이 하기" 사분면 번호
+  const keyOf = (m) => (m < 0 ? KEY0 : KEY0 + "-together-" + m);
   let items = [];    // { id, x, y }  x, y = 판 안의 위치 (0~1)
   let showNames = false;
   let small = false;   // 작은 사진 = 큰 사진의 2/3
   const SMALL = 2 / 3;
   const byId = App.byId;
   const store = {
-    get() { try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } },
-    set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} },
+    get() { try { return JSON.parse(localStorage.getItem(keyOf(mode)) || "null"); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem(keyOf(mode), JSON.stringify(v)); } catch (e) {} },
   };
   function save() {
     const labels = {}; Object.keys(LABELS).forEach((k) => (labels[k] = $(LABELS[k]).value));
     store.set({ labels, items, showNames, small });
   }
   function load() {
+    items = []; Object.values(LABELS).forEach((id) => ($(id).value = ""));
     const s = store.get(); if (!s) return;
     Object.keys(LABELS).forEach((k) => ($(LABELS[k]).value = (s.labels && s.labels[k]) || ""));
     items = (s.items || []).filter((it) => byId[it.id]);
@@ -284,6 +298,12 @@
     const ctx = cv.getContext("2d");
     const R = (v) => v * U;
     ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, S, S);
+    const bgOn = board.classList.contains("has-bg") && $("q-bg").naturalWidth;
+    if (bgOn) {   // 배경 사진 (CSS 의 contain 과 같게)
+      const im = $("q-bg"), sc = Math.min(S / im.naturalWidth, S / im.naturalHeight), w = im.naturalWidth * sc, h = im.naturalHeight * sc;
+      ctx.drawImage(im, (S - w) / 2, (S - h) / 2, w, h);
+    }
+    if (!bgOn) {
     ctx.strokeStyle = "#e3e5ec"; ctx.lineWidth = R(2); ctx.setLineDash([R(8), R(8)]); ctx.strokeRect(R(150), R(150), R(700), R(700)); ctx.setLineDash([]);
     ctx.strokeStyle = "#222"; ctx.fillStyle = "#222"; ctx.lineWidth = R(3);
     ctx.beginPath(); ctx.moveTo(R(150), R(500)); ctx.lineTo(R(838), R(500)); ctx.moveTo(R(500), R(850)); ctx.lineTo(R(500), R(162)); ctx.stroke();
@@ -298,6 +318,7 @@
     };
     box("l-title", 720, 15, 270, 34, true); box("l-n", 300, 45, 400, 23); box("l-s", 300, 880, 400, 23);
     box("l-w", 5, 455, 140, 23); box("l-e", 855, 455, 140, 23);
+    }
     // 사진
     const ph = 87.5 * (small ? SMALL : 1);
     const imgs = await Promise.all(items.map((it) => { const c = byId[it.id]; return c && c.image ? loadImg(fileUrl(c.image)) : Promise.resolve(null); }));
@@ -327,7 +348,7 @@
     try {
       const cv = await exportPng();
       const url = cv.toDataURL("image/png");
-      const a = document.createElement("a"); a.href = url; a.download = "사분면-" + ($("l-title").value.trim() || "배치") + ".png"; document.body.appendChild(a); a.click(); a.remove();
+      const a = document.createElement("a"); a.href = url; a.download = "사분면-" + ((TOGETHER[mode] && TOGETHER[mode].name) || $("l-title").value.trim() || "배치") + ".png"; document.body.appendChild(a); a.click(); a.remove();
       $("result").innerHTML = '<img src="' + url + '" alt="저장된 사분면 이미지"><p class="hint">자동으로 저장되지 않았다면 위 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
       msg.textContent = "만들었어요!";
     } catch (e) {
@@ -335,7 +356,39 @@
     }
   });
 
-  load(); drawBoard();
+  // ───────── 같이 하기 (배경 사진) ─────────
+  const BG_EXTS = ["webp", "png", "jpg", "jpeg"];
+  function setBg() {
+    const im = $("q-bg"), t = TOGETHER[mode];
+    board.classList.remove("has-bg"); im.removeAttribute("src");
+    if (!t) return;
+    const hasExt = /\.(png|jpe?g|webp|gif)$/i.test(t.bg || "");
+    const base = hasExt ? t.bg.replace(/\.\w+$/, "") : t.bg;
+    const list = hasExt ? [t.bg.split(".").pop().toLowerCase()].concat(BG_EXTS.filter((x) => x !== t.bg.split(".").pop().toLowerCase())) : BG_EXTS;
+    let k = 0;
+    im.onload = () => { board.classList.add("has-bg"); $("msg").textContent = ""; };
+    im.onerror = () => {
+      if (++k < list.length) { im.src = fileUrl(base + "." + list[k]); return; }
+      $("msg").textContent = "배경 사진을 못 찾았어요. images/quadrant/ 폴더에 " + base.split("/").pop() + ".png 같은 이름으로 올려 주세요. (그동안은 빈 판으로 보여요)";
+    };
+    im.src = fileUrl(base + "." + list[0]);
+  }
+  function drawTogether() {
+    $("together").innerHTML = '<b>👥 다른 캐릭터와 같이 하기!</b>' +
+      '<button class="btn' + (mode < 0 ? " on" : "") + '" type="button" data-m="-1">내 자유 판</button>' +
+      TOGETHER.map((t, i) => '<button class="btn' + (mode === i ? " on" : "") + '" type="button" data-m="' + i + '">' + esc(t.name) + "</button>").join("") +
+      (TOGETHER.length ? "" : '<span class="muted small">data/quadrant.js 에 추가해요</span>');
+    $("presets").hidden = mode >= 0;
+    $("title-hint") && ($("title-hint").hidden = mode >= 0);
+  }
+  function switchMode(m) {
+    save(); mode = m; try { localStorage.setItem(MODE_KEY, String(m)); } catch (e) {}
+    sel = null; $("result").innerHTML = ""; $("msg").textContent = "";
+    load(); setBg(); drawTogether(); drawBoard();
+  }
+  $("together").addEventListener("click", (e) => { const b = e.target.closest("[data-m]"); if (b) switchMode(+b.dataset.m); });
+  try { const m = parseInt(localStorage.getItem(MODE_KEY), 10); if (!isNaN(m) && m < TOGETHER.length) mode = m; } catch (e) {}
+  load(); setBg(); drawTogether(); drawBoard();
 </script>
 </body>
 </html>

@@ -165,8 +165,11 @@
     const chars = (it.characters || []).map((id) => App.byId[id]).filter(Boolean);
     const vd = App.videoOf(it);
     $("lb-img").innerHTML = !vd ? App.img(it.file, it.title)
-      : vd.type === "drive" ? '<iframe class="lb-video" src="' + esc(vd.embed) + '" allow="autoplay; fullscreen" allowfullscreen></iframe>'
-      : '<video class="lb-video" src="' + esc(vd.src) + '" controls playsinline></video>';
+      : '<div class="vwrap" id="vwrap">' +
+        (vd.type === "drive" ? '<iframe class="lb-video" src="' + esc(vd.embed) + '" allow="autoplay; fullscreen" allowfullscreen></iframe>'
+          : '<video class="lb-video" src="' + esc(vd.src) + '" controls playsinline></video>') +
+        '<div class="vbar"><button type="button" class="btn" id="vfull">⛶ 전체화면</button>' +
+        '<a class="btn" href="' + esc(vd.open) + '" target="_blank" rel="noopener">↗ 새 창에서 열기</a></div></div>';
     $("lb-info").innerHTML =
       "<h2>" + esc(it.title || "제목 없음") + "</h2>" +
       '<p class="muted small">' + [App.artistsOf(it).length && "그림: " + App.artistsOf(it).join(", "), it.date].filter(Boolean).map((s) => esc(s)).join(" · ") + "</p>" +
@@ -179,11 +182,37 @@
     $("lb").hidden = false;
     document.body.style.overflow = "hidden";
   }
-  function closeLb() { $("lb").hidden = true; $("lb-img").innerHTML = ""; /* 영상 소리 멈추기 */ document.body.style.overflow = ""; }
+  // 영상 전체화면: 기기가 지원하면 진짜 전체화면, 아니면(아이폰 등) 화면 가득 채우는 방식으로
+  function toggleVFull() {
+    const w = $("vwrap"); if (!w) return;
+    const on = !w.classList.contains("vfull");
+    w.classList.toggle("vfull", on);
+    document.body.classList.toggle("vfull-on", on);
+    $("vfull").textContent = on ? "✕ 전체화면 끄기" : "⛶ 전체화면";
+    try {
+      if (on && w.requestFullscreen) w.requestFullscreen().catch(() => {});
+      else if (on && w.webkitRequestFullscreen) w.webkitRequestFullscreen();
+      else if (!on && (document.fullscreenElement || document.webkitFullscreenElement)) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } catch (e) {}
+  }
+  document.addEventListener("click", (e) => { if (e.target.closest("#vfull")) toggleVFull(); });
+  // 진짜 전체화면에서 뒤로가기/ESC 로 나가면 버튼 상태도 같이 돌려놔요
+  ["fullscreenchange", "webkitfullscreenchange"].forEach((ev) => document.addEventListener(ev, () => {
+    const w = $("vwrap");
+    if (w && w.classList.contains("vfull") && !(document.fullscreenElement || document.webkitFullscreenElement)) toggleVFull();
+  }));
+  function closeLb() { document.body.classList.remove("vfull-on"); $("lb").hidden = true; $("lb-img").innerHTML = ""; /* 영상 소리 멈추기 */ document.body.style.overflow = ""; }
 
   $("f").addEventListener("submit", (e) => { e.preventDefault(); setQ($("q").value); });
   $("types").addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) setType(b.dataset.type); });
+  $("side").addEventListener("toggle", (e) => {   // 열어 둔 길드/사람을 기억해요
+    const d = e.target; if (!d.matches || !d.matches("details.side-grp")) return;
+    let ks = []; try { ks = JSON.parse(App.store.get("side-open") || "[]"); } catch (e2) {}
+    ks = ks.filter((k) => k !== d.dataset.key); if (d.open) ks.push(d.dataset.key);
+    App.store.set("side-open", JSON.stringify(ks));
+  }, true);
   $("side").addEventListener("click", (e) => {
+    const m = e.target.closest("[data-sidemode]"); if (m) { App.store.set("side-grp", m.dataset.sidemode); render(); return; }
     const x = e.target.closest("[data-ex]"); if (x) { addTerm("-" + x.dataset.ex); return; }
     const b = e.target.closest("[data-tag]"); if (b) addTerm(b.dataset.tag);
   });

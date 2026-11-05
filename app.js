@@ -56,7 +56,7 @@
     const out = [];
     (item.characters || []).forEach((id) => {
       const c = byId[id];
-      if (c) out.push({ type: "character", text: tagText(c.label), alias: tagText(c.name), show: c.label });
+      if (c) out.push({ type: "character", text: tagText(c.label), alias: tagText(c.name), show: c.label, cid: c.id });
     });
     artistsOf(item).forEach((a) => out.push({ type: "artist", text: "작가:" + tagText(a), show: a }));
     (item.tags || []).forEach((t) => out.push({ type: "general", text: tagText(t), show: t }));
@@ -82,7 +82,7 @@
     const map = new Map();
     items.forEach((it) =>
       tagsOf(it).forEach((g) => {
-        const e = map.get(g.text) || { type: g.type, text: g.text, show: g.show, n: 0 };
+        const e = map.get(g.text) || { type: g.type, text: g.text, show: g.show, cid: g.cid, n: 0 };
         e.n++;
         map.set(g.text, e);
       })
@@ -90,19 +90,42 @@
     return [...map.values()];
   }
 
+  // 태그 목록 (캐릭터 태그는 길드별 / 만든 사람별로 접었다 펼칠 수 있어요)
   function sidebarHTML(items) {
     const counts = tagCounts(items);
     if (!counts.length) return '<p class="muted small">태그가 없어요</p>';
+    const rowOf = (t, type) => '<div class="tag-line"><button class="tag-row t-' + type + '" data-tag="' + esc(t.text) + '"><span>' + esc(t.show) + '</span><span class="n">' + t.n + '</span></button><button class="tag-ex" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></div>';
+    const mode = store.get("side-grp") || "guild";       // guild | owner | none
+    let openKeys = []; try { openKeys = JSON.parse(store.get("side-open") || "[]"); } catch (e) { openKeys = []; }
+    const modeBar = '<div class="side-modes">' + [["guild", "길드별"], ["owner", "만든 사람별"], ["none", "한 줄로"]]
+      .map(([m, l]) => '<button type="button" class="chip' + (mode === m ? " on" : "") + '" data-sidemode="' + m + '">' + l + "</button>").join("") + "</div>";
+    const group = (list) => {
+      const groups = new Map();
+      list.forEach((t) => {
+        const c = byId[t.cid];
+        let key, name, col;
+        if (!c) { key = "x:?"; name = "기타"; col = "#98a2b6"; }
+        else if (mode === "owner") { key = "o:" + (c.owner || "?"); name = c.owner || "기타"; col = color(c.owner); }
+        else { const g = guildOf(c); key = "g:" + g.id; name = g.name; col = g.color; }
+        if (!groups.has(key)) groups.set(key, { key, name, col, list: [] });
+        groups.get(key).list.push(t);
+      });
+      const order = mode === "owner" ? (SITE.members || []).map((m) => "o:" + m) : guildList().map((g) => "g:" + g.id);
+      return [...groups.values()].sort((a, b) => {
+        const i = order.indexOf(a.key), j = order.indexOf(b.key);
+        return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
+      }).map((g) => '<details class="side-grp" data-key="' + esc(g.key) + '" style="--mc:' + g.col + '"' + (openKeys.includes(g.key) ? " open" : "") + "><summary>" + esc(g.name) +
+        ' <small class="muted">' + g.list.length + "명 · 그림 " + g.list.reduce((n, t) => n + t.n, 0) + "</small></summary>" + g.list.map((t) => rowOf(t, "character")).join("") + "</details>").join("");
+    };
     return [["character", "캐릭터"], ["artist", "작가"], ["general", "태그"]]
       .map(([type, title]) => {
         const list = counts
           .filter((t) => t.type === type)
           .sort((a, b) => b.n - a.n || a.show.localeCompare(b.show, "ko"));
         if (!list.length) return "";
-        return (
-          '<h3 class="side-h">' + title + "</h3>" +
-          list.map((t) => '<div class="tag-line"><button class="tag-row t-' + type + '" data-tag="' + esc(t.text) + '"><span>' + esc(t.show) + '</span><span class="n">' + t.n + '</span></button><button class="tag-ex" data-ex="' + esc(t.text) + '" title="이 태그 빼고 보기" aria-label="' + esc(t.show) + ' 제외">−</button></div>').join("")
-        );
+        const head = '<h3 class="side-h">' + title + "</h3>";
+        if (type === "character") return head + modeBar + (mode === "none" ? list.map((t) => rowOf(t, type)).join("") : group(list));
+        return head + list.map((t) => rowOf(t, type)).join("");
       })
       .join("");
   }
@@ -113,7 +136,7 @@
   // 갤러리 그림(images/gallery/a번호.확장자)은 확장자가 달라도 찾아봐요: png → webp → jpg → jpeg → gif 순서로 다시 시도
   const EXTS = ["png", "webp", "jpg", "jpeg", "gif"];
   function imgFail(el) {
-    const m = /^(images\/gallery\/a\d+)\.(\w+)$/i.exec(el.getAttribute("data-src") || el.getAttribute("src") || "");
+    const m = /^(images\/gallery\/(?:a|bba)\d+)\.(\w+)$/i.exec(el.getAttribute("data-src") || el.getAttribute("src") || "");
     if (m) {
       if (!el.dataset.src) el.dataset.src = m[0];
       const tried = (el.dataset.tried || m[2].toLowerCase()).split(",");

@@ -482,6 +482,16 @@ a.rel-name:hover { text-decoration: underline; }
 /* 영상 (갤러리 창) */
 .lb-video { width: min(92vw, 960px); aspect-ratio: 16 / 9; max-height: 80vh; border: 0; background: #000; border-radius: 8px; }
 
+/* 영상 전체화면 버튼 */
+.vwrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.vbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.vbar .btn { text-decoration: none; }
+.vwrap.vfull { position: fixed; inset: 0; z-index: 9999; background: #000; justify-content: center; gap: 0; }
+.vwrap.vfull .lb-video { width: 100vw; height: 100vh; height: 100dvh; max-height: none; aspect-ratio: auto; border-radius: 0; }
+.vwrap.vfull .vbar { position: absolute; top: 8px; right: 8px; z-index: 2; opacity: .85; }
+.vwrap.vfull .vbar a { display: none; }
+body.vfull-on { overflow: hidden; }
+
 /* 놀이터 버튼 목록 */
 .play-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
 .play-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--line); background: var(--panel); transition: .15s; }
@@ -746,3 +756,14 @@ select.theme-btn option { background: var(--panel); color: var(--text); }
 :root[data-theme="scorpion"] .chip.on, :root[data-theme="scorpion"] .chip:hover { box-shadow: 0 0 8px rgba(255,90,70,.3); }
 :root[data-theme="scorpion"] .modal { background: rgba(10,2,6,.78); }
 :root[data-theme="scorpion"] ::selection { background: rgba(255,90,70,.35); }
+
+/* 갤러리 태그 목록: 길드별 / 만든 사람별 접기 */
+.side-modes { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
+.side-modes .chip { padding: 3px 10px; font-size: 13px; cursor: pointer; }
+.side-grp { margin: 4px 0; }
+.side-grp > summary { cursor: pointer; padding: 5px 8px; background: var(--panel2); border-left: 4px solid var(--mc, var(--line)); font-weight: 600; list-style: none; }
+.side-grp > summary::-webkit-details-marker { display: none; }
+.side-grp > summary::before { content: "▸ "; color: var(--muted); }
+.side-grp[open] > summary::before { content: "▾ "; }
+.side-grp > summary small { font-weight: 400; }
+.side-grp[open] { padding-bottom: 4px; }

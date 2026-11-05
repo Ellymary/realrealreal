@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>캐릭터</title>
 <link rel="stylesheet" href="style.css">
+<style>.ex-list { display: flex; flex-wrap: wrap; gap: 8px; } .ex-item { padding: 10px 14px; border: 1px solid var(--line); background: var(--panel); }</style>
 <script src="theme.js"></script>
 </head>
 <body>
@@ -16,12 +17,17 @@
   <div class="chips" id="chips-o"></div>
   <div class="chips" id="chips-s"></div>
   <div id="list"></div>
+  <section class="group extras" id="extras" hidden>
+    <h2 class="group-h">엑스트라 <small id="ex-n"></small></h2>
+    <div class="ex-list" id="ex-list"></div>
+  </section>
 </main>
 <footer class="site-footer" id="site-footer"></footer>
 
 <script src="data/site.js"></script>
 <script src="data/guilds.js"></script>
 <script src="data/characters.js"></script>
+<script src="data/extras.js"></script>
 <script src="data/order.js"></script>
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
@@ -76,6 +82,14 @@
   });
   $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); render(); });
   $("f").addEventListener("submit", (e) => e.preventDefault());
+  // 엑스트라: 한 화면에 모아서
+  (function () {
+    const ex = window.EXTRAS || [];
+    if (!ex.length) return;
+    $("extras").hidden = false;
+    $("ex-n").textContent = ex.length;
+    $("ex-list").innerHTML = ex.map((x) => '<div class="ex-item"><b>' + esc(x.name) + "</b>" + (x.desc ? '<span class="muted"> — ' + esc(x.desc) + "</span>" : "") + "</div>").join("");
+  })();
   render();
 </script>
 </body>

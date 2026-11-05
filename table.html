@@ -43,6 +43,20 @@
   .tb.flip tbody th.fk2.on { color: var(--accent); }
   .tb.flip thead th:first-child { min-width: 96px; max-width: 120px; }
   .tb-hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  /* 몇 명인지 세기 (피벗) */
+  .pv { margin-top: 22px; border: 1px solid var(--line); background: var(--panel); padding: 12px 14px; }
+  .pv summary { cursor: pointer; font-weight: 700; font-size: 16px; }
+  .pv-bar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 12px 0 10px; }
+  .pv-bar label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 14px; }
+  .pv-bar select { padding: 7px 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; min-width: 0; }
+  .pv-scroll { overflow: auto; max-width: 100%; }
+  table.pvt { border-collapse: collapse; font-size: 14px; }
+  .pvt th, .pvt td { border: 1px solid var(--line); padding: 7px 14px; text-align: center; white-space: nowrap; }
+  .pvt thead th, .pvt tbody th { background: var(--panel2); font-weight: 600; }
+  .pvt tbody th { text-align: left; }
+  .pvt .tot, .pvt tfoot th, .pvt tfoot td { background: var(--panel2); font-weight: 800; }
+  .pvt td.z { color: var(--muted); }
+  .pvt td.hot { color: var(--accent); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -60,6 +74,15 @@
   <details class="tb-fields2"><summary>보여줄 정보 고르기</summary><div class="box" id="fields"></div></details>
   <div class="tb-wrap" id="wrap"></div>
   <p class="tb-hint" id="count"></p>
+  <details class="pv" id="pv" open>
+    <summary>📊 몇 명인지 세기 (피벗 테이블)</summary>
+    <p class="tb-hint">위에서 길드·만든 사람·이름 검색을 바꾸면 그 사람들만 세요. 가로를 "없음"으로 두면 한 줄로만 세요.</p>
+    <div class="pv-bar">
+      <label>세로(행) <select id="pv-r"></select></label>
+      <label>가로(열) <select id="pv-c"></select></label>
+    </div>
+    <div class="pv-scroll" id="pv-out"></div>
+  </details>
 </main>
 <footer class="site-footer" id="site-footer"></footer>
 
@@ -187,7 +210,48 @@
     }
     $("wrap").innerHTML = cs.length ? '<table class="tb' + (flip ? " flip" : "") + '">' + html + "</table>" : '<p class="empty" style="padding:20px">찾는 캐릭터가 없어요.</p>';
     $("count").textContent = cs.length + "명" + (sortKey ? " · " + sortKey + (dir === 1 ? " 오름차순" : " 내림차순") + " 정렬 중" : "");
+    if (typeof renderPivot === "function") renderPivot();
   }
+
+  // ── 피벗: 칸을 골라 몇 명인지 세기 (예: 성별 몇 명, 길드 × 성별) ──
+  const PV_SKIP = ["눈 색", "머리색", "능력", "능력 설명", "생일"];
+  const PV_FIELDS = ALL.filter((k) => !PV_SKIP.includes(k));
+  const pvOpt = (k, sel) => '<option value="' + esc(k) + '"' + (k === sel ? " selected" : "") + ">" + esc(k) + "</option>";
+  let pvR = App.store.get("pv-r"), pvC = App.store.get("pv-c");
+  if (!PV_FIELDS.includes(pvR)) pvR = PV_FIELDS.includes("소속") ? "소속" : PV_FIELDS[0];
+  if (pvC !== "" && !PV_FIELDS.includes(pvC)) pvC = PV_FIELDS.includes("성별") ? "성별" : "";
+  $("pv-r").innerHTML = PV_FIELDS.map((k) => pvOpt(k, pvR)).join("");
+  $("pv-c").innerHTML = '<option value="">없음</option>' + PV_FIELDS.map((k) => pvOpt(k, pvC)).join("");
+  const pvKey = (c, k) => { const v = String(val(c, k) == null ? "" : val(c, k)).trim(); return v === "" ? "(비어 있음)" : v; };
+  function pvSort(a, b, k) {
+    if (a === "(비어 있음)") return 1; if (b === "(비어 있음)") return -1;
+    if (k === "등급") { const A = ["SSS","SS","S","A","B","C","D","E","F"]; const i = A.indexOf(a), j = A.indexOf(b); if (i >= 0 && j >= 0) return i - j; }
+    const x = parseFloat(a), y = parseFloat(b);
+    if (!isNaN(x) && !isNaN(y)) return x - y;
+    return a.localeCompare(b, "ko");
+  }
+  function renderPivot() {
+    const cs = list();
+    const rs = [...new Set(cs.map((c) => pvKey(c, pvR)))].sort((a, b) => pvSort(a, b, pvR));
+    const cols = pvC ? [...new Set(cs.map((c) => pvKey(c, pvC)))].sort((a, b) => pvSort(a, b, pvC)) : [];
+    if (!cs.length) { $("pv-out").innerHTML = '<p class="empty">세어 볼 캐릭터가 없어요.</p>'; return; }
+    const m = {}; cs.forEach((c) => { const r = pvKey(c, pvR), k = pvC ? pvKey(c, pvC) : "n"; (m[r] = m[r] || {})[k] = (m[r][k] || 0) + 1; });
+    const cell = (n) => n ? "<td class=\"hot\">" + n + "</td>" : "<td class=\"z\">0</td>";
+    let h;
+    if (!pvC) {
+      h = "<thead><tr><th>" + esc(pvR) + "</th><th>명</th></tr></thead><tbody>" +
+        rs.map((r) => "<tr><th>" + esc(r) + "</th>" + cell(m[r].n) + "</tr>").join("") +
+        "</tbody><tfoot><tr><th>합계</th><td>" + cs.length + "</td></tr></tfoot>";
+    } else {
+      const ct = (k) => rs.reduce((n, r) => n + ((m[r] || {})[k] || 0), 0);
+      h = "<thead><tr><th>" + esc(pvR) + " \\ " + esc(pvC) + "</th>" + cols.map((k) => "<th>" + esc(k) + "</th>").join("") + "<th>합계</th></tr></thead><tbody>" +
+        rs.map((r) => "<tr><th>" + esc(r) + "</th>" + cols.map((k) => cell((m[r] || {})[k] || 0)).join("") + '<td class="tot">' + cols.reduce((n, k) => n + ((m[r] || {})[k] || 0), 0) + "</td></tr>").join("") +
+        "</tbody><tfoot><tr><th>합계</th>" + cols.map((k) => "<td>" + ct(k) + "</td>").join("") + "<td>" + cs.length + "</td></tr></tfoot>";
+    }
+    $("pv-out").innerHTML = '<table class="pvt">' + h + "</table>";
+  }
+  $("pv-r").addEventListener("change", (e) => { pvR = e.target.value; App.store.set("pv-r", pvR); renderPivot(); });
+  $("pv-c").addEventListener("change", (e) => { pvC = e.target.value; App.store.set("pv-c", pvC); renderPivot(); });
 
   $("g").innerHTML = '<option value="">길드 전체</option>' + App.guildList().map((g) => '<option value="' + esc(g.id) + '">' + esc(g.name) + "</option>").join("");
   $("o").innerHTML = '<option value="">만든 사람 전체</option>' + SITE.members.map((m) => '<option value="' + esc(m) + '">' + esc(m) + "</option>").join("");
