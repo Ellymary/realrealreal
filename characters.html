@@ -17,11 +17,7 @@
   <div class="chips" id="chips-o"></div>
   <div class="chips" id="chips-s"></div>
   <div id="list"></div>
-  <section class="group extras" id="extras" hidden>
-    <h2 class="group-h">엑스트라 <small id="ex-n"></small></h2>
-    <div class="ex-list" id="ex-list"></div>
-  </section>
-</main>
+  </main>
 <footer class="site-footer" id="site-footer"></footer>
 
 <script src="data/site.js"></script>
@@ -45,9 +41,9 @@
   let kw = "";
 
   function render() {
-    const gl = App.guildList();
+    const gl = App.guildList(true);
     $("chips-g").innerHTML = ['<button class="chip' + (gid ? "" : " on") + '" data-g="">길드 전체 ' + App.countOf(CHARS) + "</button>"]
-      .concat(gl.map((g) => '<button class="chip' + (gid === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '">' + esc(g.name) + " " + App.countOf(App.charsOfGuild(g)) + "</button>"))
+      .concat(gl.map((g) => '<button class="chip' + (gid === g.id ? " on" : "") + '" data-g="' + esc(g.id) + '">' + esc(g.name) + " " + (App.countOf(App.charsOfGuild(g)) + App.extraCount(g)) + "</button>"))
       .join("");
     $("chips-o").innerHTML = ['<button class="chip' + (owner ? "" : " on") + '" data-o="">만든 사람 전체</button>']
       .concat(SITE.members.map((m) => '<button class="chip' + (owner === m ? " on" : "") + '" data-o="' + esc(m) + '">' + esc(m) + " " + App.countOf(CHARS.filter((c) => c.owner === m)) + "</button>"))
@@ -55,18 +51,26 @@
     $("chips-s").innerHTML = App.SORTS.map((o) => '<button class="chip' + (sort === o.id ? " on" : "") + '" data-s="' + esc(o.id) + '">' + (o.id ? "정렬: " : "") + esc(o.label) + (o.note ? ' <small class="muted">' + esc(o.note) + "</small>" : "") + "</button>").join("");
     const match = (c) => (!owner || c.owner === owner) && (!kw || c.name.toLowerCase().includes(kw));
     const noteOf = (c) => App.noteFor(sort, c);
+    // 엑스트라 칸 맨 아래에 이름만 있는 엑스트라(data/extras.js)를 붙여요
+    const exNames = () => {
+      if (owner) return "";
+      const ex = (window.EXTRAS || []).filter((x) => !kw || String(x.name).toLowerCase().includes(kw));
+      return ex.length ? '<div class="ex-list">' + ex.map((x) => '<div class="ex-item"><b>' + esc(x.name) + "</b>" + (x.desc ? '<span class="muted"> — ' + esc(x.desc) + "</span>" : "") + "</div>").join("") + "</div>" : "";
+    };
     let html;
     if (sort) {
       // 정렬 중에는 한 줄로 쭉: 전체 / 고른 길드 / 고른 만든 사람 기준으로 등급 정렬
       const gsel = gid ? gl.find((g) => g.id === gid) : null;
-      const list = App.sortChars(CHARS.filter((c) => (!gsel || App.guildOf(c) === gsel) && match(c)), sort);
+      const pool = gsel && gsel.id === "extra" ? App.EXTRA_CHARS : CHARS;
+      const list = App.sortChars(pool.filter((c) => (!gsel || App.guildOf(c) === gsel) && match(c)), sort);
       const title = [gsel ? gsel.name : "전체", owner].filter(Boolean).join(" · ") + " (" + App.SORTS.find((o) => o.id === sort).label + ")";
       html = list.length ? '<section class="group"><h2 class="group-h">' + esc(title) + " <small>" + App.countOf(list) + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c, noteOf(c))).join("") + "</div></section>" : "";
     } else {
       html = gl.filter((g) => !gid || g.id === gid).map((g) => {
         const list = App.charsOfGuild(g).filter(match);
-        if (!list.length) return "";
-        return '<section class="group" style="--mc:' + g.color + '"><h2 class="group-h"><a href="guild.html?id=' + encodeURIComponent(g.id) + '">' + esc(g.name) + "</a> <small>" + list.length + '</small></h2><div class="cards">' + list.map((c) => App.charCard(c)).join("") + "</div></section>";
+        const names = g.id === "extra" ? exNames() : "";
+        if (!list.length && !names) return "";
+        return '<section class="group" style="--mc:' + g.color + '"><h2 class="group-h"><a href="guild.html?id=' + encodeURIComponent(g.id) + '">' + esc(g.name) + "</a> <small>" + (App.countOf(list) + (names ? (window.EXTRAS || []).filter((x) => !kw || String(x.name).toLowerCase().includes(kw)).length : 0)) + '</small></h2>' + (list.length ? '<div class="cards">' + list.map((c) => App.charCard(c)).join("") + "</div>" : "") + names + "</section>";
       }).join("");
     }
     $("list").innerHTML = html || '<p class="empty">찾는 캐릭터가 없어요.</p>';
@@ -82,14 +86,6 @@
   });
   $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); render(); });
   $("f").addEventListener("submit", (e) => e.preventDefault());
-  // 엑스트라: 한 화면에 모아서
-  (function () {
-    const ex = window.EXTRAS || [];
-    if (!ex.length) return;
-    $("extras").hidden = false;
-    $("ex-n").textContent = ex.length;
-    $("ex-list").innerHTML = ex.map((x) => '<div class="ex-item"><b>' + esc(x.name) + "</b>" + (x.desc ? '<span class="muted"> — ' + esc(x.desc) + "</span>" : "") + "</div>").join("");
-  })();
   render();
 </script>
 </body>

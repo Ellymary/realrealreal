@@ -15,6 +15,7 @@
 <script src="data/site.js"></script>
 <script src="data/guilds.js"></script>
 <script src="data/characters.js"></script>
+<script src="data/extras.js"></script>
 <script src="data/order.js"></script>
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
@@ -37,16 +38,19 @@
       .sort(App.byDateDesc).slice(0, 12);
     main.innerHTML =
       '<div class="chips" style="margin-top:22px">' +
-        App.guildList().map((x) => '<a class="chip' + (x === g ? " on" : "") + '" href="guild.html?id=' + encodeURIComponent(x.id) + '">' + esc(x.name) + "</a>").join("") +
+        App.guildList(true).map((x) => '<a class="chip' + (x === g ? " on" : "") + '" href="guild.html?id=' + encodeURIComponent(x.id) + '">' + esc(x.name) + "</a>").join("") +
       "</div>" +
-      '<section class="gbanner" style="--gc:' + g.color + '"><h1>' + esc(g.name) + '</h1><div class="muted">캐릭터 ' + App.countOf(cs) + "명</div>" +
+      '<section class="gbanner" style="--gc:' + g.color + '"><h1>' + esc(g.name) + '</h1><div class="muted">캐릭터 ' + (App.countOf(cs) + App.extraCount(g)) + "명</div>" +
         (g.summary ? '<p class="lead">' + App.fmt(g.summary) + "</p>" : "") +
         App.text(g.desc) +
         (!g.summary && !g.desc ? '<p class="muted">아직 소개가 없어요. data/guilds.js 에서 채워 주세요.</p>' : "") +
       "</section>" +
-      '<h2 class="sec-h">캐릭터 <small>' + App.countOf(cs) + "</small></h2>" +
+      '<h2 class="sec-h">캐릭터 <small>' + (App.countOf(cs) + App.extraCount(g)) + "</small></h2>" +
       (cs.length > 1 ? '<div class="chips" id="g-sort"></div>' : "") +
       '<div class="cards" id="g-cards"></div>' +
+      (g.id === "extra" && (window.EXTRAS || []).length
+        ? '<div class="ex-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">' + window.EXTRAS.map((x) => '<div class="ex-item" style="padding:10px 14px;border:1px solid var(--line);background:var(--panel)"><b>' + esc(x.name) + "</b>" + (x.desc ? '<span class="muted"> — ' + esc(x.desc) + "</span>" : "") + "</div>").join("") + "</div>"
+        : "") +
       (pics.length
         ? '<h2 class="sec-h">이 길드 캐릭터가 나온 그림 <small>' + pics.length + '</small></h2><div class="grid">' +
           pics.map((it) => '<a class="thumb" title="' + esc(it.title || "") + '" href="gallery.html?img=' + encodeURIComponent(it.file) + '">' + App.img(it.thumb || it.file, it.title) + "</a>").join("") + "</div>"

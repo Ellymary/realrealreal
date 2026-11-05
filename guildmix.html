@@ -116,7 +116,7 @@
   let assign = {};          // 캐릭터 id → 길드 id (또는 "pool")
   const sel = new Set();    // 선택한 캐릭터
 
-  const baseGuilds = () => App.GUILDS.map((g) => ({ id: g.id, name: g.name, color: g.color, summary: g.summary || "", custom: false }));
+  const baseGuilds = () => App.GUILDS.filter((g) => g.id !== "extra").map((g) => ({ id: g.id, name: g.name, color: g.color, summary: g.summary || "", custom: false }));
   const allGuilds = () => baseGuilds().concat(custom.map((g) => Object.assign({ custom: true }, g)));
   const guildName = (id) => (id === POOL ? "대기석" : (allGuilds().find((g) => g.id === id) || {}).name || "대기석");
 

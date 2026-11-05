@@ -1,7 +1,10 @@
 /* 공통 기능 — 보통은 건드릴 필요 없어요 */
 (function () {
   const SITE = window.SITE || { title: "세계관", members: [], memberColors: {} };
-  const CHARS = window.CHARACTERS || [];
+  const ALL_CHARS = window.CHARACTERS || [];
+  // extra: true 캐릭터는 "엑스트라" 칸에만 나와요 (4분면·티어표·표·생일·월드컵 같은 곳에는 안 들어가요)
+  const CHARS = ALL_CHARS.filter((c) => !c.extra);
+  const EXTRA_CHARS = ALL_CHARS.filter((c) => c.extra);
   const GALLERY = window.GALLERY || [];
   const COMICS = window.COMICS || [];
   const GUILDS = window.GUILDS || [];
@@ -18,9 +21,9 @@
 
   // 이름이 겹치는 캐릭터는 "이름(주인)" 으로 구분
   const nameCount = {};
-  CHARS.forEach((c) => { nameCount[c.name] = (nameCount[c.name] || 0) + 1; });
+  ALL_CHARS.forEach((c) => { nameCount[c.name] = (nameCount[c.name] || 0) + 1; });
   const byId = {};
-  CHARS.forEach((c) => {
+  ALL_CHARS.forEach((c) => {
     c.label = nameCount[c.name] > 1 ? c.name + "(" + c.owner + ")" : c.name;
     byId[c.id] = c;
   });
@@ -218,19 +221,26 @@
 
   // ── 길드 ──
   const UNKNOWN_GUILD = { id: "unknown", name: "소속 미정", main: false, color: "#6b7385", summary: "아직 소속이 정해지지 않은 캐릭터들" };
-  const guildOf = (c) => GUILDS.find((g) => g.name === c.guild) || UNKNOWN_GUILD;
-  const charsOfGuild = (g) => CHARS.filter((c) => guildOf(c) === g);
+  // extra: true 인 캐릭터는 원래 소속(guild 칸)과 상관없이 "엑스트라" 칸에 들어가요
+  const guildOf = (c) => (c.extra && GUILDS.find((g) => g.id === "extra")) || GUILDS.find((g) => g.name === c.guild) || UNKNOWN_GUILD;
+  // 엑스트라 칸에는 이름만 있는 엑스트라(data/extras.js)도 같이 세요
+  const extraCount = (g) => (g && g.id === "extra" ? (window.EXTRAS || []).length : 0);
+  const charsOfGuild = (g) => (g && g.id === "extra" ? EXTRA_CHARS : CHARS.filter((c) => guildOf(c) === g));
   // 길드 목록 (소속 미정 캐릭터가 있으면 맨 뒤에 "소속 미정" 추가)
-  const guildList = () => (CHARS.some((c) => guildOf(c) === UNKNOWN_GUILD) ? GUILDS.concat([UNKNOWN_GUILD]) : GUILDS);
+  // 엑스트라 칸은 withExtra=true 일 때만 들어가요 (캐릭터 목록 · 홈 · 길드 페이지에서만 써요)
+  const guildList = (withExtra) => {
+    const gs = withExtra ? GUILDS : GUILDS.filter((g) => g.id !== "extra");
+    return CHARS.some((c) => guildOf(c) === UNKNOWN_GUILD) ? gs.concat([UNKNOWN_GUILD]) : gs;
+  };
   // 사람 수 세기: 트랜스(F)·트랜스(M) 처럼 "이름(…)" 으로 모습만 다른 캐릭터는 한 명으로 세요 (표시만 그렇게 해요)
   const countOf = (list) => new Set(list.map((c) => String(c.name).replace(/\s*\([^)]*\)\s*$/, "") + "|" + (c.owner || ""))).size;
-  const guildById = (id) => guildList().find((g) => g.id === id);
+  const guildById = (id) => guildList(true).find((g) => g.id === id);
 
   function charCard(c, note) {
     return '<a class="card" style="--mc:' + guildOf(c).color + '" href="character.html?id=' + encodeURIComponent(c.id) + '">' +
       '<div class="pic">' + avatar(c) + "</div>" +
       '<div class="body"><div class="nm">' + esc(c.name) + '</div><div class="sub">' + fmt(c.summary || "") + "</div>" +
-      '<div class="cnt">' + esc(c.owner || "") + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + (note.html || esc(note)) : "") + "</div></div></a>";
+      '<div class="cnt">' + esc(c.owner || (c.extra ? c.guild : "") || "") + (gradeOf(c) ? " · 등급 " + gradeSpan(gradeOf(c)) : "") + (note ? " · " + (note.html || esc(note)) : "") + "</div></div></a>";
   }
 
   const galleryOf = (id) => GALLERY.filter((g) => (g.characters || []).includes(id));
@@ -370,7 +380,7 @@
   }
   function fieldValue(c, key) {
     if (key === "주인") return c.owner || "";
-    if (key === "소속") return c.guild || "";
+    if (key === "소속") return c.extra ? "엑스트라" + (c.guild ? " · " + c.guild : "") : (c.guild || "");
     const v = infoOf(c)[key];
     return v == null ? "" : String(v);
   }
@@ -446,7 +456,7 @@
     if (!list.length) return '<section class="rels-wrap">' + head + '<p class="muted">아직 적은 관계가 없어요. data/characters.js 의 이 캐릭터 줄 <b>relations</b> 칸에 써 주세요.</p></section>';
     return '<section class="rels-wrap">' + head + '<div class="rels">' + list.map((r) => {
       const whoOne = (w) => {
-        const t = byId[w] || CHARS.find((x) => x.name === w || x.label === w);
+        const t = byId[w] || ALL_CHARS.find((x) => x.name === w || x.label === w);
         return t
           ? '<a class="rel-name" href="character.html?id=' + encodeURIComponent(t.id) + '">' + esc(t.label) + "</a>"
           : '<span class="rel-name">' + esc(w || "?") + "</span>";
@@ -513,9 +523,9 @@
 
   window.App = {
     SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
-    SITE, CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
+    SITE, CHARS, EXTRA_CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
     esc, param, store, tagText, imgFail, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
-    GUILDS, guildOf, charsOfGuild, guildList, guildById, charCard, infoOf, fieldValue, countOf,
+    GUILDS, guildOf, extraCount, charsOfGuild, guildList, guildById, charCard, infoOf, fieldValue, countOf,
   };
 })();
