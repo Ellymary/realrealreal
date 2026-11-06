@@ -6,6 +6,7 @@
 // 맨 위 줄이 가장 최근이에요. 새 업데이트는 `window.UPDATES = [` 바로 아래에 한 줄 추가!
 window.UPDATES_DIR = "right";   // 흐르는 방향: "right" (오른쪽으로) / "left" (왼쪽으로)
 window.UPDATES = [
+  { ver: "v1.0", text: "테마 추가: 제우스 밤의 울음 · 헌터 관리국 / 퀴즈 색 코드 문제에 색 표시", date: "11/07", href: "trivia.html" },
   { ver: "v0.9", text: "캐릭터 퀴즈 추가 (객관식 · 주관식 · 서술형 · 관계 퀴즈)", date: "11/06", href: "trivia.html" },
   { ver: "v0.8", text: "주관적 순위 매기기 + 순위 캡쳐하기", date: "11/06", href: "ranking.html" },
   { ver: "v0.7", text: "엑스트라 칸 추가 · 영상 폰 가로 전체화면", date: "11/06", href: "guild.html?id=extra" },

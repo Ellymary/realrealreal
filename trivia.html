@@ -24,6 +24,8 @@
   .tq-pic { width: 150px; height: 150px; border-radius: 50%; overflow: hidden; border: 3px solid var(--line); background: var(--panel2, var(--panel)); }
   .tq-pic img, .tq-pic .avatar-fb { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; font-size: 52px; }
   .tq-swatch { width: 160px; height: 90px; border-radius: 12px; border: 3px solid var(--line); }
+  .tq-media-code { flex-direction: column; align-items: center; gap: 10px; }
+  .tq-dot { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; border: 1px solid var(--line); }
   .tq-code { font: 800 30px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 1px; padding: 14px 22px; border: 2px dashed var(--line); border-radius: 12px; background: var(--panel2, var(--panel)); }
   .tq-quote { width: 100%; padding: 14px 16px; border-left: 4px solid var(--accent); background: var(--panel2, var(--panel)); border-radius: 0 8px 8px 0; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-break: keep-all; }
   .tq-clue { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
@@ -336,7 +338,7 @@
     const c = pick(CHARS.filter((x) => hexOf(x, key))); if (!c) return null;
     const h = hexOf(c, key);
     const w = otherChars(c, NUMN(d), (x) => hexOf(x, key) && hexOf(x, key) !== h, true);
-    return build("<b>" + h + "</b> 은(는) 누구의 " + label + " 코드일까요?", C(c), w.map(C), { subj: c, accept: whoAcc(c, (x) => hexOf(x, key) === h), media: { kind: "code", text: h }, explain: "<b class='v'>" + esc(nm(c)) + "</b>의 " + label + " 코드예요." });
+    return build("<b>" + h + "</b> 은(는) 누구의 " + label + " 코드일까요?", C(c), w.map(C), { subj: c, accept: whoAcc(c, (x) => hexOf(x, key) === h), media: { kind: "code", text: h, hex: h }, explain: "<b class='v'>" + esc(nm(c)) + "</b>의 " + label + " 코드예요." });
   };
   T("hairCode", 3, "머리색 코드", codeQ("머리색", "머리색"));
   T("eyeCode", 3, "눈 색 코드", codeQ("눈 색", "눈 색"));
@@ -499,7 +501,7 @@
     if (!m) return "";
     if (m.kind === "img") return "<div class='tq-media'><div class='tq-pic' style='" + (m.small ? "width:100px;height:100px" : "") + "'>" + App.avatar(m.c) + "</div></div>";
     if (m.kind === "swatch") return "<div class='tq-media'><div class='tq-swatch' style='background:" + esc(m.hex) + "'></div></div>";
-    if (m.kind === "code") return "<div class='tq-media'><div class='tq-code'>" + esc(m.text) + "</div></div>";
+    if (m.kind === "code") return "<div class='tq-media tq-media-code'>" + (m.hex ? "<div class='tq-swatch' style='background:" + esc(m.hex) + "'></div>" : "") + "<div class='tq-code'>" + esc(m.text) + "</div></div>";
     if (m.kind === "quote") return "<div class='tq-media'><div class='tq-quote'>" + esc(m.text) + "</div></div>";
     if (m.kind === "clue") return "<div class='tq-media'><div class='tq-clue'>" + m.list.map((t) => "<span>" + esc(t) + "</span>").join("") + "</div></div>";
     return "";
@@ -610,7 +612,7 @@
       "<ol class='tq-rev'>" + log.map((l, k) => {
         const q = l.q, plain = (q.kind === "multi" && q.mode === "obj" ? q.objText : q.text).replace(/<[^>]+>/g, "");
         const ans = q.kind === "multi" ? q.members.map(nm).join(", ") : q.explain.replace(/<[^>]+>/g, "").replace(/^정답은\s*/, "");
-        return "<li class='" + (l.ok ? "ok" : "no") + "'><b>" + (k + 1) + ".</b> " + esc(plain) + (q.media && q.media.kind === "code" ? " <span class='m'>(" + esc(q.media.text) + ")</span>" : "") +
+        return "<li class='" + (l.ok ? "ok" : "no") + "'><b>" + (k + 1) + ".</b> " + esc(plain) + (q.media && q.media.hex ? " <i class='tq-dot' style='background:" + esc(q.media.hex) + "'></i>" + (q.media.kind === "code" ? " <span class='m'>(" + esc(q.media.text) + ")</span>" : "") : "") +
           "<br><span class='m'>정답:</span> " + esc(ans) + (l.ok ? "" : " <span class='m'>· 내 답:</span> " + esc(l.mine || "") + (l.pts2 ? " <span class='m'>(" + l.pts2[0] + "/" + l.pts2[1] + ")</span>" : "")) + "</li>";
       }).join("") + "</ol>" +
       "<div class='tq-end'><button type='button' class='btn btn-primary' id='again'>같은 설정으로 다시</button><button type='button' class='btn' id='setup'>설정 바꾸기</button></div>";

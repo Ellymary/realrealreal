@@ -435,9 +435,9 @@ h1, h2, h3 { font-family: var(--serif); letter-spacing: -.01em; }
 .rel-star { align-self: center; margin-left: 4px; }
 .rel-name { padding: 1px 12px; background: var(--rc); color: #fff; font-weight: 600; border: 1px solid transparent; }
 a.rel-name:hover { text-decoration: underline; }
-:root:not([data-theme="light"]):not([data-theme="pastel"]):not([data-theme="baekya"]) .rel.c-black { border-left-color: #8b92a6; }
-:root:not([data-theme="light"]):not([data-theme="pastel"]):not([data-theme="baekya"]) .rel.c-black .rel-mid { color: #aab0c2; }
-:root:not([data-theme="light"]):not([data-theme="pastel"]):not([data-theme="baekya"]) .rel-name { border-color: rgba(255,255,255,.28); }
+:root:not([data-theme="light"]):not([data-theme="pastel"]):not([data-theme="baekya"]):not([data-theme="association"]) .rel.c-black { border-left-color: #8b92a6; }
+:root:not([data-theme="light"]):not([data-theme="pastel"]):not([data-theme="baekya"]):not([data-theme="association"]) .rel.c-black .rel-mid { color: #aab0c2; }
+:root:not([data-theme="light"]):not([data-theme="pastel"]):not([data-theme="baekya"]):not([data-theme="association"]) .rel-name { border-color: rgba(255,255,255,.28); }
 .rel-kind { color: var(--muted); font-size: 12px; line-height: 1.3; }
 .rel-star { color: var(--accent); }
 .rel-text { margin-top: 6px; }
@@ -807,3 +807,105 @@ a.tk-item:hover { color: var(--accent); }
 .sheet-sec + .sheet-sec { margin-top: 8px; }
 .sheet-sec > summary { cursor: pointer; font-weight: 700; font-size: 15px; padding: 6px 2px; user-select: none; }
 .sheet-sec > .info.sheet { margin-top: 4px; }
+
+/* ══ 제우스 밤의 울음 테마 ══ 밤의 지배자: 먹빛 남보라 밤하늘 + 달빛 은색 + 번쩍이는 보라 번개 */
+:root[data-theme="zeus"] {
+  color-scheme: dark;
+  --on: 100%;
+  --header-bg: rgba(10,6,24,.93);
+  --bg: #0a0618;
+  --panel: #130c2a;
+  --panel2: #1c1240;
+  --line: #36246b;
+  --text: #ece6ff;
+  --muted: #a396cf;
+  --accent: #a98bff;
+  --on-accent: #0c0620;
+  --t-character: #7fe3c4;
+  --t-artist: #ffb27a;
+  --t-general: #b6a4ff;
+  --r-lg: 0;
+  --r-sm: 0;
+}
+:root[data-theme="zeus"] body {
+  background:
+    radial-gradient(700px 420px at 85% -8%, rgba(214,205,255,.16) 0, transparent 60%),   /* 달빛 */
+    radial-gradient(900px 560px at 10% 110%, rgba(122,92,199,.30) 0, transparent 62%),
+    radial-gradient(1000px 500px at 50% -15%, rgba(80,50,170,.30) 0, transparent 62%),
+    radial-gradient(1.5px 1.5px at 12% 22%, rgba(255,255,255,.75) 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 38% 8%, rgba(255,255,255,.6) 50%, transparent 52%),
+    radial-gradient(1px 1px at 64% 30%, rgba(255,255,255,.7) 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 88% 18%, rgba(255,255,255,.65) 50%, transparent 52%),
+    radial-gradient(1px 1px at 24% 64%, rgba(255,255,255,.5) 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 76% 72%, rgba(255,255,255,.55) 50%, transparent 52%),
+    var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme="zeus"] .site-header { border-bottom-color: #3d2a7a; box-shadow: 0 0 24px rgba(122,92,199,.2); }
+:root[data-theme="zeus"] .site-header::after { background: linear-gradient(90deg, transparent, #7a5cc7, #e4dcff, #7a5cc7, transparent); height: 1px; }
+:root[data-theme="zeus"] .brand, :root[data-theme="zeus"] .nav a.on { color: #cbbaff; text-shadow: 0 0 12px rgba(150,115,255,.65); }
+:root[data-theme="zeus"] h1, :root[data-theme="zeus"] .page-title { text-shadow: 0 0 16px rgba(150,115,255,.38); letter-spacing: .02em; }
+:root[data-theme="zeus"] .sec-h::before { background: linear-gradient(#e4dcff, #7a5cc7); box-shadow: 0 0 10px rgba(150,115,255,.8); }
+/* 보라 테두리 + 안쪽 번개빛, 한쪽 모서리만 번개처럼 꺾음 */
+:root[data-theme="zeus"] .card, :root[data-theme="zeus"] .gcard, :root[data-theme="zeus"] .gbanner, :root[data-theme="zeus"] .quick a, :root[data-theme="zeus"] .play-card,
+:root[data-theme="zeus"] .couple, :root[data-theme="zeus"] .gmini, :root[data-theme="zeus"] .member, :root[data-theme="zeus"] .quiz-box, :root[data-theme="zeus"] .quiz-result,
+:root[data-theme="zeus"] .rel, :root[data-theme="zeus"] .info.sheet, :root[data-theme="zeus"] .modal-box, :root[data-theme="zeus"] .mp-bar, :root[data-theme="zeus"] .mp-panel {
+  border-color: #3d2a7a; box-shadow: inset 0 0 20px rgba(122,92,199,.14);
+}
+:root[data-theme="zeus"] .card:hover, :root[data-theme="zeus"] .gcard:hover, :root[data-theme="zeus"] .quick a:hover, :root[data-theme="zeus"] .play-card:hover, :root[data-theme="zeus"] .gmini:hover {
+  box-shadow: inset 0 0 22px rgba(169,139,255,.2), 0 0 18px rgba(150,115,255,.4);
+}
+:root[data-theme="zeus"] .card, :root[data-theme="zeus"] .gcard, :root[data-theme="zeus"] .gbanner, :root[data-theme="zeus"] .quick a, :root[data-theme="zeus"] .play-card, :root[data-theme="zeus"] .couple {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+:root[data-theme="zeus"] .chip.on, :root[data-theme="zeus"] .chip:hover, :root[data-theme="zeus"] .btn:hover { box-shadow: 0 0 12px rgba(150,115,255,.4); }
+:root[data-theme="zeus"] .btn-primary { background: linear-gradient(135deg, #b9a0ff, #7a5cc7); border-color: #a98bff; color: #0c0620; box-shadow: 0 0 16px rgba(150,115,255,.5); }
+:root[data-theme="zeus"] .quote::before, :root[data-theme="zeus"] .quote::after { text-shadow: 0 0 10px currentColor; }
+:root[data-theme="zeus"] .modal { background: rgba(6,2,16,.8); }
+:root[data-theme="zeus"] ::selection { background: rgba(150,115,255,.4); }
+
+/* ══ 헌터 관리국 테마 ══ 국가 직속 기관: 공문서 같은 아이보리 종이 + 남색 + 금빛 직인, 반듯한 각진 모서리 */
+:root[data-theme="association"] {
+  color-scheme: light;
+  --on: 52%;
+  --header-bg: rgba(250,247,238,.95);
+  --bg: #f4f1e8;
+  --panel: #fffdf6;
+  --panel2: #ece8da;
+  --line: #cfc8b0;
+  --text: #1b2440;
+  --muted: #667089;
+  --accent: #a87a0c;
+  --on-accent: #ffffff;
+  --t-character: #1d7d5a;
+  --t-artist: #b9501f;
+  --t-general: #2f4db8;
+  --serif: "Nanum Myeongjo", "Noto Serif KR", "Batang", serif;
+  --r-lg: 0;
+  --r-sm: 0;
+}
+:root[data-theme="association"] body {
+  background: linear-gradient(rgba(27,36,64,.04) 1px, transparent 1px) 0 0 / 100% 28px, linear-gradient(90deg, rgba(27,36,64,.03) 1px, transparent 1px) 0 0 / 28px 100%, radial-gradient(900px 400px at 50% -10%, #fffdf4 0, transparent 70%), var(--bg);
+  background-attachment: fixed;
+}
+:root[data-theme="association"] .site-header { border-bottom: 3px double #1b2a52; }
+:root[data-theme="association"] .site-header::after { background: linear-gradient(90deg, #1b2a52 0 40%, #c99a22 40% 60%, #1b2a52 60%); height: 3px; }
+:root[data-theme="association"] .brand { color: #1b2a52; letter-spacing: .04em; }
+:root[data-theme="association"] .nav a.on { color: #1b2a52; box-shadow: inset 0 -3px 0 #c99a22; }
+:root[data-theme="association"] h1, :root[data-theme="association"] .page-title { color: #1b2a52; letter-spacing: .02em; }
+:root[data-theme="association"] .sec-h::before { background: #1b2a52; border-bottom: 4px solid #c99a22; }
+/* 공문서 서류 느낌: 남색 위쪽 줄 + 얇은 테두리 */
+:root[data-theme="association"] .card, :root[data-theme="association"] .gcard, :root[data-theme="association"] .gbanner, :root[data-theme="association"] .quick a, :root[data-theme="association"] .play-card,
+:root[data-theme="association"] .couple, :root[data-theme="association"] .gmini, :root[data-theme="association"] .member, :root[data-theme="association"] .quiz-box, :root[data-theme="association"] .quiz-result,
+:root[data-theme="association"] .rel, :root[data-theme="association"] .info.sheet, :root[data-theme="association"] .modal-box, :root[data-theme="association"] .mp-bar, :root[data-theme="association"] .mp-panel {
+  border-color: #cfc8b0; box-shadow: 0 2px 0 rgba(27,42,82,.08);
+}
+:root[data-theme="association"] .card, :root[data-theme="association"] .gcard, :root[data-theme="association"] .gbanner, :root[data-theme="association"] .quick a, :root[data-theme="association"] .play-card, :root[data-theme="association"] .couple { border-top: 3px solid #1b2a52; }
+:root[data-theme="association"] .card:hover, :root[data-theme="association"] .gcard:hover, :root[data-theme="association"] .quick a:hover, :root[data-theme="association"] .play-card:hover, :root[data-theme="association"] .gmini:hover { box-shadow: 0 4px 0 #c99a22; }
+:root[data-theme="association"] .chip.on, :root[data-theme="association"] .chip:hover { background: #f3e6bd; }
+:root[data-theme="association"] .btn-primary { background: #1b2a52; border-color: #1b2a52; color: #fff7dc; box-shadow: 0 3px 0 #c99a22; }
+:root[data-theme="association"] .rel-name { border-color: transparent; }
+:root[data-theme="association"] .modal { background: rgba(27,42,82,.45); }
+:root[data-theme="association"] ::selection { background: rgba(201,154,34,.35); }
+:root[data-theme="zeus"] .ticker, :root[data-theme="association"] .ticker { border-radius: 0; }
+:root[data-theme="zeus"] .tq-swatch, :root[data-theme="association"] .tq-swatch { border-radius: 0; }
