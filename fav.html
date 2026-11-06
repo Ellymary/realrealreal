@@ -57,6 +57,7 @@
 <header class="site-header" id="site-header"></header>
 <main class="wrap">
   <a class="back" href="playground.html">← 놀이터</a>
+  <p class="muted" style="font-size:12px;margin:4px 0 0">made by 예나 감사합니다</p>
   <h1 class="page-title">최애 · 취향 기록장</h1>
   <p class="muted">최애를 고르고 이유를 적어요. 다 쓰면 🖼 버튼으로 이미지 저장! (글은 이 기기 브라우저에 저장돼요)</p>
   <div class="tabs" id="tabs"></div>
@@ -64,7 +65,6 @@
   <div class="line" style="margin-top:14px" id="caps"></div>
   <span class="muted" id="msg" aria-live="polite"></span>
   <div id="res"></div>
-  <p class="muted" style="text-align:center;font-size:12px;margin:28px 0 8px">made by 예나 감사합니다</p>
 </main>
 <div class="md" id="md" hidden><div class="mb"><div class="mh"><input id="mq" placeholder="이름으로 찾기" autocomplete="off"><button type="button" class="btn" id="mx">닫기</button></div><div class="mg" id="mg"></div></div></div>
 <footer class="site-footer" id="site-footer"></footer>
@@ -88,7 +88,7 @@
   const LV = ["최애", "좋아", "먹을 수 있음", "흠", "못 먹음"];
   const LVC = { "최애": "#e8b923", "좋아": "#ff6fa8", "먹을 수 있음": "#22a06b", "흠": "#98a2b6", "못 먹음": "#6b7288" };
   const MEM = SITE.members || [];
-  let st = { tab: "guild", g: {}, o: {}, l: [], m: [], gv: "list", i: {}, f: "", x: 0 };
+  let st = { tab: "guild", g: {}, o: {}, l: [], m: [], gv: "list", ov: "photo", i: {}, f: "", x: 0 };
   const openN = new Set();   // 이유 칸이 펼쳐진 줄
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -98,7 +98,7 @@
       st.g = clean(s.g); st.o = clean(s.o);
       st.l = (Array.isArray(s.l) ? s.l : []).map((r) => r = r || {}).map((r) => ({ l: byId[r.l] ? r.l : "", r: byId[r.r] ? r.r : "", lv: LV.includes(r.lv) ? r.lv : LV[1], note: String(r.note || "").slice(0, 500) }));
       Object.keys(s.i || {}).forEach((k) => { if (byId[k]) st.i[k] = String(s.i[k] || "").slice(0, 300); });
-      st.f = MEM.includes(s.f) ? s.f : ""; st.x = +s.x || 0; st.gv = s.gv === "photo" ? "photo" : "list";
+      st.f = MEM.includes(s.f) ? s.f : ""; st.x = +s.x || 0; st.gv = s.gv === "photo" ? "photo" : "list"; st.ov = s.ov === "list" ? "list" : "photo";
       st.m = (Array.isArray(s.m) ? s.m : []).filter((r) => r && byId[r.id] && !byId[r.id].extra).map((r) => ({ id: r.id, s: r.s === "L" || r.s === "R" ? r.s : "", note: String(r.note || "").slice(0, 300) }));
     }
   } catch (e) {}
@@ -129,17 +129,18 @@
       (open ? '<div class="line" style="margin-top:6px"><button type="button" class="pk" data-a="pick2"' + a + ">" + pic(c2, col) + "<span>" + (c2 ? esc(nm(c2)) : "차애 고르기") + "</span></button>" +
         (c2 ? '<button type="button" class="x" data-a="clr2"' + a + ' aria-label="빼기">✕</button>' : "") + '</div><textarea maxlength="500" data-n2="1"' + a + ' placeholder="이 캐릭터가 차애인 이유" style="margin-top:6px">' + esc(s.note2 || "") + "</textarea>" : "") + "</div>";
   }
-  // 길드별 최애 · 사진형 (검은 바탕 + 사진 + 흰 칸)
-  function pRow(g, two, c, note) {
-    const a = ' data-t="g" data-k="' + esc(g.id) + '"', open = openN.has("g|" + g.id + "|2"), c2 = byId[(st.g[g.id] || {}).id2];
+  // 길드별 / 주인별 최애 · 사진형 (검은 바탕 + 사진 + 흰 칸).  t: "g" | "o"
+  function pRow(t, g, two, c, note) {
+    const a = ' data-t="' + t + '" data-k="' + esc(g.id) + '"', open = openN.has(t + "|" + g.id + "|2"), c2 = byId[(st[t][g.id] || {}).id2];
     return '<div class="mr"><button type="button" class="mpic" data-a="' + (two ? "pick2" : "pick") + '"' + a + ">" + (c ? App.avatar(c) : '<span style="color:#888">＋ 고르기</span>') + '</button><div class="mbox"><div class="mlr"><b>' + esc(g.name) + (two ? " 차애" : " 최애") + '</b><span class="mn">' + (c ? esc(nm(c)) : "") + "</span>" +
       (c ? '<button type="button" class="mx2" data-a="' + (two ? "clr2" : "clr") + '"' + a + ' aria-label="빼기">✕</button>' : "") + '</div><textarea maxlength="500"' + (two ? ' data-n2="1"' : "") + a + ' placeholder="이 캐릭터가 ' + (two ? "차애" : "최애") + '인 이유 (안 써도 돼요)">' + esc(note || "") + "</textarea>" +
       (two ? "" : '<button type="button" class="mt2" data-a="tg2"' + a + ">" + (open ? "▾ 차애 접기" : "▸ 차애" + (c2 ? " · " + esc(nm(c2)) : " 펼치기")) + "</button>") + "</div></div>";
   }
-  function photoHTML() {
-    return '<div class="mt"><div class="mtt">길드별 최애</div>' + guilds().map((g) => { const x = st.g[g.id] || {}; return pRow(g, false, byId[x.id], x.note) + (openN.has("g|" + g.id + "|2") ? pRow(g, true, byId[x.id2], x.note2) : ""); }).join("") + "</div>";
+  function photoHTML(t, title, items) {
+    return '<div class="mt"><div class="mtt">' + title + "</div>" + items.map((g) => { const x = st[t][g.id] || {}; return pRow(t, g, false, byId[x.id], x.note) + (openN.has(t + "|" + g.id + "|2") ? pRow(t, g, true, byId[x.id2], x.note2) : ""); }).join("") + "</div>";
   }
-  const gvBar = () => '<div class="chips" style="margin-bottom:10px">' + [["list", "기본형"], ["photo", "사진형"]].map((v) => '<button type="button" class="chip' + (st.gv === v[0] ? " on" : "") + '" data-gv="' + v[0] + '">' + v[1] + "</button>").join("") + "</div>";
+  const ownerItems = () => MEM.map((m) => ({ id: m, name: m, color: App.color(m) }));
+  const gvBar = (key) => '<div class="chips" style="margin-bottom:10px">' + [["list", "기본형"], ["photo", "사진형"]].map((v) => '<button type="button" class="chip' + (st[key] === v[0] ? " on" : "") + '" data-gk="' + key + '" data-gv="' + v[0] + '">' + v[1] + "</button>").join("") + "</div>";
   function mRow(r, i) {
     const c = byId[r.id], a = ' data-i="' + i + '"';
     return '<div class="mr"><div class="mpic">' + App.avatar(c) + '</div><div class="mbox"><div class="mlr"><button type="button" class="' + (r.s === "L" ? "on" : "") + '" data-a="ms" data-v="L"' + a + '>왼</button>/<button type="button" class="' + (r.s === "R" ? "on" : "") + '" data-a="ms" data-v="R"' + a + '>른</button><span class="mn">' + esc(nm(c)) + '</span><button type="button" class="mx2" data-a="mdl"' + a + ' aria-label="빼기">✕</button></div>' +
@@ -155,10 +156,10 @@
     $("tabs").innerHTML = TABS.map((t) => '<button type="button" class="chip' + (st.tab === t[0] ? " on" : "") + '" data-tab="' + t[0] + '">' + t[1] + "</button>").join("");
     let h = "", caps = "";
     if (st.tab === "guild") {
-      h = gvBar() + (st.gv === "photo" ? photoHTML() : guilds().map((g) => { const s = st.g[g.id]; return favRow("g", g.id, g.name, g.color, s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join(""));
+      h = gvBar("gv") + (st.gv === "photo" ? photoHTML("g", "길드별 최애", guilds()) : guilds().map((g) => { const s = st.g[g.id]; return favRow("g", g.id, g.name, g.color, s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join(""));
       caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 길드별 최애 캡쳐</button>';
     } else if (st.tab === "owner") {
-      h = MEM.map((m) => { const s = st.o[m]; return favRow("o", m, m, App.color(m), s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join("");
+      h = gvBar("ov") + (st.ov === "photo" ? photoHTML("o", "주인별 최애", ownerItems()) : MEM.map((m) => { const s = st.o[m]; return favRow("o", m, m, App.color(m), s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join(""));
       caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 주인별 최애 캡쳐</button>';
     } else if (st.tab === "lr2") {
       h = '<p class="muted small">캐릭터를 담고 왼 / 른 을 눌러 골라요. (다시 누르면 해제)</p><div class="mt"><div class="mtt">왼른 취향표</div>' + (st.m.length ? st.m.map(mRow).join("") : '<div class="blank-slot">아직 없어요. 아래 "캐릭터 추가"를 눌러요</div>') + '</div><div class="line" style="margin-top:10px"><button type="button" class="btn" data-a="madd">＋ 캐릭터 추가</button></div>';
@@ -194,7 +195,7 @@
   const go = (d) => { const n = impList().length; if (n) { st.x = (st.x + d + n) % n; render(); } };
   $("body").addEventListener("click", (e) => {
     const f = e.target.closest("[data-f]"); if (f) { st.f = f.dataset.f; st.x = 0; render(); return; }
-    const gv = e.target.closest("[data-gv]"); if (gv) { st.gv = gv.dataset.gv; render(); return; }
+    const gv = e.target.closest("[data-gv]"); if (gv) { st[gv.dataset.gk] = gv.dataset.gv; render(); return; }
     const b = e.target.closest("[data-a]"); if (!b) return;
     const a = b.dataset.a, t = b.dataset.t, k = b.dataset.k, i = +b.dataset.i;
     if (a === "pick") {
@@ -341,8 +342,8 @@
     const title = { guild: "길드별 최애", owner: "주인별 최애", lr: "커플 왼른 취향표", lr2: "왼른 취향표", imp: "첫인상" }[st.tab];
     $("msg").textContent = "이미지를 만드는 중…"; $("res").innerHTML = "";
     try {
-      const photoRows = () => guilds().flatMap((g) => { const q = st.g[g.id] || {}, o = []; if (byId[q.id]) o.push({ c: byId[q.id], head: g.name + " 최애", note: q.note }); if (byId[q.id2]) o.push({ c: byId[q.id2], head: g.name + " 차애", note: q.note2 }); return o; });
-      const url = (st.tab === "lr2" ? await png2("왼른 취향표", st.m.map((r) => ({ c: byId[r.id], s: r.s, note: r.note }))) : st.tab === "guild" && st.gv === "photo" ? await png2("길드별 최애", photoRows()) : await png(title, rowsFor(b.dataset.a === "capall"))).toDataURL("image/png");
+      const photoRows = (t, items) => items.flatMap((g) => { const q = st[t][g.id] || {}, o = []; if (byId[q.id]) o.push({ c: byId[q.id], head: g.name + " 최애", note: q.note }); if (byId[q.id2]) o.push({ c: byId[q.id2], head: g.name + " 차애", note: q.note2 }); return o; });
+      const url = (st.tab === "lr2" ? await png2("왼른 취향표", st.m.map((r) => ({ c: byId[r.id], s: r.s, note: r.note }))) : st.tab === "guild" && st.gv === "photo" ? await png2("길드별 최애", photoRows("g", guilds())) : st.tab === "owner" && st.ov === "photo" ? await png2("주인별 최애", photoRows("o", ownerItems())) : await png(title, rowsFor(b.dataset.a === "capall"))).toDataURL("image/png");
       const a = document.createElement("a"); a.href = url; a.download = title + ".png"; document.body.appendChild(a); a.click(); a.remove();
       $("res").innerHTML = '<img src="' + url + '" alt="저장된 이미지"><p class="muted small">자동으로 저장되지 않았다면 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
       $("msg").textContent = "만들었어요!";
