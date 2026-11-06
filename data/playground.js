@@ -17,4 +17,5 @@ window.PLAYGROUND = [
   { title: "캐릭터 퀴즈", desc: "캐릭터 정보로 랜덤 문제 · 난이도 상 / 중 / 하 · 문제 수 고르기", href: "trivia.html", icon: "🧠" },
   { title: "이상형 월드컵", desc: "두 캐릭터 중 하나씩 골라서 최종 우승자 뽑기 · 갖고싶은 능력 / 결혼하고 싶은 등 여러 주제", href: "worldcup.html", icon: "🏅" },
   { title: "주관적 순위 매기기", desc: "주제를 정하고 캐릭터 순위 매기기 · 1위 금 / 2위 은 / 3위 동 · 공동 순위 켜고 끄기", href: "ranking.html", icon: "🏆" },
+  { title: "최애 · 취향 기록장", desc: "길드별 / 주인별 최애 고르기 · 왼른 취향표 · 첫인상 카드 넘기기 · 이미지로 캡쳐", href: "fav.html", icon: "💛" },
 ];

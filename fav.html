@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>최애 · 취향 기록장</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .fr { --mc: var(--line); display: flex; gap: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid var(--line); border-left: 5px solid var(--mc); background: var(--panel); border-radius: 10px; }
+  .fh { flex: none; width: 76px; font-weight: 800; color: var(--mc); display: flex; align-items: center; justify-content: center; text-align: center; word-break: keep-all; }
+  .fb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .fb textarea, .md input, .fb select { width: 100%; font: inherit; font-size: 14px; line-height: 1.6; color: inherit; background: var(--panel2, var(--panel)); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .fb textarea { min-height: 64px; resize: vertical; }
+  .line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .pk, .fb .x, .sw { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px 5px 6px; font: inherit; color: inherit; cursor: pointer; background: var(--panel2, var(--panel)); border: 1px solid var(--line); border-radius: 99px; }
+  .pk:hover, .sw:hover { border-color: var(--accent); }
+  .pic { flex: none; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--mc); background: var(--panel); display: inline-grid; place-items: center; }
+  .pic img, .pic .avatar-fb { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; font-size: 15px; }
+  .fb .x { padding: 4px 9px; }
+  .lvsel { width: auto !important; }
+  .card1 { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .card1 .pic { width: 120px; height: 120px; }
+  .card1 .pic .avatar-fb { font-size: 48px; }
+  .card1 h2 { margin: 0; } .card1 textarea { width: 100%; min-height: 150px; font: inherit; line-height: 1.7; color: inherit; background: var(--panel2, var(--panel)); border: 1px solid var(--line); border-radius: 8px; padding: 10px; resize: vertical; }
+  .nav1 { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 12px 0; flex-wrap: wrap; }
+  .nav1 select { padding: 7px 10px; font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; max-width: 46vw; }
+  .md { position: fixed; inset: 0; z-index: 99; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 14px; }
+  .md[hidden] { display: none; }
+  .mb { width: min(560px, 100%); max-height: 86vh; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .mh { display: flex; gap: 8px; }
+  .mg { overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+  .mg .pk { border-radius: 8px; font-size: 13px; text-align: left; }
+  #res img { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; display: block; margin-top: 10px; }
+  .mt { background: #000; padding: 18px; border-radius: 12px; }
+  .mtt { color: #fff; font-size: 32px; font-weight: 800; margin: 0 0 16px; }
+  .mr { display: flex; gap: 14px; margin-bottom: 10px; }
+  .mpic { flex: none; width: 130px; height: 130px; background: #fff; overflow: hidden; display: grid; place-items: center; }
+  .mpic img, .mpic .avatar-fb { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; font-size: 44px; }
+  .mbox { flex: 1; min-width: 0; background: #fff; color: #111; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .mlr { display: flex; align-items: center; gap: 4px; font-weight: 700; }
+  .mlr button { font: inherit; font-weight: 700; color: #111; background: none; border: 2px solid transparent; border-radius: 50%; padding: 0 8px; cursor: pointer; }
+  .mlr button.on { border-color: #111; }
+  .mlr .mx2 { margin-left: auto; border: 0; color: #888; border-radius: 4px; }
+  .mn { margin-left: 8px; font-weight: 400; font-size: 12px; color: #777; }
+  .mbox textarea { flex: 1; min-height: 70px; border: 0; resize: vertical; text-align: center; font: inherit; font-size: 16px; line-height: 1.6; color: #111; background: #fff; outline: 0; }
+  .np { font-size: 13px; color: var(--muted); white-space: pre-wrap; word-break: break-word; cursor: pointer; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  @media (max-width: 520px) { .mpic { width: 96px; height: 96px; } .mtt { font-size: 24px; } }
+  @media (max-width: 520px) { .fh { width: 52px; font-size: 13px; } .fr { gap: 8px; } }
+</style>
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main class="wrap">
+  <a class="back" href="playground.html">← 놀이터</a>
+  <h1 class="page-title">최애 · 취향 기록장</h1>
+  <p class="muted">최애를 고르고 이유를 적어요. 다 쓰면 🖼 버튼으로 이미지 저장! (글은 이 기기 브라우저에 저장돼요)</p>
+  <div class="tabs" id="tabs"></div>
+  <div id="body"></div>
+  <div class="line" style="margin-top:14px" id="caps"></div>
+  <span class="muted" id="msg" aria-live="polite"></span>
+  <div id="res"></div>
+</main>
+<div class="md" id="md" hidden><div class="mb"><div class="mh"><input id="mq" placeholder="이름으로 찾기" autocomplete="off"><button type="button" class="btn" id="mx">닫기</button></div><div class="mg" id="mg"></div></div></div>
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="data/site.js"></script>
+<script src="data/guilds.js"></script>
+<script src="data/characters.js"></script>
+<script src="data/gallery.js"></script>
+<script src="data/comics.js"></script>
+<script src="data/world.js"></script>
+<script src="app.js"></script>
+<script src="data/music.js"></script>
+<script src="player.js"></script>
+<script>
+  const { esc, byId, CHARS, SITE } = App;
+  const $ = (id) => document.getElementById(id);
+  App.nav("playground", "최애 · 취향 기록장");
+
+  const KEY = "hw-fav-v1";
+  const TABS = [["guild", "🏰 길드별 최애"], ["lr", "↔ 커플 왼른 취향표"], ["lr2", "◐ 왼른 취향표"], ["owner", "👤 주인별 최애"], ["imp", "💭 첫인상"]];
+  const LV = ["최애", "좋아", "먹을 수 있음", "흠", "못 먹음"];
+  const LVC = { "최애": "#e8b923", "좋아": "#ff6fa8", "먹을 수 있음": "#22a06b", "흠": "#98a2b6", "못 먹음": "#6b7288" };
+  const MEM = SITE.members || [];
+  let st = { tab: "guild", g: {}, o: {}, l: [], m: [], i: {}, f: "", x: 0 };
+  const openN = new Set();   // 이유 칸이 펼쳐진 줄
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (s && typeof s === "object") {
+      if (TABS.some((t) => t[0] === s.tab)) st.tab = s.tab;
+      const clean = (m) => { const r = {}; Object.keys(m || {}).forEach((k) => { const v = m[k]; if (v && (!v.id || (byId[v.id] && !byId[v.id].extra))) r[k] = { id: v.id || "", note: String(v.note || "").slice(0, 500) }; }); return r; };
+      st.g = clean(s.g); st.o = clean(s.o);
+      st.l = (Array.isArray(s.l) ? s.l : []).map((r) => r = r || {}).map((r) => ({ l: byId[r.l] ? r.l : "", r: byId[r.r] ? r.r : "", lv: LV.includes(r.lv) ? r.lv : LV[1], note: String(r.note || "").slice(0, 500) }));
+      Object.keys(s.i || {}).forEach((k) => { if (byId[k]) st.i[k] = String(s.i[k] || "").slice(0, 300); });
+      st.f = MEM.includes(s.f) ? s.f : ""; st.x = +s.x || 0;
+      st.m = (Array.isArray(s.m) ? s.m : []).filter((r) => r && byId[r.id] && !byId[r.id].extra).map((r) => ({ id: r.id, s: r.s === "L" || r.s === "R" ? r.s : "", note: String(r.note || "").slice(0, 300) }));
+    }
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+  const nm = (c) => (c ? c.label || c.name : "");
+  const pic = (c, col) => '<span class="pic"' + (col ? ' style="--mc:' + col + '"' : "") + ">" + (c ? App.avatar(c) : '<span class="muted">?</span>') + "</span>";
+  // 백야 · 비바람 · 전갈만 길드로, 나머지(헌터관리국 · 무소속 · 제우스 등)는 "기타" 로 묶어요
+  const guilds = () => {
+    const main = ["baekya", "bibaram", "scorpion"];
+    const out = App.guildList().filter((g) => main.includes(g.id) && App.charsOfGuild(g).length).map((g) => ({ id: g.id, name: g.name, color: g.color, chars: App.charsOfGuild(g) }));
+    const rest = CHARS.filter((c) => !main.includes(App.guildOf(c).id));
+    if (rest.length) out.push({ id: "etc", name: "기타", color: "#98a2b6", chars: rest });
+    return out;
+  };
+  const impList = () => CHARS.filter((c) => !st.f || c.owner === st.f);
+
+  // ── 화면 ──
+  function favRow(t, key, head, col, c, note, ph) {
+    const a = ' data-t="' + t + '" data-k="' + esc(key) + '"', open = openN.has(t + "|" + key), has = (note || "").trim();
+    return '<div class="fr" style="--mc:' + col + '"><div class="fh">' + esc(head) + '</div><div class="fb"><div class="line"><button type="button" class="pk" data-a="pick"' + a + ">" + pic(c, col) + "<span>" + (c ? esc(nm(c)) : "최애 고르기") + "</span></button>" +
+      (c ? '<button type="button" class="x" data-a="clr"' + a + ' aria-label="빼기">✕</button>' : "") + '<button type="button" class="x" data-a="tg"' + a + ' title="이유 적기 (접기/펼치기)">💬 ' + (open ? "접기" : "이유") + "</button></div>" +
+      (open ? '<textarea maxlength="500"' + a + ' placeholder="' + esc(ph) + '">' + esc(note || "") + "</textarea>" : (has ? '<div class="np" data-a="tg"' + a + ">💬 " + esc(note) + "</div>" : "")) + "</div></div>";
+  }
+  function mRow(r, i) {
+    const c = byId[r.id], a = ' data-i="' + i + '"';
+    return '<div class="mr"><div class="mpic">' + App.avatar(c) + '</div><div class="mbox"><div class="mlr"><button type="button" class="' + (r.s === "L" ? "on" : "") + '" data-a="ms" data-v="L"' + a + '>왼</button>/<button type="button" class="' + (r.s === "R" ? "on" : "") + '" data-a="ms" data-v="R"' + a + '>른</button><span class="mn">' + esc(nm(c)) + '</span><button type="button" class="mx2" data-a="mdl"' + a + ' aria-label="빼기">✕</button></div>' +
+      '<textarea maxlength="300" data-t="m"' + a + ' placeholder="한마디 (안 써도 돼요)">' + esc(r.note) + "</textarea></div></div>";
+  }
+  function lrRow(r, i) {
+    const a = ' data-i="' + i + '"', L = byId[r.l], R = byId[r.r], col = LVC[r.lv];
+    return '<div class="fr" style="--mc:' + col + '"><div class="fb"><div class="line"><button type="button" class="pk" data-a="pl"' + a + ">" + pic(L, col) + "<span>" + (L ? esc(nm(L)) : "왼쪽") + '</span></button><button type="button" class="sw" data-a="sw"' + a + ' title="왼↔오른 바꾸기">⇄</button><button type="button" class="pk" data-a="pr"' + a + ">" + pic(R, col) + "<span>" + (R ? esc(nm(R)) : "오른쪽") + "</span></button>" +
+      '<select class="lvsel" data-lv="' + i + '">' + LV.map((v) => "<option" + (v === r.lv ? " selected" : "") + ">" + v + "</option>").join("") + '</select><button type="button" class="x" data-a="dl"' + a + ' aria-label="줄 지우기">✕</button></div>' +
+      '<textarea maxlength="500" data-t="l"' + a + ' placeholder="왼쪽 · 오른쪽 이 배치가 좋은 (싫은) 이유">' + esc(r.note) + "</textarea></div></div>";
+  }
+  function render() {
+    $("tabs").innerHTML = TABS.map((t) => '<button type="button" class="chip' + (st.tab === t[0] ? " on" : "") + '" data-tab="' + t[0] + '">' + t[1] + "</button>").join("");
+    let h = "", caps = "";
+    if (st.tab === "guild") {
+      h = guilds().map((g) => { const s = st.g[g.id]; return favRow("g", g.id, g.name, g.color, s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join("");
+      caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 길드별 최애 캡쳐</button>';
+    } else if (st.tab === "owner") {
+      h = MEM.map((m) => { const s = st.o[m]; return favRow("o", m, m, App.color(m), s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join("");
+      caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 주인별 최애 캡쳐</button>';
+    } else if (st.tab === "lr2") {
+      h = '<p class="muted small">캐릭터를 담고 왼 / 른 을 눌러 골라요. (다시 누르면 해제)</p><div class="mt"><div class="mtt">왼른 취향표</div>' + (st.m.length ? st.m.map(mRow).join("") : '<div class="blank-slot">아직 없어요. 아래 "캐릭터 추가"를 눌러요</div>') + '</div><div class="line" style="margin-top:10px"><button type="button" class="btn" data-a="madd">＋ 캐릭터 추가</button></div>';
+      caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 왼른 취향표 캡쳐</button>';
+    } else if (st.tab === "lr") {
+      h = '<p class="muted small">왼쪽 · 오른쪽 캐릭터를 고르고, 얼마나 좋은지 + 이유를 적어요. ⇄ 로 좌우를 바꿔요.</p>' + (st.l.length ? st.l.map(lrRow).join("") : '<div class="blank-slot">아직 없어요. 아래 "줄 추가"를 눌러요</div>') + '<button type="button" class="btn" data-a="add">＋ 줄 추가</button>';
+      caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 커플 취향표 캡쳐</button>';
+    } else {
+      const ls = impList(); if (st.x >= ls.length) st.x = Math.max(0, ls.length - 1);
+      const c = ls[st.x], done = ls.filter((k) => (st.i[k.id] || "").trim()).length;
+      h = '<div class="chips">' + ['<button type="button" class="chip' + (st.f ? "" : " on") + '" data-f="">전체</button>'].concat(MEM.map((m) => '<button type="button" class="chip' + (st.f === m ? " on" : "") + '" data-f="' + esc(m) + '">' + esc(m) + "</button>")).join("") + "</div>" +
+        (c ? '<div class="nav1"><button type="button" class="btn" data-a="prev">‹ 이전</button><select data-jump>' + ls.map((k, n) => '<option value="' + n + '"' + (n === st.x ? " selected" : "") + ">" + (n + 1) + ". " + esc(nm(k)) + ((st.i[k.id] || "").trim() ? " ✓" : "") + "</option>").join("") + '</select><button type="button" class="btn" data-a="next">다음 ›</button></div>' +
+          '<div class="card1" style="--mc:' + App.guildOf(c).color + '">' + pic(c, App.guildOf(c).color) + "<h2>" + esc(nm(c)) + '</h2><div class="muted small">' + esc([c.owner, App.guildOf(c).name].filter(Boolean).join(" · ")) + '</div><textarea maxlength="300" data-t="i" data-k="' + esc(c.id) + '" placeholder="이 캐릭터의 첫인상은?">' + esc(st.i[c.id] || "") + '</textarea></div><p class="muted small" style="text-align:center">' + (st.x + 1) + " / " + ls.length + " · 쓴 카드 " + done + "장 · 좌우로 밀어도 넘어가요</p>" : '<div class="blank-slot">캐릭터가 없어요</div>');
+      caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 이 카드 캡쳐</button><button type="button" class="btn" data-a="capall">🖼 쓴 카드 전부 캡쳐</button>';
+    }
+    $("body").innerHTML = h; $("caps").innerHTML = caps; save();
+  }
+
+  // ── 캐릭터 고르는 창 ──
+  let pickCb = null, pickList = [];
+  function pick(list, cb) { pickList = list; pickCb = cb; $("mq").value = ""; paintPick(); $("md").hidden = false; }
+  function paintPick() {
+    const q = $("mq").value.trim().toLowerCase();
+    $("mg").innerHTML = pickList.filter((c) => !q || nm(c).toLowerCase().includes(q)).map((c) => '<button type="button" class="pk" data-id="' + esc(c.id) + '">' + pic(c, App.guildOf(c).color) + "<span>" + esc(nm(c)) + "</span></button>").join("") || '<p class="muted">없어요.</p>';
+  }
+  $("mq").addEventListener("input", paintPick);
+  $("mx").addEventListener("click", () => { $("md").hidden = true; });
+  $("md").addEventListener("click", (e) => { if (e.target === $("md")) $("md").hidden = true; });
+  $("mg").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (!b) return; $("md").hidden = true; if (pickCb) pickCb(b.dataset.id); render(); });
+
+  // ── 이벤트 ──
+  $("tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) { st.tab = b.dataset.tab; $("res").innerHTML = ""; $("msg").textContent = ""; render(); } });
+  const go = (d) => { const n = impList().length; if (n) { st.x = (st.x + d + n) % n; render(); } };
+  $("body").addEventListener("click", (e) => {
+    const f = e.target.closest("[data-f]"); if (f) { st.f = f.dataset.f; st.x = 0; render(); return; }
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    const a = b.dataset.a, t = b.dataset.t, k = b.dataset.k, i = +b.dataset.i;
+    if (a === "pick") {
+      const list = t === "g" ? guilds().find((g) => g.id === k).chars : CHARS.filter((c) => c.owner === k);
+      pick(list, (id) => { st[t][k] = { id, note: (st[t][k] && st[t][k].note) || "" }; });
+    } else if (a === "clr") { if (st[t][k]) st[t][k].id = ""; delete st[t][k]; render(); }
+    else if (a === "add") { st.l.push({ l: "", r: "", lv: LV[1], note: "" }); render(); }
+    else if (a === "dl") { st.l.splice(i, 1); render(); }
+    else if (a === "sw") { const r = st.l[i]; [r.l, r.r] = [r.r, r.l]; render(); }
+    else if (a === "pl" || a === "pr") pick(CHARS, (id) => { st.l[i][a === "pl" ? "l" : "r"] = id; });
+    else if (a === "tg") { const kk = t + "|" + k; if (openN.has(kk)) openN.delete(kk); else openN.add(kk); render(); const ta = document.querySelector('textarea[data-t="' + t + '"][data-k="' + k + '"]'); if (ta) ta.focus(); }
+    else if (a === "ms") { const r = st.m[i]; r.s = r.s === b.dataset.v ? "" : b.dataset.v; render(); }
+    else if (a === "mdl") { st.m.splice(i, 1); render(); }
+    else if (a === "madd") pick(CHARS.filter((c) => !st.m.some((r) => r.id === c.id)), (id) => { st.m.push({ id, s: "", note: "" }); });
+    else if (a === "prev") go(-1); else if (a === "next") go(1);
+  });
+  $("body").addEventListener("input", (e) => {
+    const t = e.target.closest("textarea"); if (!t) return;
+    const ty = t.dataset.t, k = t.dataset.k;
+    if (ty === "l") st.l[+t.dataset.i].note = t.value;
+    else if (ty === "m") st.m[+t.dataset.i].note = t.value;
+    else if (ty === "i") st.i[k] = t.value;
+    else { if (!st[ty][k]) st[ty][k] = { id: "", note: "" }; st[ty][k].note = t.value; }
+    save();
+  });
+  $("body").addEventListener("change", (e) => {
+    if (e.target.dataset.lv != null) { st.l[+e.target.dataset.lv].lv = e.target.value; render(); }
+    else if (e.target.dataset.jump != null) { st.x = +e.target.value; render(); }
+  });
+  // 좌우로 밀어서 카드 넘기기 / 방향키
+  let sx = null;
+  $("body").addEventListener("touchstart", (e) => { sx = st.tab === "imp" && !e.target.closest("textarea,select") ? e.touches[0].clientX : null; }, { passive: true });
+  $("body").addEventListener("touchend", (e) => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1); });
+  document.addEventListener("keydown", (e) => {
+    if (st.tab !== "imp" || !$("md").hidden || /TEXTAREA|INPUT|SELECT/.test((document.activeElement || {}).tagName || "")) return;
+    if (e.key === "ArrowLeft") go(-1); if (e.key === "ArrowRight") go(1);
+  });
+
+  // ───────── 이미지로 캡쳐 (화면과 같은 모양을 canvas 로 다시 그려요) ─────────
+  const fu = (p) => String(p == null ? "" : p).replace(/[%#?]/g, (c) => encodeURIComponent(c));
+  const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+  const FONT = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+  function wrap(ctx, text, w) {
+    const out = [];
+    String(text).split("\n").forEach((p) => { let l = ""; [...p].forEach((ch) => { if (l && ctx.measureText(l + ch).width > w) { out.push(l); l = ch; } else l += ch; }); out.push(l); });
+    return out;
+  }
+  function fit(ctx, text, w) { const t = [...String(text)]; if (ctx.measureText(t.join("")).width <= w) return t.join(""); while (t.length && ctx.measureText(t.join("") + "…").width > w) t.pop(); return t.join("") + "…"; }
+  // rows: [{ head, color, pics:[캐릭터…], name, sub, note }]
+  async function png(title, rows) {
+    if (!rows.length) throw new Error("적어 둔 게 없어요");
+    const U = 2, W = 720, P = 24, RH = 64, G = 8, R = (v) => v * U;
+    const m = document.createElement("canvas").getContext("2d");
+    m.font = "400 " + R(13) + "px " + FONT;
+    const nl = rows.map((r) => ((r.note || "").trim() ? wrap(m, r.note.trim(), R(W - 2 * P - 36)).slice(0, 12) : []));
+    const ex = nl.map((n) => (n.length ? n.length * 19 + 14 : 0));
+    const H = 70 + rows.reduce((a, _, i) => a + RH + ex[i] + G, 0) + 30;
+    const cv = document.createElement("canvas"); cv.width = W * U; cv.height = H * U;
+    const x = cv.getContext("2d");
+    x.fillStyle = "#12141c"; x.fillRect(0, 0, cv.width, cv.height);
+    const ims = await Promise.all(rows.map((r) => Promise.all(r.pics.map((c) => (c && c.image ? load(fu(c.image)) : null)))));
+    x.textBaseline = "middle"; x.textAlign = "center"; x.fillStyle = "#fff"; x.font = "800 " + R(26) + "px " + FONT; x.fillText(fit(x, title, R(W - 2 * P)), R(W / 2), R(36));
+    let y = 70;
+    rows.forEach((r, i) => {
+      const col = r.color || "#3a4054", T = RH + ex[i];
+      x.fillStyle = "#1d2030"; x.fillRect(R(P), R(y), R(W - 2 * P), R(T));
+      x.fillStyle = col; x.fillRect(R(P), R(y), R(6), R(T));
+      x.textAlign = "center"; x.font = "800 " + R(14) + "px " + FONT; x.fillText(fit(x, r.head || "", R(80)), R(P + 52), R(y + RH / 2));
+      r.pics.forEach((c, k) => {
+        const cx = P + 120 + k * 52, cy = y + RH / 2, d = 44, im = ims[i][k];
+        x.save(); x.beginPath(); x.arc(R(cx), R(cy), R(d / 2), 0, Math.PI * 2); x.clip();
+        if (im) { const s = Math.min(im.width, im.height); x.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, R(cx - d / 2), R(cy - d / 2), R(d), R(d)); }
+        else { x.fillStyle = col; x.globalAlpha = .4; x.fillRect(R(cx - d / 2), R(cy - d / 2), R(d), R(d)); x.globalAlpha = 1; x.fillStyle = "#fff"; x.font = "700 " + R(20) + "px " + FONT; x.fillText(c ? [...c.name][0] : "?", R(cx), R(cy)); }
+        x.restore(); x.beginPath(); x.arc(R(cx), R(cy), R(d / 2) - R(1), 0, Math.PI * 2); x.strokeStyle = col; x.lineWidth = R(2); x.stroke();
+      });
+      const tx = P + 120 + r.pics.length * 52 + 6, mw = R(W - P - 12 - tx);
+      x.textAlign = "left"; x.fillStyle = "#fff"; x.font = "700 " + R(18) + "px " + FONT; x.fillText(fit(x, r.name || "", mw), R(tx), R(y + RH / 2 - 9));
+      x.fillStyle = "#98a2b6"; x.font = "400 " + R(12) + "px " + FONT; x.fillText(fit(x, r.sub || "", mw), R(tx), R(y + RH / 2 + 13));
+      if (nl[i].length) {
+        x.fillStyle = col; x.globalAlpha = .45; x.fillRect(R(P + 18), R(y + RH), R(W - 2 * P - 36), R(1)); x.globalAlpha = 1;
+        x.fillStyle = "#c9cfdd"; x.font = "400 " + R(13) + "px " + FONT;
+        nl[i].forEach((ln, k) => x.fillText(ln, R(P + 22), R(y + RH + 14 + k * 19)));
+      }
+      y += T + G;
+    });
+    x.fillStyle = "#5d667a"; x.textAlign = "right"; x.font = "400 " + R(11) + "px " + FONT; x.fillText(SITE.title || "헌터 세계관", R(W - P), R(H - 14));
+    return cv;
+  }
+  // 왼른 취향표: 검은 바탕 + 사진 + 흰 칸 (왼 / 른 중 고른 쪽에 동그라미)
+  async function png2() {
+    if (!st.m.length) throw new Error("적어 둔 게 없어요");
+    const U = 2, W = 600, P = 24, PH = 130, R = (v) => v * U;
+    const m = document.createElement("canvas").getContext("2d"); m.font = "500 " + R(20) + "px " + FONT;
+    const bx = P + PH + 14, bw = W - P - bx;
+    const nl = st.m.map((r) => wrap(m, (r.note || "").trim(), R(bw - 28)).slice(0, 8));
+    const hs = nl.map((n) => Math.max(PH, 44 + n.length * 30 + 14));
+    const H = 100 + hs.reduce((a, h) => a + h + 10, 0) + 24;
+    const cv = document.createElement("canvas"); cv.width = W * U; cv.height = H * U;
+    const x = cv.getContext("2d"); x.fillStyle = "#000"; x.fillRect(0, 0, cv.width, cv.height);
+    const ims = await Promise.all(st.m.map((r) => (byId[r.id].image ? load(fu(byId[r.id].image)) : null)));
+    x.textBaseline = "middle"; x.textAlign = "left"; x.fillStyle = "#fff"; x.font = "800 " + R(38) + "px " + FONT; x.fillText("왼른 취향표", R(P), R(52));
+    let y = 100;
+    st.m.forEach((r, i) => {
+      const c = byId[r.id], h = hs[i], im = ims[i];
+      x.fillStyle = "#fff"; x.fillRect(R(P), R(y), R(PH), R(h)); x.fillRect(R(bx), R(y), R(bw), R(h));
+      if (im) {
+        const asp = PH / h; let sw = im.width, sh = im.height;
+        if (im.width / im.height > asp) sw = im.height * asp; else sh = im.width / asp;
+        x.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, R(P), R(y), R(PH), R(h));
+      } else { x.fillStyle = "#ddd"; x.fillRect(R(P), R(y), R(PH), R(h)); x.fillStyle = "#555"; x.textAlign = "center"; x.font = "700 " + R(44) + "px " + FONT; x.fillText([...c.name][0], R(P + PH / 2), R(y + h / 2)); }
+      // 왼 / 른
+      x.textAlign = "left"; x.font = "700 " + R(18) + "px " + FONT; x.fillStyle = "#111";
+      const x0 = bx + 12, cy = y + 22, wl = x.measureText("왼").width / U, ws = x.measureText(" / ").width / U, wr = x.measureText("른").width / U;
+      x.fillText("왼", R(x0), R(cy)); x.fillText(" / ", R(x0 + wl), R(cy)); x.fillText("른", R(x0 + wl + ws), R(cy));
+      if (r.s) {
+        const cx = r.s === "L" ? x0 + wl / 2 : x0 + wl + ws + wr / 2, rw = (r.s === "L" ? wl : wr) / 2 + 8;
+        x.beginPath(); x.ellipse(R(cx), R(cy), R(rw), R(15), 0, 0, Math.PI * 2); x.strokeStyle = "#111"; x.lineWidth = R(2); x.stroke();
+      }
+      x.textAlign = "right"; x.fillStyle = "#777"; x.font = "400 " + R(12) + "px " + FONT; x.fillText(fit(x, nm(c), R(bw - 130)), R(W - P - 12), R(cy));
+      x.textAlign = "center"; x.fillStyle = "#111"; x.font = "500 " + R(20) + "px " + FONT;
+      const top = y + 44 + (h - 44 - nl[i].length * 30) / 2 + 15;
+      if ((r.note || "").trim()) nl[i].forEach((ln, k) => x.fillText(ln, R(bx + bw / 2), R(top + k * 30)));
+      y += h + 10;
+    });
+    x.fillStyle = "#5d667a"; x.textAlign = "right"; x.font = "400 " + R(11) + "px " + FONT; x.fillText(SITE.title || "헌터 세계관", R(W - P), R(H - 12));
+    return cv;
+  }
+  function rowsFor(all) {
+    if (st.tab === "guild") return guilds().filter((g) => st.g[g.id] && byId[st.g[g.id].id]).map((g) => { const c = byId[st.g[g.id].id]; return { head: g.name, color: g.color, pics: [c], name: nm(c), sub: c.owner || "", note: st.g[g.id].note }; });
+    if (st.tab === "owner") return MEM.filter((o) => st.o[o] && byId[st.o[o].id]).map((o) => { const c = byId[st.o[o].id]; return { head: o, color: App.color(o), pics: [c], name: nm(c), sub: App.guildOf(c).name, note: st.o[o].note }; });
+    if (st.tab === "lr") return st.l.filter((r) => byId[r.l] && byId[r.r]).map((r) => ({ head: r.lv, color: LVC[r.lv], pics: [byId[r.l], byId[r.r]], name: nm(byId[r.l]) + " × " + nm(byId[r.r]), sub: "왼쪽 × 오른쪽", note: r.note }));
+    const one = (c) => ({ head: c.owner || "", color: App.guildOf(c).color, pics: [c], name: nm(c), sub: App.guildOf(c).name, note: st.i[c.id] });
+    return all ? CHARS.filter((c) => (st.i[c.id] || "").trim()).map(one) : impList().slice(st.x, st.x + 1).map(one);
+  }
+  $("caps").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-a]"); if (!b) return;
+    const title = { guild: "길드별 최애", owner: "주인별 최애", lr: "커플 왼른 취향표", lr2: "왼른 취향표", imp: "첫인상" }[st.tab];
+    $("msg").textContent = "이미지를 만드는 중…"; $("res").innerHTML = "";
+    try {
+      const url = (st.tab === "lr2" ? await png2() : await png(title, rowsFor(b.dataset.a === "capall"))).toDataURL("image/png");
+      const a = document.createElement("a"); a.href = url; a.download = title + ".png"; document.body.appendChild(a); a.click(); a.remove();
+      $("res").innerHTML = '<img src="' + url + '" alt="저장된 이미지"><p class="muted small">자동으로 저장되지 않았다면 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
+      $("msg").textContent = "만들었어요!";
+    } catch (err) { $("msg").textContent = "저장하지 못했어요. (" + err.message + ")"; }
+  });
+
+  render();
+</script>
+</body>
+</html>

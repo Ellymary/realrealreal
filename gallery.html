@@ -37,6 +37,7 @@
     <aside class="side" id="side"></aside></div>
     <section>
       <div class="count-row"><div class="count" id="count"></div><button type="button" class="chip" id="num-toggle"></button></div>
+      <div class="muted small" id="count2" style="margin:2px 0 8px"></div>
       <div class="grid" id="grid"></div>
       <nav class="pager" id="pager" aria-label="페이지"></nav>
     </section>
@@ -140,6 +141,10 @@
     const sn = { image: 0, video: 0, comic: 0 };
     shown.forEach((it) => sn[cat(it)]++);
     $("count").textContent = shown.length + "개 (그림 " + sn.image + " · 영상 " + sn.video + " · 만화 " + sn.comic + ")";
+    // 시리즈 / 만화 개수 + 장(페이지) 수
+    const ser = shown.filter((it) => it.kind === "comic" && it.series), com = shown.filter((it) => it.kind === "comic" && !it.series);
+    const pg = (a) => a.reduce((s, it) => s + (it.pages || []).length, 0);
+    $("count2").textContent = "시리즈 " + ser.length + "개 (" + pg(ser) + "장) · 만화 " + com.length + "개 (" + pg(com) + "장) · 합계 " + (ser.length + com.length) + "개 (" + (pg(ser) + pg(com)) + "장)";
     const pages = Math.max(1, Math.ceil(shown.length / PER));
     if (page > pages) page = pages;
     const imgIdx = new Map(imgs.map((it, i) => [it, i]));
