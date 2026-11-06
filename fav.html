@@ -99,7 +99,7 @@
       st.l = (Array.isArray(s.l) ? s.l : []).map((r) => r = r || {}).map((r) => ({ l: byId[r.l] ? r.l : "", r: byId[r.r] ? r.r : "", lv: LV.includes(r.lv) ? r.lv : LV[1], note: String(r.note || "").slice(0, 500) }));
       Object.keys(s.i || {}).forEach((k) => { if (byId[k]) st.i[k] = String(s.i[k] || "").slice(0, 300); });
       st.f = MEM.includes(s.f) ? s.f : ""; st.x = +s.x || 0; st.gv = s.gv === "photo" ? "photo" : "list"; st.ov = s.ov === "list" ? "list" : "photo";
-      st.m = (Array.isArray(s.m) ? s.m : []).filter((r) => r && byId[r.id] && !byId[r.id].extra).map((r) => ({ id: r.id, s: r.s === "L" || r.s === "R" ? r.s : "", note: String(r.note || "").slice(0, 300) }));
+      st.m = (Array.isArray(s.m) ? s.m : []).filter((r) => r && byId[r.id] && !byId[r.id].extra).map((r) => ({ id: r.id, s: ["L", "R", "LR"].includes(r.s) ? r.s : "", note: String(r.note || "").slice(0, 300) }));
     }
   } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
@@ -143,7 +143,7 @@
   const gvBar = (key) => '<div class="chips" style="margin-bottom:10px">' + [["list", "기본형"], ["photo", "사진형"]].map((v) => '<button type="button" class="chip' + (st[key] === v[0] ? " on" : "") + '" data-gk="' + key + '" data-gv="' + v[0] + '">' + v[1] + "</button>").join("") + "</div>";
   function mRow(r, i) {
     const c = byId[r.id], a = ' data-i="' + i + '"';
-    return '<div class="mr"><div class="mpic">' + App.avatar(c) + '</div><div class="mbox"><div class="mlr"><button type="button" class="' + (r.s === "L" ? "on" : "") + '" data-a="ms" data-v="L"' + a + '>왼</button>/<button type="button" class="' + (r.s === "R" ? "on" : "") + '" data-a="ms" data-v="R"' + a + '>른</button><span class="mn">' + esc(nm(c)) + '</span><button type="button" class="mx2" data-a="mdl"' + a + ' aria-label="빼기">✕</button></div>' +
+    return '<div class="mr"><div class="mpic">' + App.avatar(c) + '</div><div class="mbox"><div class="mlr"><button type="button" class="' + (r.s.includes("L") ? "on" : "") + '" data-a="ms" data-v="L"' + a + '>왼</button>/<button type="button" class="' + (r.s.includes("R") ? "on" : "") + '" data-a="ms" data-v="R"' + a + '>른</button><span class="mn">' + esc(nm(c)) + '</span><button type="button" class="mx2" data-a="mdl"' + a + ' aria-label="빼기">✕</button></div>' +
       '<textarea maxlength="300" data-t="m"' + a + ' placeholder="한마디 (안 써도 돼요)">' + esc(r.note) + "</textarea></div></div>";
   }
   function lrRow(r, i) {
@@ -162,7 +162,7 @@
       h = gvBar("ov") + (st.ov === "photo" ? photoHTML("o", "주인별 최애", ownerItems()) : MEM.map((m) => { const s = st.o[m]; return favRow("o", m, m, App.color(m), s && byId[s.id], s && s.note, "이 캐릭터가 최애인 이유"); }).join(""));
       caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 주인별 최애 캡쳐</button>';
     } else if (st.tab === "lr2") {
-      h = '<p class="muted small">캐릭터를 담고 왼 / 른 을 눌러 골라요. (다시 누르면 해제)</p><div class="mt"><div class="mtt">왼른 취향표</div>' + (st.m.length ? st.m.map(mRow).join("") : '<div class="blank-slot">아직 없어요. 아래 "캐릭터 추가"를 눌러요</div>') + '</div><div class="line" style="margin-top:10px"><button type="button" class="btn" data-a="madd">＋ 캐릭터 추가</button></div>';
+      h = '<p class="muted small">캐릭터를 담고 왼 / 른 을 눌러 골라요. 둘 다 눌러도 되고, 다시 누르면 해제돼요.</p><div class="mt"><div class="mtt">왼른 취향표</div>' + (st.m.length ? st.m.map(mRow).join("") : '<div class="blank-slot">아직 없어요. 아래 "캐릭터 추가"를 눌러요</div>') + '</div><div class="line" style="margin-top:10px"><button type="button" class="btn" data-a="madd">＋ 캐릭터 추가</button></div>';
       caps = '<button type="button" class="btn btn-primary" data-a="cap">🖼 왼른 취향표 캡쳐</button>';
     } else if (st.tab === "lr") {
       h = '<p class="muted small">왼쪽 · 오른쪽 캐릭터를 고르고, 얼마나 좋은지 + 이유를 적어요. ⇄ 로 좌우를 바꿔요.</p>' + (st.l.length ? st.l.map(lrRow).join("") : '<div class="blank-slot">아직 없어요. 아래 "줄 추가"를 눌러요</div>') + '<button type="button" class="btn" data-a="add">＋ 줄 추가</button>';
@@ -213,7 +213,7 @@
     else if (a === "sw") { const r = st.l[i]; [r.l, r.r] = [r.r, r.l]; render(); }
     else if (a === "pl" || a === "pr") pick(CHARS, (id) => { st.l[i][a === "pl" ? "l" : "r"] = id; });
     else if (a === "tg") { const kk = t + "|" + k; if (openN.has(kk)) openN.delete(kk); else openN.add(kk); render(); const ta = document.querySelector('textarea[data-t="' + t + '"][data-k="' + k + '"]'); if (ta) ta.focus(); }
-    else if (a === "ms") { const r = st.m[i]; r.s = r.s === b.dataset.v ? "" : b.dataset.v; render(); }
+    else if (a === "ms") { const r = st.m[i]; const v = b.dataset.v; r.s = r.s.includes(v) ? r.s.replace(v, "") : (r.s + v).split("").sort().join(""); render(); }
     else if (a === "mdl") { st.m.splice(i, 1); render(); }
     else if (a === "madd") pick(CHARS.filter((c) => !st.m.some((r) => r.id === c.id)), (id) => { st.m.push({ id, s: "", note: "" }); });
     else if (a === "prev") go(-1); else if (a === "next") go(1);
@@ -317,8 +317,10 @@
       const x0 = bx + 12, cy = y + 22, wl = x.measureText("왼").width / U, ws = x.measureText(" / ").width / U, wr = x.measureText("른").width / U;
       if (r.head) x.fillText(fit(x, r.head, R(bw - 130)), R(x0), R(cy)); else { x.fillText("왼", R(x0), R(cy)); x.fillText(" / ", R(x0 + wl), R(cy)); x.fillText("른", R(x0 + wl + ws), R(cy)); }
       if (!r.head && r.s) {
-        const cx = r.s === "L" ? x0 + wl / 2 : x0 + wl + ws + wr / 2, rw = (r.s === "L" ? wl : wr) / 2 + 8;
-        x.beginPath(); x.ellipse(R(cx), R(cy), R(rw), R(15), 0, 0, Math.PI * 2); x.strokeStyle = "#111"; x.lineWidth = R(2); x.stroke();
+        [["L", x0 + wl / 2, wl], ["R", x0 + wl + ws + wr / 2, wr]].forEach(([k, cx, w]) => {
+          if (!r.s.includes(k)) return;
+          x.beginPath(); x.ellipse(R(cx), R(cy), R(w / 2 + 8), R(15), 0, 0, Math.PI * 2); x.strokeStyle = "#111"; x.lineWidth = R(2); x.stroke();
+        });
       }
       x.textAlign = "right"; x.fillStyle = "#777"; x.font = "400 " + R(12) + "px " + FONT; x.fillText(fit(x, nm(c), R(bw - 130)), R(W - P - 12), R(cy));
       x.textAlign = "center"; x.fillStyle = "#111"; x.font = "500 " + R(20) + "px " + FONT;
