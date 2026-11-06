@@ -107,7 +107,7 @@
   const extra = [];
   CHARS.forEach((c) => Object.keys(App.infoOf(c)).forEach((k) => { if (!base.includes(k) && !NOTE_KEYS.includes(k) && !extra.includes(k)) extra.push(k); }));
   const hasNote = CHARS.some((c) => NOTE_KEYS.some((k) => App.infoOf(c)[k]));
-  const HIDE = ["패시브", "배경/과거"];   // 표에서 뺄 정보
+  const HIDE = ["패시브", "배경/과거", "대사 예시"];   // 표에서 뺄 정보
   const ALL = base.concat(extra.filter((k) => !HIDE.includes(k)), hasNote ? ["능력 설명"] : []);
   const val = (c, k) => k === "능력 설명" ? String((NOTE_KEYS.map((n) => App.infoOf(c)[n]).find(Boolean)) || "") : App.fieldValue(c, k);
 

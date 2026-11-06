@@ -10,6 +10,7 @@
 <body>
 <header class="site-header" id="site-header"></header>
 <main class="wrap">
+  <div class="ticker" id="ticker" hidden><span class="tk-badge">UPDATE</span><div class="tk-view" id="tk-view"><div class="tk-track" id="tk-track"></div></div></div>
   <div class="guilds-main" id="guilds-main" style="margin-top:28px"></div>
   <div class="guilds-sub" id="guilds-sub"></div>
 
@@ -36,12 +37,25 @@
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
 <script src="data/world.js"></script>
+<script src="data/updates.js"></script>
 <script src="app.js"></script>
 <script src="data/music.js"></script>
 <script src="player.js"></script>
 <script>
   const { SITE, CHARS, GALLERY, COMICS, esc } = App;
   const $ = (id) => document.getElementById(id);
+  // 업데이트 줄: 같은 줄을 두 번 이어 붙여서 끊김 없이 흘러가요
+  (function () {
+    const list = window.UPDATES || []; if (!list.length) return;
+    const one = (u) => { const inner = '<b class="tk-ver">' + esc(u.ver || "") + "</b><span>" + esc(u.text || "") + "</span>" + (u.date ? "<small>" + esc(u.date) + "</small>" : "");
+      return u.href ? '<a class="tk-item" href="' + esc(u.href) + '">' + inner + "</a>" : '<span class="tk-item">' + inner + "</span>"; };
+    const tr = $("tk-track"), view = $("tk-view"); $("ticker").hidden = false;
+    let reps = 1; const mk = () => '<div class="tk-group">' + Array(reps).fill(list.map(one).join("")).join("") + "</div>";
+    tr.innerHTML = mk() + mk();
+    while (tr.firstChild.scrollWidth < view.clientWidth && reps < 8) { reps++; tr.innerHTML = mk() + mk(); }
+    tr.classList.toggle("left", window.UPDATES_DIR === "left");
+    tr.style.setProperty("--dur", Math.max(18, Math.round(tr.firstChild.scrollWidth / 55)) + "s");
+  })();
   App.nav("home");
   $("n-chars").textContent = "캐릭터 " + App.countOf(CHARS) + "명";
   $("n-gallery").textContent = "그림 " + GALLERY.length + "장 · 만화 " + COMICS.length + "편";

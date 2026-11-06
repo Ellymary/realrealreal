@@ -22,6 +22,11 @@
   .rk-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
   .rk-row { --med: var(--line); --tint: transparent; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--med); border-left-width: 5px; background: linear-gradient(90deg, var(--tint), transparent 70%), var(--panel2, var(--panel)); border-radius: 8px; }
   .rk-row[draggable="true"] { cursor: grab; }
+  .rk-row { flex-wrap: wrap; }
+  .rk-note-in { flex-basis: 100%; width: 100%; min-height: 70px; resize: vertical; padding: 8px 10px; font: inherit; font-size: 14px; line-height: 1.6; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; cursor: text; }
+  .rk-note-in:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .rk-note-pv { flex-basis: 100%; font-size: 13px; color: var(--muted); padding: 0 2px 2px 8px; cursor: pointer; white-space: pre-wrap; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .rk-btns button.on { border-color: var(--accent); background: rgba(232, 185, 35, .2); }
   .rk-row.drag { opacity: .4; }
   .rk-row.over { outline: 2px dashed var(--accent); }
   .rk-row[data-r="1"] { --med: #e8b923; --tint: rgba(232, 185, 35, .20); }
@@ -61,6 +66,27 @@
   #rk-result img { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; display: block; }
   #rk-result .hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
   .rk-copied { font-size: 13px; color: var(--muted); }
+  /* 참고판 (옆에 띄우기) */
+  body.rk-ref .wrap { max-width: 1500px; }
+  .rk-grid.with-ref { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) minmax(0, 1fr); }
+  #rk-ref { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+  #rk-ref[hidden] { display: none; }
+  .rf-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .rf-bar select { padding: 7px 10px; font: inherit; color: inherit; background: var(--panel2, var(--panel)); border: 1px solid var(--line); border-radius: 8px; }
+  .rf-vals { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .rf-vals .chip { font-size: 12px; padding: 3px 10px; }
+  .rf-grp { margin-top: 10px; }
+  .rf-grp h3 { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 700; border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+  .rf-grp h3 b { color: var(--accent); }
+  .rf-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .rf-chips .rk-pick { padding: 4px 8px 4px 5px; border-radius: 99px; width: auto; }
+  .rf-chips .rk-pick small { color: var(--muted); font-size: 11px; }
+  .rf-chips .rk-pick .rk-no2 { font-size: 11px; font-weight: 800; color: var(--accent); }
+  @media (max-width: 1180px) {
+    .rk-grid.with-ref { grid-template-columns: minmax(0, 1fr); }
+    .with-ref #rk-rank { order: -2; }
+    .with-ref #rk-ref { order: -1; position: static; max-height: none; }
+  }
   @media (max-width: 800px) {
     .rk-grid { grid-template-columns: minmax(0, 1fr); }
     #rk-rank { order: -1; }
@@ -89,6 +115,7 @@
       <button type="button" class="btn" id="b-sample">🎲 예시로 채워보기</button>
       <button type="button" class="btn" id="b-shuffle">🔀 섞기</button>
       <button type="button" class="btn" id="b-clear">비우기</button>
+      <button type="button" class="btn" id="b-ref">📌 참고 띄우기</button>
     </div>
   </div>
 
@@ -116,6 +143,17 @@
       </div>
       <div id="rk-result" style="margin-top:12px"></div>
     </section>
+
+    <aside class="rk-box" id="rk-ref" hidden>
+      <h2>📌 참고판 <small>옆에 띄워 놓고 보면서 순위를 매겨요</small> <button type="button" class="btn" id="rf-close" style="margin-left:auto;padding:2px 10px">닫기 ✕</button></h2>
+      <div class="rf-bar">
+        <label class="muted" for="rf-attr">기준</label>
+        <select id="rf-attr"></select>
+        <button type="button" class="btn" id="rf-dir"></button>
+      </div>
+      <div class="rf-vals" id="rf-vals"></div>
+      <div id="rf-list"></div>
+    </aside>
   </div>
 </main>
 <footer class="site-footer" id="site-footer"></footer>
@@ -137,13 +175,14 @@
 
   const KEY = "hw-ranking-v1";
   // items: 순위 순서대로 [{ id, tie }]  (tie: true → 바로 위 캐릭터와 공동 순위)
-  let st = { topic: "", tieOn: false, items: [] };
+  let st = { topic: "", tieOn: false, items: [], ref: { open: false, attr: "등급", val: "", desc: true } };
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || "null");
     if (s && typeof s === "object") {
       st.topic = String(s.topic || "").slice(0, 60);
       st.tieOn = !!s.tieOn;
-      st.items = (Array.isArray(s.items) ? s.items : []).filter((x) => x && byId[x.id] && !byId[x.id].extra).map((x) => ({ id: x.id, tie: !!x.tie }));
+      if (s.ref && typeof s.ref === "object") st.ref = Object.assign(st.ref, { open: !!s.ref.open, attr: String(s.ref.attr || "등급"), val: String(s.ref.val || ""), desc: s.ref.desc !== false });
+      st.items = (Array.isArray(s.items) ? s.items : []).filter((x) => x && byId[x.id] && !byId[x.id].extra).map((x) => ({ id: x.id, tie: !!x.tie, note: String(x.note || "").slice(0, 500) }));
     }
   } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
@@ -187,6 +226,7 @@
   }
 
   // ── 순위 ──
+  const openNotes = new Set();   // 이유 칸이 펼쳐진 캐릭터
   function renderRank() {
     const rk = ranks();
     $("rk-title").textContent = st.topic.trim() || "(주제를 적어 주세요)";
@@ -202,13 +242,16 @@
         '<div class="rk-who"><div class="rk-nm">' + esc(c.label || c.name) + '</div><div class="rk-sub">' + esc([c.owner, gd.name].filter(Boolean).join(" · ")) + "</div></div>" +
         '<div class="rk-btns">' +
           (st.tieOn ? '<button type="button" class="rk-tie' + (it.tie && i > 0 ? " on" : "") + '" data-a="tie" title="바로 위와 공동 순위"' + (i === 0 ? " disabled" : "") + ">공동</button>" : "") +
+          '<button type="button" class="' + ((it.note || "").trim() ? "on" : "") + '" data-a="note" title="이유 적기 (접기/펼치기)" aria-label="이유">💬</button>' +
           '<button type="button" data-a="up" aria-label="위로"' + (i === 0 ? " disabled" : "") + ">↑</button>" +
           '<button type="button" data-a="down" aria-label="아래로"' + (i === st.items.length - 1 ? " disabled" : "") + ">↓</button>" +
           '<button type="button" data-a="del" aria-label="빼기">✕</button>' +
-        "</div></li>";
+        "</div>" +
+        (openNotes.has(it.id) ? '<textarea class="rk-note-in" data-n="' + i + '" maxlength="500" placeholder="이유: 난 이래서 얘가 ' + r + '등 같음… (안 적어도 돼요)">' + esc(it.note || "") + "</textarea>" : ((it.note || "").trim() ? '<div class="rk-note-pv" data-a="note" title="눌러서 펼치기">💬 ' + esc(it.note) + "</div>" : "")) +
+        "</li>";
     }).join("") : '<li class="rk-empty">아직 아무도 없어요.<br>캐릭터를 눌러서 담아 보세요!</li>';
   }
-  function renderAll() { renderPool(); renderRank(); save(); }
+  function renderAll() { renderPool(); renderRank(); renderRef(); save(); }
 
   function move(i, to) {
     if (to < 0 || to >= st.items.length || i === to) return;
@@ -242,13 +285,26 @@
   $("list").addEventListener("click", (e) => {
     const b = e.target.closest("[data-a]"); if (!b) return;
     const i = +b.closest("[data-i]").dataset.i, a = b.dataset.a;
+    if (a === "del") openNotes.delete(st.items[i].id);
     if (a === "up") move(i, i - 1);
     else if (a === "down") move(i, i + 1);
     else if (a === "del") st.items.splice(i, 1);
     else if (a === "tie") st.items[i].tie = !st.items[i].tie;
+    else if (a === "note") {
+      const id = st.items[i].id; if (openNotes.has(id)) openNotes.delete(id); else openNotes.add(id);
+      renderAll(); const ta = document.querySelector('.rk-note-in[data-n="' + i + '"]'); if (ta) ta.focus(); return;
+    }
     if (st.items[0]) st.items[0].tie = false;
     renderAll();
   });
+  $("list").addEventListener("input", (e) => {
+    const t = e.target.closest("textarea[data-n]"); if (!t) return;
+    const it = st.items[+t.dataset.n]; if (!it) return; it.note = t.value; save();
+    const btn = t.closest("[data-i]").querySelector('[data-a="note"]'); if (btn) btn.classList.toggle("on", !!t.value.trim());
+  });
+  // 글 쓰는 동안은 끌어서 옮기기를 잠깐 꺼요 (글자 드래그 선택이 되게)
+  $("list").addEventListener("focusin", (e) => { const li = e.target.closest("textarea") && e.target.closest("[data-i]"); if (li) li.draggable = false; });
+  $("list").addEventListener("focusout", (e) => { const li = e.target.closest("textarea") && e.target.closest("[data-i]"); if (li) li.draggable = true; });
   // 컴퓨터에서는 끌어서 옮길 수도 있어요
   let dragI = null;
   $("list").addEventListener("dragstart", (e) => {
@@ -286,7 +342,7 @@
   });
   $("b-copy").addEventListener("click", () => {
     const rk = ranks(); const sizeOf = {}; rk.forEach((r) => { sizeOf[r] = (sizeOf[r] || 0) + 1; });
-    const txt = [st.topic.trim() || "주관적 순위"].concat(st.items.map((it, i) => (sizeOf[rk[i]] > 1 ? "공동 " : "") + rk[i] + "위 " + (byId[it.id].label || byId[it.id].name))).join("\n");
+    const txt = [st.topic.trim() || "주관적 순위"].concat(st.items.map((it, i) => (sizeOf[rk[i]] > 1 ? "공동 " : "") + rk[i] + "위 " + (byId[it.id].label || byId[it.id].name) + ((it.note || "").trim() ? "\n   └ " + it.note.trim().replace(/\n/g, "\n     ") : ""))).join("\n");
     const ok = () => { $("copied").textContent = "복사했어요!"; setTimeout(() => { $("copied").textContent = ""; }, 1800); };
     const fb = () => { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); ok(); } catch (e) { $("copied").textContent = "복사에 실패했어요"; } ta.remove(); };
     if (!st.items.length) { $("copied").textContent = "복사할 순위가 없어요"; return; }
@@ -320,7 +376,10 @@
     c0.font = "800 " + (28 * U) + "px " + FONT;
     const title = wrapText(c0, st.topic.trim() || "주관적 순위", (W - 2 * PAD) * U).slice(0, 3);
     const TH = 30 + title.length * 38 + 14;
-    const H = TH + st.items.length * (RH + GAP) + FH;
+    c0.font = "400 " + (13 * U) + "px " + FONT;
+    const notes = st.items.map((it) => ((it.note || "").trim() ? wrapText(c0, it.note.trim(), (W - 2 * PAD - 44) * U).slice(0, 10) : []));
+    const extra = notes.map((n) => (n.length ? n.length * 19 + 16 : 0));
+    const H = TH + st.items.reduce((a, _, i) => a + RH + extra[i] + GAP, 0) + FH;
     const cv = document.createElement("canvas"); cv.width = W * U; cv.height = H * U;
     const ctx = cv.getContext("2d"), R = (v) => v * U;
     ctx.fillStyle = "#12141c"; ctx.fillRect(0, 0, cv.width, cv.height);
@@ -335,10 +394,11 @@
       // 줄 바탕 + 메달색 띠
       const g = ctx.createLinearGradient(R(PAD), 0, R(W - PAD), 0);
       g.addColorStop(0, MEDAL[r] ? med + "44" : "#1d2030"); g.addColorStop(.7, "#1d2030");
-      ctx.fillStyle = "#1d2030"; ctx.fillRect(R(PAD), R(y), R(W - 2 * PAD), R(RH));
-      ctx.fillStyle = g; ctx.fillRect(R(PAD), R(y), R(W - 2 * PAD), R(RH));
-      ctx.strokeStyle = med; ctx.lineWidth = R(MEDAL[r] ? 2 : 1); ctx.strokeRect(R(PAD) + ctx.lineWidth / 2, R(y) + ctx.lineWidth / 2, R(W - 2 * PAD) - ctx.lineWidth, R(RH) - ctx.lineWidth);
-      ctx.fillStyle = med; ctx.fillRect(R(PAD), R(y), R(6), R(RH));
+      const RT = RH + extra[i];
+      ctx.fillStyle = "#1d2030"; ctx.fillRect(R(PAD), R(y), R(W - 2 * PAD), R(RT));
+      ctx.fillStyle = g; ctx.fillRect(R(PAD), R(y), R(W - 2 * PAD), R(RT));
+      ctx.strokeStyle = med; ctx.lineWidth = R(MEDAL[r] ? 2 : 1); ctx.strokeRect(R(PAD) + ctx.lineWidth / 2, R(y) + ctx.lineWidth / 2, R(W - 2 * PAD) - ctx.lineWidth, R(RT) - ctx.lineWidth);
+      ctx.fillStyle = med; ctx.fillRect(R(PAD), R(y), R(6), R(RT));
       // 순위
       ctx.fillStyle = MEDAL[r] || "#e6e8f0"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.font = "800 " + R(26) + "px " + FONT; ctx.fillText(String(r), R(PAD + 48), R(y + RH / 2 - 8));
@@ -357,7 +417,12 @@
       ctx.fillText(fitText(ctx, c.label || c.name, R(mw)), R(tx), R(y + RH / 2 - 8));
       ctx.fillStyle = "#98a2b6"; ctx.font = "400 " + R(12) + "px " + FONT;
       ctx.fillText(fitText(ctx, [c.owner, gd.name].filter(Boolean).join(" · "), R(mw)), R(tx), R(y + RH / 2 + 13));
-      y += RH + GAP;
+      if (notes[i].length) {
+        ctx.fillStyle = med; ctx.globalAlpha = .45; ctx.fillRect(R(PAD + 18), R(y + RH), R(W - 2 * PAD - 36), R(1)); ctx.globalAlpha = 1;
+        ctx.fillStyle = "#c9cfdd"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "400 " + R(13) + "px " + FONT;
+        notes[i].forEach((ln, k) => ctx.fillText(ln, R(PAD + 22), R(y + RH + 14 + k * 19)));
+      }
+      y += RT + GAP;
     });
     ctx.fillStyle = "#5d667a"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.font = "400 " + R(11) + "px " + FONT;
     ctx.fillText((App.SITE && App.SITE.title) || "헌터 세계관", R(W - PAD), R(H - FH / 2 + 2));
@@ -373,6 +438,80 @@
     } catch (e) {
       msg.textContent = "저장하지 못했어요. (" + e.message + ")";
     }
+  });
+
+  // ───────── 참고판 (옆에 띄우기) ─────────
+  const infoV = (c, k) => String(App.infoOf(c)[k] == null ? "" : App.infoOf(c)[k]).trim();
+  const numV = (s) => { const m = String(s).match(/\d+/); return m ? +m[0] : NaN; };
+  const gScore = (g) => { g = String(g).toUpperCase(); const b = { S: 6, A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 }[g[0]]; return b == null ? -1 : b + (g.includes("+") ? .3 : g.includes("-") ? -.3 : 0); };
+  const gdName = (c) => App.guildOf(c).name;
+  const GORDER = App.guildList().map((g) => g.name);
+  // 기준마다: key(캐릭터) → 묶음 이름 / sortKey(묶음 정렬) / tag(캐릭터 옆 작은 글씨) / within(묶음 안 정렬)
+  const ATTRS = {
+    "등급": { key: (c) => infoV(c, "등급") || "미정", sort: (k) => gScore(k), tag: () => "", label: (k) => (k === "미정" ? "등급 미정" : k + " 등급") },
+    "길드": { key: gdName, sort: (k) => -GORDER.indexOf(k), tag: () => "", label: (k) => k },
+    "포지션": { key: (c) => infoV(c, "포지션") || "미정", sort: (k) => 0, tag: () => "", label: (k) => k },
+    "능력": { key: (c) => infoV(c, "능력") || "미정", sort: (k) => 0, tag: () => "", label: (k) => k },
+    "MBTI": { key: (c) => infoV(c, "MBTI").toUpperCase() || "미정", sort: (k) => 0, tag: () => "", label: (k) => k },
+    "성별": { key: (c) => infoV(c, "성별") || "미정", sort: (k) => 0, tag: () => "", label: (k) => k },
+    "나이": { key: (c) => (isNaN(numV(infoV(c, "나이"))) ? "미정" : String(numV(infoV(c, "나이")))), sort: (k) => (k === "미정" ? -1 : +k), tag: () => "", label: (k) => (k === "미정" ? "나이 미정" : k + "살") },
+    "키": { key: (c) => { const h = numV(infoV(c, "키")); return isNaN(h) ? "미정" : String(Math.floor(h / 10) * 10); }, sort: (k) => (k === "미정" ? -1 : +k), tag: (c) => infoV(c, "키"), label: (k) => (k === "미정" ? "키 미정" : k + "cm대"),
+      within: (c) => numV(infoV(c, "키")) || 0 },
+    "생일(월)": { key: (c) => { const m = infoV(c, "생일").match(/(\d+)\s*월/); return m ? String(+m[1]) : "미정"; }, sort: (k) => (k === "미정" ? -1 : +k), tag: (c) => infoV(c, "생일"), label: (k) => (k === "미정" ? "생일 미정" : k + "월"),
+      within: (c) => { const m = infoV(c, "생일").match(/(\d+)\s*월\s*(\d+)/); return m ? +m[2] : 99; } },
+  };
+  const NUM_ATTRS = ["나이", "키", "생일(월)", "등급"];
+  function refGroups() {
+    const A = ATTRS[st.ref.attr] || ATTRS["등급"], m = new Map();
+    CHARS.forEach((c) => { const k = A.key(c); if (!m.has(k)) m.set(k, []); m.get(k).push(c); });
+    const keys = [...m.keys()];
+    const hasOrder = st.ref.attr in ATTRS && !["포지션", "능력", "MBTI", "성별"].includes(st.ref.attr);
+    keys.sort((a, b) => {
+      if (a === "미정") return 1; if (b === "미정") return -1;
+      if (!hasOrder) return a.localeCompare(b, "ko");
+      return st.ref.desc ? A.sort(b) - A.sort(a) : A.sort(a) - A.sort(b);
+    });
+    return keys.map((k) => {
+      const list = m.get(k).slice();
+      if (A.within) list.sort((x, y) => (st.ref.desc ? A.within(y) - A.within(x) : A.within(x) - A.within(y)));
+      return { k, label: A.label(k), list };
+    });
+  }
+  function renderRef() {
+    const open = !!st.ref.open;
+    $("rk-ref").hidden = !open;
+    document.querySelector(".rk-grid").classList.toggle("with-ref", open);
+    document.body.classList.toggle("rk-ref", open);
+    $("b-ref").classList.toggle("on", open);
+    $("b-ref").textContent = open ? "📌 참고판 닫기" : "📌 참고 띄우기";
+    if (!open) return;
+    if (!ATTRS[st.ref.attr]) st.ref.attr = "등급";
+    $("rf-attr").innerHTML = Object.keys(ATTRS).map((k) => '<option value="' + esc(k) + '"' + (k === st.ref.attr ? " selected" : "") + ">" + esc(k) + "</option>").join("");
+    const numeric = NUM_ATTRS.includes(st.ref.attr);
+    $("rf-dir").hidden = !numeric;
+    $("rf-dir").textContent = st.ref.attr === "생일(월)" ? (st.ref.desc ? "12월 → 1월" : "1월 → 12월") : (st.ref.desc ? "높은·큰 순 ↓" : "낮은·작은 순 ↑");
+    const gs = refGroups();
+    if (st.ref.val && !gs.some((g) => g.k === st.ref.val)) st.ref.val = "";
+    $("rf-vals").innerHTML = '<button type="button" class="chip' + (st.ref.val ? "" : " on") + '" data-v="">전체</button>' +
+      gs.map((g) => '<button type="button" class="chip' + (st.ref.val === g.k ? " on" : "") + '" data-v="' + esc(g.k) + '">' + esc(g.label) + " " + g.list.length + "</button>").join("");
+    const rk = ranks(), pos = {}; st.items.forEach((it, i) => { pos[it.id] = rk[i]; });
+    const A = ATTRS[st.ref.attr];
+    $("rf-list").innerHTML = gs.filter((g) => !st.ref.val || g.k === st.ref.val).map((g) =>
+      '<div class="rf-grp"><h3><b>' + esc(g.label) + "</b> · " + g.list.length + '명</h3><div class="rf-chips">' +
+      g.list.map((c) => '<button type="button" class="rk-pick' + (pos[c.id] ? " in" : "") + '" data-id="' + esc(c.id) + '" title="' + (pos[c.id] ? "순위에서 빼기" : "순위에 담기") + '">' + pic(c) + '<span class="t">' + esc(c.label || c.name) + "</span>" +
+        (A.tag(c) ? " <small>" + esc(A.tag(c)) + "</small>" : "") + (pos[c.id] ? ' <span class="rk-no2">' + pos[c.id] + "위</span>" : "") + "</button>").join("") + "</div></div>").join("") || '<p class="muted">없어요.</p>';
+  }
+  $("b-ref").addEventListener("click", () => { st.ref.open = !st.ref.open; renderRef(); save(); });
+  $("rf-close").addEventListener("click", () => { st.ref.open = false; renderRef(); save(); });
+  $("rf-attr").addEventListener("change", (e) => { st.ref.attr = e.target.value; st.ref.val = ""; st.ref.desc = e.target.value !== "생일(월)"; renderRef(); save(); });
+  $("rf-dir").addEventListener("click", () => { st.ref.desc = !st.ref.desc; renderRef(); save(); });
+  $("rf-vals").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) { st.ref.val = b.dataset.v; renderRef(); save(); } });
+  $("rf-list").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-id]"); if (!b) return;
+    const id = b.dataset.id, k = st.items.findIndex((x) => x.id === id);
+    if (k >= 0) st.items.splice(k, 1); else st.items.push({ id, tie: false });
+    if (st.items[0]) st.items[0].tie = false;
+    renderAll();
   });
 
   renderAll();
