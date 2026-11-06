@@ -49,6 +49,14 @@
   .q-board.has-bg svg, .q-board.has-bg .q-lab { display: none; }
   .q-tog { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 10px; padding: 8px 10px; border: 1px solid var(--line); background: var(--panel); }
   .q-tog .btn.on { border-color: var(--accent); font-weight: 700; }
+  /* 사분면 설명 (프리셋에 quads 가 있을 때만 나와요) */
+  .q-desc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px auto 14px; max-width: 780px; }
+  .q-desc[hidden] { display: none; }
+  .q-desc .qd { border: 1px solid var(--line); background: var(--panel); padding: 10px 14px; }
+  .q-desc .qd h3 { margin: 0 0 6px; font-size: 15px; }
+  .q-desc .qd h3 small { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  .q-desc .qd p { margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-line; }
+  @media (max-width: 640px) { .q-desc { grid-template-columns: 1fr; } }
   .q-msg { min-height: 1.4em; color: var(--muted); font-size: 14px; }
 </style>
 </head>
@@ -79,6 +87,8 @@
       <textarea class="q-lab" id="l-e" rows="3" placeholder="동쪽 (오른쪽)" style="left:85.5%;top:45.5%;width:14%;height:10%"></textarea>
     </div>
   </div>
+
+  <div class="q-desc" id="q-desc" hidden></div>
 
   <div class="q-tools">
     <button class="btn btn-primary" id="save" type="button">이미지로 저장 (PNG)</button>
@@ -124,6 +134,13 @@
     { name: "등급 태도", title: "등급", n: "더 강해지려고 노력함", s: "안주하고 살아감", w: "등급에 만족 못함", e: "등급에 만족함" },
     { name: "친구", title: "친구", n: "많다", s: "적다", w: "얕다", e: "깊다" },
     { name: "요리", title: "요리", n: "맛 좋음", s: "맛 나쁨", w: "외관 나쁨", e: "외관 좋음" },
+    // quads: [1사분면, 2사분면, 3사분면, 4사분면] — 오른쪽 위부터 시계 반대 방향. name 은 비워도 돼요. 판 아래에 설명으로 나와요.
+    { name: "배우자", title: "배우자", n: "가부장", s: "조신함", w: "착취당함", e: "착취함", quads: [
+      { name: "놈편계", text: "모든 생계를 책임짐.\n걱정 된다하면 갈!!!함.\n뭔가 짜증나는데 자꾸만 챙겨주게 됨." },
+      { name: "", text: "모든 생계를 책임짐.\n나를 걱정 시키지 않음.\n어깨가 2m라 어딜 기대도 의지됨." },
+      { name: "마누라계", text: "가정일에 능숙.\n순애보.\n내가 먹여 살려야 함.\n집에 가면 토끼, 혹은 여우같이 대기 중." },
+      { name: "서방계", text: "나를 먹여 살림.\n큰 소리 내지 않음.\n알게 모르게 뒤에서 챙겨줌.\n자고 있으면 몰래 이불 덮어줌." },
+    ] },
     { name: "입맛", title: "입맛", n: "까다롭다", s: "무던하다", axis: "v" },   // axis: "v" = 위 아래로만 잇는 세로 한 줄
   ];
   const LABELS = { title: "l-title", n: "l-n", s: "l-s", w: "l-w", e: "l-e" };
@@ -139,6 +156,7 @@
   let size = "l";   // 사진 크기: l 큰 사진 / m 중간 사진 / s 작은 사진
   const SIZES = { l: 1, m: 5 / 6, s: 2 / 3 };
   const sc = () => SIZES[size] || 1;
+  let quads = null;   // 프리셋의 사분면 설명
   let vonly = false;   // true = 사분면 말고 위 아래로만 잇는 세로 한 줄
   const byId = App.byId;
   const store = {
@@ -147,15 +165,15 @@
   };
   function save() {
     const labels = {}; Object.keys(LABELS).forEach((k) => (labels[k] = $(LABELS[k]).value));
-    store.set({ labels, items, showNames, size, vonly });
+    store.set({ labels, items, showNames, size, vonly, quads });
   }
   function load() {
-    items = []; Object.values(LABELS).forEach((id) => ($(id).value = ""));
+    items = []; quads = null; Object.values(LABELS).forEach((id) => ($(id).value = ""));
     const s = store.get(); if (!s) return;
     Object.keys(LABELS).forEach((k) => ($(LABELS[k]).value = (s.labels && s.labels[k]) || ""));
     items = (s.items || []).filter((it) => byId[it.id]);
     showNames = !!s.showNames; $("names").checked = showNames;
-    size = SIZES[s.size] ? s.size : (s.small ? "s" : "l"); vonly = !!s.vonly;
+    size = SIZES[s.size] ? s.size : (s.small ? "s" : "l"); vonly = !!s.vonly; quads = Array.isArray(s.quads) ? s.quads : null;
   }
 
   // ───────── 사진 조각 ─────────
@@ -165,7 +183,16 @@
 
   // ───────── 판에 그리기 ─────────
   const board = $("board");
+  const QN = ["1사분면", "2사분면", "3사분면", "4사분면"];
+  function drawDesc() {   // 판과 같은 자리: 2(왼쪽 위) 1(오른쪽 위) / 3(왼쪽 아래) 4(오른쪽 아래)
+    const box = $("q-desc");
+    if (!quads || mode >= 0) { box.hidden = true; box.innerHTML = ""; return; }
+    box.hidden = false;
+    box.innerHTML = [1, 0, 2, 3].map((i) => { const q = quads[i] || {};
+      return '<div class="qd"><h3><small>' + QN[i] + "</small>" + esc(q.name || "") + "</h3><p>" + esc(q.text || "") + "</p></div>"; }).join("");
+  }
   function applySize() {
+    drawDesc();
     board.style.setProperty("--ps", sc());
     ["l", "m", "s"].forEach((k) => $("sz-" + k).classList.toggle("on", size === k));
     board.classList.toggle("v-only", vonly);
@@ -287,12 +314,12 @@
     const b = e.target.closest("[data-p]"); if (!b) return;
     const p = PRESETS[+b.dataset.p];
     Object.keys(LABELS).forEach((k) => ($(LABELS[k]).value = p[k] || ""));
-    vonly = p.axis === "v";
+    vonly = p.axis === "v"; quads = p.quads || null;
     save(); applySize();
   });
   $("names").addEventListener("change", (e) => { showNames = e.target.checked; save(); drawBoard(); });
   $("clear-pics").addEventListener("click", () => { if (!items.length || confirm("판 위의 사진을 모두 뺄까요?")) { items = []; sel = null; save(); drawBoard(); } });
-  $("clear-labels").addEventListener("click", () => { Object.values(LABELS).forEach((id) => ($(id).value = "")); save(); });
+  $("clear-labels").addEventListener("click", () => { Object.values(LABELS).forEach((id) => ($(id).value = "")); quads = null; save(); drawDesc(); });
 
   // ───────── 이미지로 저장 ─────────  (판과 같은 모양을 canvas 에 다시 그려요)
   const loadImg = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });

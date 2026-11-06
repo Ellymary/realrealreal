@@ -112,6 +112,7 @@ window.CHARACTERS = [
     relations: [
       { who: "yena-jiruciel", rel: "남매", dir: "<>", color: "주황", main: true },
       { who: ["yeonwoo-ethan", "sihyeon-lanhwa"], rel: "원조 28모임", dir: "<>", color: "초록" },
+      { who: "yeonwoo-ethan", rel: "소꿉친구", dir: "<>", color: "초록" },
       { who: ["sihyeon-trans-f", "sihyeon-trans-m"], rel: "혐오", dir: "<>", color: "검정" },
       { who: "harin-gongseoan", rel: "불편", dir: ">", color: "파랑" },
       { who: "yeonwoo-muk", dir: ">", color: "파랑" },
@@ -330,7 +331,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     id: "sieun-mina",
     name: "미냐",
     owner: "시은",
-    quote: "히엑?! 죄, 죄송해요!! 앞에 안 나설게요... 저는 짐덩이니까... 우우.",
+    quote: "가엾은 영혼의 목소리를 들어드리겠습니다.",
     guild: "비바람",
     image: "images/characters/13.jpg",
     summary: "",
@@ -350,7 +351,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     id: "sieun-vanilla",
     name: "바닐라",
     owner: "시은",
-    quote: "히엑?! 죄, 죄송해요!! 앞에 안 나설게요... 저는 짐덩이니까... 우우.",
+    quote: "가엾은 영혼의 목소리를 들어드리겠습니다.",
     guild: "전갈",
     image: "images/characters/6.png",
     summary: "",
@@ -560,7 +561,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     guild: "백야",
     image: "images/characters/1.png",
     summary: "",
-    info: { "성별": "여성", "나이": "18", "생일": "2월 11일", "키": "151cm", "MBTI": "ENTJ", "눈 색": "#BA95D0", "머리색": "#EEEBE7" },
+    info: { "성별": "여성", "생일": "2월 11일", "키": "151cm", "MBTI": "ENTJ", "눈 색": "#BA95D0", "머리색": "#EEEBE7" },
     desc: "",
     sheet: "",
     relations: [
@@ -583,6 +584,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     sheet: "",
     relations: [
       { who: ["yena-jiien", "sihyeon-lanhwa"], rel: "원조 28모임", dir: "<>", color: "초록" },
+      { who: "yena-jiien", rel: "소꿉친구", dir: "<>", color: "초록" },
       { who: "yena-chi", dir: "<>", color: "초록" },
       { who: "yena-jiruciel", rel: "친구", dir: "<>", color: "초록" },
       { who: "yeonwoo-leon", rel: "동료", dir: ">", color: "초록" },
@@ -622,7 +624,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     guild: "백야",
     image: "images/characters/20.png",
     summary: "",
-    info: { "성별": "남성", "나이": "22", "생일": "9월 9일", "키": "174cm", "MBTI": "ISFJ", "포지션": "힐러", "능력": "안개 (후방지원)", "등급": "B", "눈 색": "#842B1C", "머리색": "#1C1C1C" },
+    info: { "성별": "남성", "생일": "9월 9일", "키": "174cm", "MBTI": "ISFJ", "포지션": "힐러", "능력": "안개 (후방지원)", "등급": "B", "눈 색": "#842B1C", "머리색": "#1C1C1C" },
     desc: "",
     sheet: "",
     relations: [
@@ -839,7 +841,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     guild: "헌터관리국",
     image: "images/characters/35.png",
     summary: "",
-    info: { "성별": "여성", "능력": "환각(현실 조종)", "등급": "S", "패시브": "복종 (자신보다 능력이 낮으면 디버프를 먹인다.)" },
+    info: { "성별": "여성", "나이": "33", "능력": "환각(현실 조종)", "등급": "S", "패시브": "복종 (자신보다 능력이 낮으면 디버프를 먹인다.)" },
     desc: "",
     sheet: "",
     relations: [
@@ -847,6 +849,19 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "harin-gongseoan", rel: "장발최고", dir: ">", color: "주황" },
       { who: ["andrei", "hoyeon", "rimina"], rel: "귀엽네", dir: "<", color: "초록" }
     ]
+  },
+  {
+    id: "yeonwoo-rozi",
+    name: "로지",
+    owner: "연우",
+    quote: "뿌뿌~",
+    guild: "전갈",
+    image: "images/characters/990.png",
+    summary: "",
+    info: { "나이": "29", "포지션": "서포터", "능력": "커넥팅 (지정 대상들의 생각 연결, 같은 효과 부여, 일부 능력 공유)", "등급": "B+" },
+    desc: "",
+    sheet: "",
+    relations: []
   },
   {
     id: "andrei",

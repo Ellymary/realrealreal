@@ -13,6 +13,9 @@
   .tb-fields { margin: 0 0 8px; }
   .tb-fields summary { cursor: pointer; color: var(--muted); }
   .tb-fields .box { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 10px 0 2px; }
+  .tb-tri { margin-top: 4px; }
+  .tb-tri summary { cursor: pointer; color: var(--muted); font-weight: 600; }
+  #fields > .box { padding-top: 10px; }
   .tb-fields label { display: inline-flex; gap: 5px; align-items: center; font-size: 14px; cursor: pointer; }
   .tb-wrap { overflow: auto; max-height: 78vh; border: 1px solid var(--line); background: var(--panel); }
   table.tb { border-collapse: separate; border-spacing: 0; font-size: 14px; }
@@ -71,7 +74,7 @@
     <select id="o" aria-label="만든 사람"></select>
     <button class="btn" id="flip" type="button" title="가로 세로 바꾸기">⇄ 가로세로 바꾸기</button>
   </div>
-  <details class="tb-fields2"><summary>보여줄 정보 고르기</summary><div class="box" id="fields"></div></details>
+  <details class="tb-fields2 tb-fields"><summary>보여줄 정보 고르기</summary><div id="fields"></div></details>
   <div class="tb-wrap" id="wrap"></div>
   <p class="tb-hint" id="count"></p>
   <details class="pv" id="pv" open>
@@ -105,16 +108,20 @@
   // 행(정보) 목록: 기본 칸 + 캐릭터들이 따로 적은 칸 + 능력 설명
   const base = App.SHEET_FIELDS.slice();
   const extra = [];
-  CHARS.forEach((c) => Object.keys(App.infoOf(c)).forEach((k) => { if (!base.includes(k) && !NOTE_KEYS.includes(k) && !extra.includes(k)) extra.push(k); }));
+  // 잡학 칸: 기본(머리 길이 …) + 캐릭터들이 trivia 에 따로 적은 칸
+  const TRI = App.TRIVIA_FIELDS.slice();
+  CHARS.forEach((c) => Object.keys(App.triviaOf(c)).forEach((k) => { if (!TRI.includes(k)) TRI.push(k); }));
+  CHARS.forEach((c) => Object.keys(App.infoOf(c)).forEach((k) => { if (!base.includes(k) && !TRI.includes(k) && !NOTE_KEYS.includes(k) && !extra.includes(k)) extra.push(k); }));
   const hasNote = CHARS.some((c) => NOTE_KEYS.some((k) => App.infoOf(c)[k]));
   const HIDE = ["패시브", "배경/과거", "대사 예시"];   // 표에서 뺄 정보
-  const ALL = base.concat(extra.filter((k) => !HIDE.includes(k)), hasNote ? ["능력 설명"] : []);
+  const MAIN = base.concat(extra.filter((k) => !HIDE.includes(k)), hasNote ? ["능력 설명"] : []);
+  const ALL = MAIN.concat(TRI);   // 주요 정보 → 잡학 순서
   const val = (c, k) => k === "능력 설명" ? String((NOTE_KEYS.map((n) => App.infoOf(c)[n]).find(Boolean)) || "") : App.fieldValue(c, k);
 
   // 보여줄 정보 (기억해 둬요)
   let shown;
   try { shown = JSON.parse(App.store.get("tb-fields2") || "null"); } catch (e) { shown = null; }
-  if (!Array.isArray(shown)) shown = ALL.filter((k) => k !== "능력 설명");
+  if (!Array.isArray(shown)) shown = MAIN.filter((k) => k !== "능력 설명");   // 잡학은 처음엔 꺼 둬요
   const saveShown = () => App.store.set("tb-fields2", JSON.stringify(shown));
 
   let flip = App.store.get("tb-flip") === "1";
@@ -255,7 +262,9 @@
 
   $("g").innerHTML = '<option value="">길드 전체</option>' + App.guildList().map((g) => '<option value="' + esc(g.id) + '">' + esc(g.name) + "</option>").join("");
   $("o").innerHTML = '<option value="">만든 사람 전체</option>' + SITE.members.map((m) => '<option value="' + esc(m) + '">' + esc(m) + "</option>").join("");
-  $("fields").innerHTML = ALL.map((k) => '<label><input type="checkbox" data-f="' + esc(k) + '"' + (shown.includes(k) ? " checked" : "") + "> " + esc(k) + "</label>").join("");
+  const chk = (k) => '<label><input type="checkbox" data-f="' + esc(k) + '"' + (shown.includes(k) ? " checked" : "") + "> " + esc(k) + "</label>";
+  $("fields").innerHTML = '<div class="box">' + MAIN.map(chk).join("") + "</div>" +
+    '<details class="tb-tri"><summary>잡학</summary><div class="box">' + TRI.map(chk).join("") + "</div></details>";
 
   $("flip").addEventListener("click", () => { flip = !flip; App.store.set("tb-flip", flip ? "1" : "0"); render(); });
   $("kw").addEventListener("input", (e) => { kw = e.target.value.trim().toLowerCase(); render(); });

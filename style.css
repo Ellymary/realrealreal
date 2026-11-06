@@ -779,6 +779,7 @@ select.theme-btn option { background: var(--panel); color: var(--text); }
 
 /* 대사 예시 (캐릭터 정보 · 접기/펼치기) */
 .lines-list { list-style: none; margin: 4px 0 0; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--panel2); display: flex; flex-direction: column; gap: 6px; }
+.lines-under-quote { margin: -8px 0 18px; }
 .lines-list li { font-size: 13px; line-height: 1.6; color: var(--text); user-select: text; }
 .lines-list li::before { content: "“"; color: var(--accent); }
 .lines-list li::after { content: "”"; color: var(--accent); }
@@ -799,3 +800,9 @@ a.tk-item:hover { color: var(--accent); }
 @keyframes tk-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 @keyframes tk-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .tk-track { animation: none; } .tk-view { overflow-x: auto; } }
+
+/* 캐릭터 정보표: 주요 정보 / 잡학 접기·펼치기 */
+.sheet-sec { margin: 14px 0 12px; }
+.sheet-sec + .sheet-sec { margin-top: 8px; }
+.sheet-sec > summary { cursor: pointer; font-weight: 700; font-size: 15px; padding: 6px 2px; user-select: none; }
+.sheet-sec > .info.sheet { margin-top: 4px; }

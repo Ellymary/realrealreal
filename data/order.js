@@ -25,4 +25,5 @@ window.DEBUT = [
   { date: "9월 13일", who: ["yeonwoo-rozelin"] },                    // 로제린
   { date: "10월 17일", who: ["sieun-ruti", "sieun-mina", "sihyeon-lulu", "yeonwoo-muk", "harin-yangyu"] },    // 루티, 미냐, 룰루, 묵, 양유
   { date: "10월 21일", who: ["yena-karia"] },                        // 카리아
+  { who: ["yeonwoo-rozi"] },                                         // 로지
 ];

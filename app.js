@@ -285,8 +285,11 @@
   // 표에 나오는 순서예요. 주인/소속은 owner/guild 칸에서 자동으로 가져오고, 나머지는 info 칸에서 가져와요.
   const SHEET_FIELDS = ["주인", "성별", "나이", "생일", "키", "소속", "MBTI", "무기", "포지션", "능력", "등급", "눈 색", "머리색"];
   const COLOR_FIELDS = ["눈 색", "머리색"];
+  // 잡학: 캐릭터 줄의 trivia 칸에 적거나(예: trivia: { "머리 길이": "허리까지" }), info 에 같은 이름으로 써도 돼요.
+  // 여기 적은 칸은 항상 잡학에 나와요 (비어 있으면 "-"). 새 잡학 칸은 trivia 에 이름만 써도 자동으로 생겨요.
+  const TRIVIA_FIELDS = ["머리 길이"];
   // info 에 비슷한 이름으로 써도 알아봐요 (예: "랭크" → "등급")
-  const FIELD_ALIAS = { "대사예시": "대사 예시", "대사 예시들": "대사 예시", "대사들": "대사 예시", "예시 대사": "대사 예시", "배경": "배경/과거", "과거": "배경/과거", "배경 / 과거": "배경/과거", "배경과거": "배경/과거", "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "신장": "키", "생년월일": "생일", "birthday": "생일" };
+  const FIELD_ALIAS = { "대사예시": "대사 예시", "대사 예시들": "대사 예시", "대사들": "대사 예시", "예시 대사": "대사 예시", "배경": "배경/과거", "과거": "배경/과거", "배경 / 과거": "배경/과거", "배경과거": "배경/과거", "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "머리길이": "머리 길이", "헤어 길이": "머리 길이", "헤어길이": "머리 길이", "신장": "키", "생년월일": "생일", "birthday": "생일" };
 
   function infoOf(c) {
     const raw = c.info || {};
@@ -296,6 +299,14 @@
   }
 
   // ── 등급 정렬 ──  S 계열 > A > B > C > D > E > F, +/- 는 같은 등급 안에서 위/아래, 등급이 없는 캐릭터는 항상 맨 뒤
+  // 잡학 칸: trivia 칸 + info 에 TRIVIA_FIELDS 이름으로 쓴 것
+  function triviaOf(c) {
+    const out = {};
+    TRIVIA_FIELDS.forEach((k) => { const v = infoOf(c)[k]; if (v != null && v !== "") out[k] = v; });
+    const raw = c.trivia || {};
+    Object.keys(raw).forEach((k) => { out[FIELD_ALIAS[k.trim()] || k.trim()] = raw[k]; });
+    return out;
+  }
   const gradeOf = (c) => String(infoOf(c)["등급"] == null ? "" : infoOf(c)["등급"]).trim();
   function gradeRank(c) {
     const t = gradeOf(c).toUpperCase().replace(/\s+/g, "");
@@ -305,7 +316,7 @@
     return base + (m[2] === "+" ? 3 : m[2] === "-" ? -3 : 0);
   }
   // ── 생일 ──  info 의 "생일" 칸: "8월 29일" / "8/29" / "08-29" / "2000-08-29" 어느 쪽으로 써도 돼요
-  //   계절 색: 봄(3~5월) 분홍 · 여름(6~8월) 파랑 · 가을(9~11월) 갈색 · 겨울(12~2월) 아주 연한 회색
+  //   계절 색: 봄(3~5월) 분홍 · 여름(6~8월) 파랑 · 가을(9~11월) 갈색 · 겨울(12~2월) 회색
   function bdayOf(c) {
     const t = String(infoOf(c)["생일"] == null ? "" : infoOf(c)["생일"]);
     let m = t.match(/(\d{1,2})\s*월\s*(\d{1,2})/) || t.match(/(?:^|\D)(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*$/) || t.match(/\d{4}\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/);
@@ -317,7 +328,7 @@
     spring: "color:#ff6fa8;font-weight:700",
     summer: "color:#3b82f6;font-weight:700",
     autumn: "color:#a0693a;font-weight:700",
-    winter: "color:#e4e7ee;font-weight:700;text-shadow:0 0 1px #555,0 0 3px rgba(0,0,0,.45)",   // 연한 회색 (밝은 테마에서도 보이게 살짝 테두리)
+    winter: "color:#a9afbb;font-weight:700",   // 회색 (그림자 없이, 살짝 더 진하게)
   };
   const seasonOf = (m) => (m >= 3 && m <= 5 ? "spring" : m >= 6 && m <= 8 ? "summer" : m >= 9 && m <= 11 ? "autumn" : "winter");
   function birthdayHTML(text, b) {
@@ -381,7 +392,8 @@
   function fieldValue(c, key) {
     if (key === "주인") return c.owner || "";
     if (key === "소속") return c.extra ? "엑스트라" + (c.guild ? " · " + c.guild : "") : (c.guild || "");
-    const v = infoOf(c)[key];
+    let v = infoOf(c)[key];
+    if (v == null || v === "") v = triviaOf(c)[key];
     return v == null ? "" : String(v);
   }
   // 색 찾기: #ff00aa / #f0a / rgb(255,0,170) / 255,0,170
@@ -417,15 +429,19 @@
     return colorOne(v);
   }
   const BG_KEY = "배경/과거", LINES_KEY = "대사 예시";
+  // 대사 예시: 큰 인용(" ") 바로 아래에 나와요. 줄마다 한 대사 (또는 배열)
+  function linesHTML(c) {
+    const raw = infoOf(c)[LINES_KEY];
+    const lines = (Array.isArray(raw) ? raw : String(raw || "").split("\n")).map((x) => String(x).trim()).filter(Boolean);
+    return lines.length ? '<ul class="lines-list lines-under-quote">' + lines.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>" : "";
+  }
   function sheetRowsHTML(c) {
     const used = new Set(SHEET_FIELDS);
     const NOTE_KEYS = ["능력 부연설명", "능력 설명"];   // 능력 칸 안에 접어서 보여줘요
     const noteKey = NOTE_KEYS.find((k) => infoOf(c)[k]);
-    const extra = Object.keys(infoOf(c)).filter((k) => !used.has(k) && !NOTE_KEYS.includes(k) && k !== BG_KEY && k !== LINES_KEY);
+    const extra = Object.keys(infoOf(c)).filter((k) => !used.has(k) && !TRIVIA_FIELDS.includes(k) && !NOTE_KEYS.includes(k) && k !== BG_KEY && k !== LINES_KEY);
     const bg = infoOf(c)[BG_KEY];
-    // 대사 예시: 줄마다 한 대사 (또는 배열). 접어서 보여줘요
-    const linesRaw = infoOf(c)[LINES_KEY];
-    const lines = (Array.isArray(linesRaw) ? linesRaw : String(linesRaw || "").split("\n")).map((x) => String(x).trim()).filter(Boolean);   // 배경/과거: 맨 아래에 접어서 보여줘요 (적은 캐릭터에만 나와요)
+    // 배경/과거: 맨 아래에 접어서 보여줘요 (적은 캐릭터에만 나와요)
     return SHEET_FIELDS.concat(extra).map((k) => {
       const v = fieldValue(c, k);
       let cell;
@@ -436,7 +452,21 @@
       else cell = v ? fmt(v) : '<span class="muted">-</span>';
       if (k === "능력" && noteKey) cell += '<details class="ab-note"><summary>설명 보기</summary><div class="ab-note-body">' + text(String(infoOf(c)[noteKey])) + "</div></details>";
       return "<tr><th>" + esc(k) + "</th><td>" + cell + "</td></tr>";
-    }).join("") + (lines.length ? '<tr><th>' + esc(LINES_KEY) + '</th><td><details class="ab-note lines-note"><summary>대사 예시 보기 (' + lines.length + ')</summary><ul class="lines-list">' + lines.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul></details></td></tr>" : "") + (bg ? '<tr><th>' + esc(BG_KEY) + '</th><td><details class="ab-note bg-note"><summary>배경/과거 보기</summary><div class="ab-note-body">' + text(String(bg)) + "</div></details></td></tr>" : "");
+    }).join("") + (bg ? '<tr><th>' + esc(BG_KEY) + '</th><td><details class="ab-note bg-note"><summary>배경/과거 보기</summary><div class="ab-note-body">' + text(String(bg)) + "</div></details></td></tr>" : "");
+  }
+  // 잡학 표 줄들: 기본 잡학 칸(머리 길이 …)은 항상, 그 캐릭터가 따로 적은 칸은 있을 때만
+  function triviaRowsHTML(c) {
+    const t = triviaOf(c);
+    const keys = TRIVIA_FIELDS.concat(Object.keys(t).filter((k) => !TRIVIA_FIELDS.includes(k)));
+    return keys.map((k) => {
+      const v = fieldValue(c, k);
+      return "<tr><th>" + esc(k) + "</th><td>" + (v ? fmt(v) : '<span class="muted">-</span>') + "</td></tr>";
+    }).join("");
+  }
+  // 캐릭터 페이지의 표: 주요 정보(기본 펼침) + 잡학(기본 접힘), 둘 다 눌러서 접고 펼쳐요
+  function sheetHTML(c) {
+    return '<details class="sheet-sec" open><summary>주요 정보</summary><table class="info sheet">' + sheetRowsHTML(c) + "</table></details>" +
+      '<details class="sheet-sec trivia"><summary>잡학</summary><table class="info sheet">' + triviaRowsHTML(c) + "</table></details>";
   }
   // ── 관계 (캐릭터 페이지 맨 아래) ──
   // relations: [{ who, rel, dir, color, main, text }]
@@ -527,7 +557,7 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
 
   window.App = {
-    SHEET_FIELDS, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
+    SHEET_FIELDS, TRIVIA_FIELDS, triviaOf, sheetHTML, linesHTML, parseColor, colorHTML, sheetRowsHTML, relationsHTML, sheetText, openSheet, closeSheet,
     SITE, CHARS, EXTRA_CHARS, GALLERY, COMICS, byId, artistsOf, videoOf, gradeOf, gradeRank, ageOf, debutDate, bdayOf, birthdayHTML, noteFor, SORTS, sortChars,
     esc, param, store, tagText, imgFail, color, tagsOf, matches, tagCounts, sidebarHTML,
     img, avatar, text, fmt, deco, infoVal, galleryAll, galleryOf, comicsOf, byDateDesc, nav,
