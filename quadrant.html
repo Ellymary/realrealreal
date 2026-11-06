@@ -50,6 +50,11 @@
   .q-tog { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 10px; padding: 8px 10px; border: 1px solid var(--line); background: var(--panel); }
   .q-tog .btn.on { border-color: var(--accent); font-weight: 700; }
   /* 사분면 설명 (프리셋에 quads 가 있을 때만 나와요) */
+  /* 사분면 설명: 판 배경(각 사분면 안)에 깔려요 */
+  .q-qd { position: absolute; z-index: 1; width: 33%; height: 33%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 1%; pointer-events: none; color: #5b6070; overflow: hidden; }
+  .q-qd[hidden], .q-board.has-bg .q-qd { display: none; }
+  .q-qd b { font-size: 2.6cqw; color: #33384a; margin-bottom: .6cqw; }
+  .q-qd span { font-size: 1.95cqw; line-height: 1.55; white-space: pre-line; word-break: keep-all; }
   .q-desc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px auto 14px; max-width: 780px; }
   .q-desc[hidden] { display: none; }
   .q-desc .qd { border: 1px solid var(--line); background: var(--panel); padding: 10px 14px; }
@@ -80,6 +85,10 @@
         <line x1="500" y1="850" x2="500" y2="162" stroke="#222" stroke-width="3"/>
         <polygon points="500,148 489,170 511,170" fill="#222"/>
       </svg>
+      <div class="q-qd" id="qd-1" style="left:51.5%;top:16%" hidden></div>
+      <div class="q-qd" id="qd-0" style="left:15.5%;top:16%" hidden></div>
+      <div class="q-qd" id="qd-2" style="left:15.5%;top:51%" hidden></div>
+      <div class="q-qd" id="qd-3" style="left:51.5%;top:51%" hidden></div>
       <textarea class="q-lab title" id="l-title" rows="2" placeholder="주제 (오른쪽 위)" style="left:72%;top:1.5%;width:27%;height:10%"></textarea>
       <textarea class="q-lab" id="l-n" rows="2" placeholder="북쪽 (위)" style="left:30%;top:4.5%;width:40%;height:9%"></textarea>
       <textarea class="q-lab" id="l-s" rows="2" placeholder="남쪽 (아래)" style="left:30%;top:88%;width:40%;height:9%"></textarea>
@@ -88,7 +97,6 @@
     </div>
   </div>
 
-  <div class="q-desc" id="q-desc" hidden></div>
 
   <div class="q-tools">
     <button class="btn btn-primary" id="save" type="button">이미지로 저장 (PNG)</button>
@@ -183,13 +191,15 @@
 
   // ───────── 판에 그리기 ─────────
   const board = $("board");
-  const QN = ["1사분면", "2사분면", "3사분면", "4사분면"];
-  function drawDesc() {   // 판과 같은 자리: 2(왼쪽 위) 1(오른쪽 위) / 3(왼쪽 아래) 4(오른쪽 아래)
-    const box = $("q-desc");
-    if (!quads || mode >= 0) { box.hidden = true; box.innerHTML = ""; return; }
-    box.hidden = false;
-    box.innerHTML = [1, 0, 2, 3].map((i) => { const q = quads[i] || {};
-      return '<div class="qd"><h3><small>' + QN[i] + "</small>" + esc(q.name || "") + "</h3><p>" + esc(q.text || "") + "</p></div>"; }).join("");
+  function drawDesc() {   // 판 안 각 사분면 배경에 설명을 써요. (2=왼쪽 위, 1=오른쪽 위, 3=왼쪽 아래, 4=오른쪽 아래)
+    // id: qd-1 = 오른쪽 위(1사분면), qd-0 = 왼쪽 위(2사분면), qd-2 = 왼쪽 아래(3), qd-3 = 오른쪽 아래(4)
+    const pos = [1, 0, 2, 3];   // quads[0]=1사분면 → qd-1 / quads[1]=2사분면 → qd-0 / quads[2]=3사분면 → qd-2 / quads[3]=4사분면 → qd-3
+    for (let i = 0; i < 4; i++) {
+      const el = $("qd-" + pos[i]), q = (!vonly && quads && quads[i]) || null;
+      if (!q || !(q.name || q.text)) { el.hidden = true; el.innerHTML = ""; continue; }
+      el.hidden = false;
+      el.innerHTML = (q.name ? "<b>" + esc(q.name) + "</b>" : "") + "<span>" + esc(q.text || "") + "</span>";
+    }
   }
   function applySize() {
     drawDesc();
@@ -349,6 +359,21 @@
     ctx.beginPath(); if (!vonly) { ctx.moveTo(R(150), R(500)); ctx.lineTo(R(838), R(500)); } ctx.moveTo(R(500), R(850)); ctx.lineTo(R(500), R(162)); ctx.stroke();
     const tri = (pts) => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(R(x), R(y)) : ctx.moveTo(R(x), R(y)))); ctx.closePath(); ctx.fill(); };
     if (!vonly) tri([[852, 500], [830, 489], [830, 511]]); tri([[500, 148], [489, 170], [511, 170]]);
+    // 사분면 설명 (판 배경: 각 사분면 가운데)
+    if (!vonly && quads) {
+      const FF = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+      const cells = [[515, 160], [165, 160], [165, 510], [515, 510]];   // quads[0..3] = 1,2,3,4사분면의 왼쪽 위 (1000칸 기준)
+      quads.slice(0, 4).forEach((q, i) => {
+        if (!q || !(q.name || q.text)) return;
+        const W = 330, H = 330, [cx, cy] = cells[i], rows = [];
+        ctx.textAlign = "center"; ctx.textBaseline = "top";
+        if (q.name) rows.push({ t: q.name, f: "800 " + R(26) + "px " + FF, c: "#33384a", h: 36 });
+        ctx.font = "400 " + R(19.5) + "px " + FF;
+        wrapText(ctx, q.text || "", R(W - 20)).forEach((ln) => rows.push({ t: ln, f: "400 " + R(19.5) + "px " + FF, c: "#5b6070", h: 30 }));
+        let y = cy + (H - rows.reduce((a, r) => a + r.h, 0)) / 2;
+        rows.forEach((r) => { ctx.font = r.f; ctx.fillStyle = r.c; ctx.fillText(r.t, R(cx + W / 2), R(y)); y += r.h; });
+      });
+    }
     // 글자 (판의 칸과 같은 위치·정렬)
     const box = (id, x, y, w, size, bold) => {
       const t = $(id).value; if (!t.trim()) return;

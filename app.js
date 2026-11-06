@@ -287,7 +287,7 @@
   const COLOR_FIELDS = ["눈 색", "머리색"];
   // 잡학: 캐릭터 줄의 trivia 칸에 적거나(예: trivia: { "머리 길이": "허리까지" }), info 에 같은 이름으로 써도 돼요.
   // 여기 적은 칸은 항상 잡학에 나와요 (비어 있으면 "-"). 새 잡학 칸은 trivia 에 이름만 써도 자동으로 생겨요.
-  const TRIVIA_FIELDS = ["머리 길이"];
+  const TRIVIA_FIELDS = ["머리 길이", "악력"];
   // info 에 비슷한 이름으로 써도 알아봐요 (예: "랭크" → "등급")
   const FIELD_ALIAS = { "대사예시": "대사 예시", "대사 예시들": "대사 예시", "대사들": "대사 예시", "예시 대사": "대사 예시", "배경": "배경/과거", "과거": "배경/과거", "배경 / 과거": "배경/과거", "배경과거": "배경/과거", "능력 등급": "등급", "능력등급": "등급", "랭크": "등급", "mbti": "MBTI", "눈색": "눈 색", "눈": "눈 색", "머리": "머리색", "머리 색": "머리색", "머리길이": "머리 길이", "헤어 길이": "머리 길이", "헤어길이": "머리 길이", "신장": "키", "생년월일": "생일", "birthday": "생일" };
 
@@ -433,7 +433,7 @@
   function linesHTML(c) {
     const raw = infoOf(c)[LINES_KEY];
     const lines = (Array.isArray(raw) ? raw : String(raw || "").split("\n")).map((x) => String(x).trim()).filter(Boolean);
-    return lines.length ? '<ul class="lines-list lines-under-quote">' + lines.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>" : "";
+    return lines.length ? '<details class="ab-note lines-note lines-under-quote"><summary>대사 예시 보기 (' + lines.length + ')</summary><ul class="lines-list">' + lines.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul></details>" : "";
   }
   function sheetRowsHTML(c) {
     const used = new Set(SHEET_FIELDS);

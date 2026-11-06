@@ -780,6 +780,7 @@ select.theme-btn option { background: var(--panel); color: var(--text); }
 /* 대사 예시 (캐릭터 정보 · 접기/펼치기) */
 .lines-list { list-style: none; margin: 4px 0 0; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--panel2); display: flex; flex-direction: column; gap: 6px; }
 .lines-under-quote { margin: -8px 0 18px; }
+.lines-under-quote > summary { cursor: pointer; }
 .lines-list li { font-size: 13px; line-height: 1.6; color: var(--text); user-select: text; }
 .lines-list li::before { content: "“"; color: var(--accent); }
 .lines-list li::after { content: "”"; color: var(--accent); }
