@@ -165,21 +165,37 @@
     if (v.startsWith("guild:")) { const g = App.guildList().find((x) => x.id === v.slice(6)); return g ? App.charsOfGuild(g) : []; }
     return CHARS.slice();
   }
-  function sizeFor(n) { return SIZES.filter((s) => s <= n); }
+  // 2의 거듭제곱이 아닌 인원(예: 37명)은 "예선"을 먼저 치러서 거듭제곱 수로 맞춰요.
+  //   P = n 이하에서 가장 큰 2의 거듭제곱, 예선 경기 수 = n - P
+  //   → 예선에 2×(n-P)명만 나가고, 나머지는 부전승으로 바로 P강에 올라가요. (예선 승자 n-P명 + 부전승 = P명)
+  const isPow2 = (n) => n >= 2 && (n & (n - 1)) === 0;
+  const lowPow = (n) => { let p = 1; while (p * 2 <= n) p *= 2; return p; };
+  function sizeFor(n) {
+    const a = [];
+    for (let p = 4; p <= n; p *= 2) a.push(p);
+    if (n >= 4 && !isPow2(n)) a.push(n);   // 전체 인원 (맨 마지막 = 기본값)
+    return a;
+  }
 
   function refreshSizes(keep) {
     const n = poolList($("wc-pool").value).length;
     const ok = sizeFor(n);
-    $("wc-size").innerHTML = ok.map((s) => '<option value="' + s + '">' + roundName(s) + " (" + s + "명)</option>").join("");
+    $("wc-size").innerHTML = ok.map((s) => '<option value="' + s + '">' + (isPow2(s) ? roundName(s) + " (" + s + "명)" : "전체 " + s + "명 (예선 포함)") + "</option>").join("");
     if (keep && ok.includes(+keep)) $("wc-size").value = keep; else if (ok.length) $("wc-size").value = ok[ok.length - 1];
     const s = +$("wc-size").value;
-    $("wc-note").textContent = !ok.length ? "4명 이상 있어야 시작할 수 있어요."
+    let note = !ok.length ? "4명 이상 있어야 시작할 수 있어요."
       : (n > s ? n + "명 중 " + s + "명이 무작위로 뽑혀요. " : n + "명 전원이 참가해요. ") + "(매번 대진이 달라져요)";
+    if (ok.length && !isPow2(s)) {
+      const P = lowPow(s), x = s - P;
+      note += " 먼저 예선 " + x + "경기(" + 2 * x + "명)를 치르고, 나머지 " + (s - 2 * x) + "명은 부전승으로 올라가 " + P + "강이 시작돼요.";
+    }
+    $("wc-note").textContent = note;
     $("wc-start").disabled = !ok.length;
   }
 
   const roundName = (n) => (n === 2 ? "결승" : n === 4 ? "4강" : n + "강");
-  const place = (n) => (n === 2 ? "준우승" : n === 4 ? "공동 3위 (4강)" : "공동 " + (n / 2 + 1) + "위 (" + n + "강)");
+  const place = (n, pre) => (n === 2 ? "준우승" : n === 4 ? "공동 3위 (4강)" : pre ? "공동 " + (n / 2 + 1) + "위 (예선 탈락)" : "공동 " + (n / 2 + 1) + "위 (" + n + "강)");
+  const sizeLabel = (n) => (isPow2(n) ? n + "강" : "전체 " + n + "명");
 
   $("wc-pool").innerHTML = poolOptions();
   let saved = {};
@@ -194,7 +210,7 @@
   $("wc-size").addEventListener("change", () => refreshSizes($("wc-size").value));
 
   // ── 게임 상태 ──
-  let cur, nxt, idx, elim, hist, busy, total, played, topic, part, size0;
+  let cur, nxt, idx, elim, hist, busy, total, played, topic, part, size0, base, pre, preRound;
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   function start() {
@@ -203,9 +219,18 @@
     topic = curTopic();
     try { localStorage.setItem(KEY, JSON.stringify({ pool: $("wc-pool").value, size: size, topic: $("wc-topic").value, title: $("wc-title").value })); } catch (e) {}
     const dm = readJ(DKEY); dm[$("wc-topic").value] = $("wc-desc").value; writeJ(DKEY, dm);
-    cur = shuffle(pool.slice()).slice(0, size).map((c) => c.id);
-    part = cur.slice(); size0 = size;
-    nxt = []; idx = 0; elim = []; hist = []; busy = false; played = 0; total = size - 1;
+    const all = shuffle(pool.slice()).slice(0, size).map((c) => c.id);
+    part = all.slice(); size0 = size;
+    const P = lowPow(size);
+    pre = !isPow2(size);                 // 예선이 필요한가
+    base = pre ? P * 2 : size;           // 순위 계산용 (예선 탈락자 = P*2 강에서 탈락)
+    preRound = P * 2;
+    if (pre) {
+      const x = size - P;                // 예선 경기 수
+      cur = all.slice(0, 2 * x);         // 예선 참가자
+      nxt = all.slice(2 * x);            // 부전승 (바로 P강으로)
+    } else { cur = all; nxt = []; }
+    idx = 0; elim = []; hist = []; busy = false; played = 0; total = size - 1;
     $("wc-setup").hidden = true; $("wc-end").hidden = true; $("wc-play").hidden = false;
     drawMatch();
   }
@@ -232,7 +257,7 @@
     busy = false;
     const a = cur[idx], b = cur[idx + 1];
     $("wc-play").innerHTML = topicBox() +
-      '<div class="wc-top"><span class="wc-round">' + roundName(cur.length) + '</span><span class="wc-count">' +
+      '<div class="wc-top"><span class="wc-round">' + (pre ? "예선" : roundName(cur.length)) + '</span><span class="wc-count">' +
       (idx / 2 + 1) + " / " + cur.length / 2 + "</span></div>" +
       '<div class="wc-bar"><span style="width:' + (played / total * 100) + '%"></span></div>' +
       '<div class="wc-vs">' + card(a, 0) + card(b, 1) + "</div>" +
@@ -251,13 +276,14 @@
     const cards = $("wc-play").querySelectorAll(".wc-card");
     cards[side].classList.add("win"); cards[1 - side].classList.add("lose");
     setTimeout(() => {
-      hist.push({ cur: cur.slice(), nxt: nxt.slice(), idx: idx, el: elim.length, played: played });
+      hist.push({ cur: cur.slice(), nxt: nxt.slice(), idx: idx, el: elim.length, played: played, pre: pre });
       const w = cur[idx + side], l = cur[idx + 1 - side];
-      elim.push({ id: l, round: cur.length });
+      elim.push({ id: l, round: pre ? preRound : cur.length, pre: pre });
       nxt.push(w); idx += 2; played++;
       if (idx >= cur.length) {
         if (nxt.length === 1) return finish(nxt[0]);
-        cur = nxt; nxt = []; idx = 0;
+        cur = pre ? shuffle(nxt) : nxt;   // 예선이 끝나면 부전승 + 예선 승자를 섞어서 P강 대진
+        pre = false; nxt = []; idx = 0;
       }
       drawMatch();
     }, 380);
@@ -266,7 +292,7 @@
   function undo() {
     if (busy || !hist.length) return;
     const s = hist.pop();
-    cur = s.cur; nxt = s.nxt; idx = s.idx; played = s.played; elim.length = s.el;
+    cur = s.cur; nxt = s.nxt; idx = s.idx; played = s.played; pre = s.pre; elim.length = s.el;
     drawMatch();
   }
 
@@ -282,9 +308,9 @@
     st.runs++;
     part.forEach((id) => (st.c[id] = st.c[id] || { n: 0, w: 0, f: 0, s: 0, m: 0 }));
     part.forEach((id) => st.c[id].n++);
-    st.c[champ].w++; st.c[champ].m += Math.log2(size0);
+    st.c[champ].w++; st.c[champ].m += Math.log2(base);
     st.c[finalist].f++;
-    elim.forEach((e) => { st.c[e.id].m += Math.log2(size0 / e.round); if (e.round === 4) st.c[e.id].s++; });
+    elim.forEach((e) => { st.c[e.id].m += Math.log2(base / e.round); if (e.round === 4) st.c[e.id].s++; });
     writeJ(SKEY, all);
   }
   function statsHTML(key) {
@@ -323,19 +349,22 @@
     record(champ, finalist);
     const semis = elim.filter((e) => e.round === 4).map((e) => e.id);
     const rows = [["1위", champ], ["2위", finalist]].concat(semis.map((id) => ["공동 3위", id]));
-    const rest = {};
-    elim.filter((e) => e.round > 4).forEach((e) => (rest[e.round] = rest[e.round] || []).push(e.id));
+    const rest = {}, preLosers = [];
+    elim.filter((e) => e.round > 4).forEach((e) => {
+      if (e.pre) preLosers.push(e.id); else (rest[e.round] = rest[e.round] || []).push(e.id);
+    });
     const restKeys = Object.keys(rest).map(Number).sort((a, b) => a - b);
 
     $("wc-end").innerHTML = '<div class="wc-final">' +
-      "<h2>🏆 우승!</h2><div class=\"muted\">" + esc(topic.title) + " · " + esc(String(size0)) + "강</div>" +
+      "<h2>🏆 우승!</h2><div class=\"muted\">" + esc(topic.title) + " · " + esc(sizeLabel(size0)) + "</div>" +
       '<div class="wc-champ" style="--mc:' + gd.color + '">' + avatarBox(champ) + "</div>" +
       '<div class="wc-champ-nm">' + esc(c.label || c.name) + "</div>" +
       '<div class="wc-champ-sub">' + esc([c.owner, gd.name].filter(Boolean).join(" · ")) + "</div>" +
       (c.summary ? '<div class="wc-champ-sum">' + esc(c.summary) + "</div>" : "") +
       '<div class="wc-rank">' + rows.map((r) => '<div class="wc-rank-row"><span class="n">' + r[0] + "</span>" + avatarBox(r[1]) + "<span>" + link(r[1]) + "</span></div>").join("") + "</div>" +
-      (restKeys.length ? '<details class="wc-all"><summary>나머지 순위 보기</summary>' + restKeys.map((k) =>
-        '<div class="grp"><b>' + esc(place(k)) + "</b>" + rest[k].map(link).join(", ") + "</div>").join("") + "</details>" : "") +
+      (restKeys.length || preLosers.length ? '<details class="wc-all"><summary>나머지 순위 보기</summary>' + restKeys.map((k) =>
+        '<div class="grp"><b>' + esc(place(k)) + "</b>" + rest[k].map(link).join(", ") + "</div>").join("") +
+        (preLosers.length ? '<div class="grp"><b>' + esc(place(preRound, true)) + "</b>" + preLosers.map(link).join(", ") + "</div>" : "") + "</details>" : "") +
       '<details class="wc-all" id="wc-mystats"><summary>이 주제의 내 누적 순위 보기</summary><div id="wc-mystats-box"></div></details>' +
       '<div class="wc-final-ctrl"><button type="button" class="btn btn-primary" id="wc-again">같은 설정으로 다시</button>' +
       '<button type="button" class="btn" id="wc-copy">결과 복사</button>' +
@@ -349,7 +378,7 @@
     $("wc-reset").addEventListener("click", () => { $("wc-end").hidden = true; $("wc-setup").hidden = false; });
     $("wc-copy").addEventListener("click", () => {
       const nm = (id) => byId[id].label || byId[id].name;
-      const text = "🏆 " + topic.title + " (" + size0 + "강)\n1위 " + nm(champ) + "\n2위 " + nm(finalist) +
+      const text = "🏆 " + topic.title + " (" + sizeLabel(size0) + ")\n1위 " + nm(champ) + "\n2위 " + nm(finalist) +
         "\n공동 3위 " + semis.map(nm).join(", ");
       const done = () => { $("wc-copy").textContent = "복사됐어요!"; setTimeout(() => ($("wc-copy").textContent = "결과 복사"), 1500); };
       try { navigator.clipboard.writeText(text).then(done, () => prompt("복사해서 쓰세요", text)); }
