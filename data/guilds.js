@@ -12,6 +12,7 @@ window.GUILDS = [
   { id: "free", name: "무소속", main: true, color: "#98a2b6", summary: "", desc: `헌터 등록을 하고, 길드 등록은 하지 않은 헌터들. 대체로 정보가 적고, 인맥이 넓지 못하다라는 단점 때문에, 개인의 역량이 큰 헌터들이나 독립적인 헌터들이 많다. 장점보다 단점이 압도적으로 많아서 무소속 헌터는 모든 헌터중 비율이 2% 정도이다.` },
   { id: "association", name: "헌터관리국", main: false, color: "#e6b94d", summary: "", desc: `게이트 발생 이후 설립된 국가 직속 초상재난 대응기관. 헌터를 직접 고용해 굴리는 조직이라기보다는 헌터·길드·게이트 전체를 관리하는 감독기관에 가깝다. 일반적으로 관리국이라고 줄여 부른다.` },
   { id: "zeus", name: "제우스 밤의 울음", main: false, color: "#7a5cc7", summary: "", desc: `밤의 지배자다.` },
+  { id: "chowon", name: "초원", main: false, color: "#7bc67e", summary: "", desc: `자유로운 용병 길드! ^^` },
   // 엑스트라 칸: 캐릭터 줄에 extra: true 를 쓰면 여기에 모여요 (원래 소속은 guild 칸에 그대로 써요). 설명은 아래 desc 에 쓰기!
   { id: "extra", name: "엑스트라", main: false, color: "#9aa0a6", summary: "", desc: `` },
 ];
