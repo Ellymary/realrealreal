@@ -105,9 +105,9 @@
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
   const nm = (c) => (c ? c.label || c.name : "");
   const pic = (c, col) => '<span class="pic"' + (col ? ' style="--mc:' + col + '"' : "") + ">" + (c ? App.avatar(c) : '<span class="muted">?</span>') + "</span>";
-  // 백야 · 비바람 · 전갈만 길드로, 나머지(헌터관리국 · 무소속 · 제우스 등)는 "기타" 로 묶어요
+  // 백야 · 비바람 · 전갈 · 초원만 길드로, 나머지(헌터관리국 · 무소속 · 제우스 등)는 "기타" 로 묶어요
   const guilds = () => {
-    const main = ["baekya", "bibaram", "scorpion"];
+    const main = ["baekya", "bibaram", "scorpion", "chowon"];
     const out = App.guildList().filter((g) => main.includes(g.id) && App.charsOfGuild(g).length).map((g) => ({ id: g.id, name: g.name, color: g.color, chars: App.charsOfGuild(g) }));
     const rest = CHARS.filter((c) => !main.includes(App.guildOf(c).id));
     if (rest.length) out.push({ id: "etc", name: "기타", color: "#98a2b6", chars: rest });

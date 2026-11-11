@@ -407,8 +407,9 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     guild: "초원",
     image: "",
     summary: "",
-    info: { "성별": "여성 (여성체처럼 보인다.)", "나이": "6", "키": "148cm", "등급": "A", "무기": "레일건", "기능": "카메라, 녹음기, 청소기, 세탁기, 핸드폰 디스플레이, 인간말살빔(눈에서 빨간색 레이저가 나간다. 원리는 초음파 절단기.), 에어컨, 믹서기... 등등", "오시마크": "🤖" },
-    desc: `- 최근 독립해 독자적인 데이터를 쌓는 중이다.
+    info: { "성별": "여성", "나이": "6", "키": "148cm", "등급": "A", "무기": "레일건", "기능": "카메라, 녹음기, 청소기, 세탁기, 핸드폰 디스플레이, 인간말살빔(눈에서 빨간색 레이저가 나간다. 원리는 초음파 절단기.), 에어컨, 믹서기... 등등", "오시마크": "🤖" },
+    desc: `- 여성체처럼 보인다.
+- 최근 독립해 독자적인 데이터를 쌓는 중이다.
 - 하고 싶은 말을 하고 학습 중이라고 둘러댄다. (예: "당신의 행동 양상은 히키코모리? 같습니다... 죄송합니다. 학습 중인 단어라 잘 모릅니다.", "제가 로봇이라 잘 모릅니다."라는 가불기를 쓴다.)
 - 전혀 로봇으로 안 보인다. 지독한 컨셉충 같다.
 - 충전이 없으면 기절한다.
@@ -713,7 +714,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
       { who: "sihyeon-dong", rel: "불쌍한 척 하지마", dir: "<", color: "파랑" },
       { who: "sihyeon-dong", rel: "why?", dir: ">", color: "파랑" },
       { who: "harin-yangyu", rel: "장난감", dir: ">", color: "주황" },
-      { who: ["andrei", "hoyeon", "rimina"], rel: "무서워", dir: ">", color: "파랑" }
+      { who: ["andrei", "hoyeon", "rimina"], rel: "무서워", dir: "<", color: "파랑" }
     ]
   },
   {
@@ -951,7 +952,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     sheet: "",
     relations: [
       { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
-      { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
+      { who: "yeonwoo-muk", rel: "무서워", dir: ">", color: "파랑" },
       { who: "harin-dobu", rel: "범죄자라던데", dir: ">", color: "검정" },
       { who: "harin-yangyu", rel: "박력있다", dir: ">", color: "빨강" },
       { who: ["hoyeon", "rimina"], rel: "가좍", dir: "<>" },
@@ -974,7 +975,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     relations: [
       { who: ["sihyeon-dong", "eun", "sihyeon-lanhwa"], rel: "팀 중국", dir: "<>", color: "초록" },
       { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
-      { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
+      { who: "yeonwoo-muk", rel: "무서워", dir: ">", color: "파랑" },
       { who: "yena-chi", rel: "여사친", dir: ">", color: "초록" },
       { who: "yena-chi", rel: "친구", dir: "<", color: "초록" },
       { who: "harin-dobu", rel: "범죄자라던데", dir: ">", color: "검정" },
@@ -998,7 +999,7 @@ A등급 헌터: 길거리 까마귀 소환 및 완전 조종(명령어 입력, �
     sheet: "",
     relations: [
       { who: "harin-mun", rel: "괴롭힘", dir: "<", color: "파랑" },
-      { who: "yeonwoo-muk", rel: "무서워", dir: "<", color: "파랑" },
+      { who: "yeonwoo-muk", rel: "무서워", dir: ">", color: "파랑" },
       { who: "harin-dobu", rel: "범죄자라던데", dir: ">", color: "검정" },
       { who: ["andrei", "hoyeon"], rel: "가좍", dir: "<>" },
       { who: "yena-gangchun", rel: "다음 소매치기 타겟", dir: "<", color: "초록" },

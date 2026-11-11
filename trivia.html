@@ -111,7 +111,9 @@
   const nm = (c) => c.label || c.name;
   const GUILD_NAMES = uniq(CHARS.map(gname)).filter((n) => n && n !== "엑스트라");
   const others = (pool, correct, n) => shuffle(uniq(pool).filter((v) => v !== correct)).slice(0, n);
+  let curD = 2; // 지금 만드는 퀴즈의 난이도 (상이면 같은 길드 사람을 오답에 우선 섞어요)
   function otherChars(c, n, ok, near) {
+    near = near || curD === 3;
     let pool = shuffle(CHARS.filter((x) => x !== c && ok(x)));
     if (near) pool = pool.filter((x) => gname(x) === gname(c)).concat(pool.filter((x) => gname(x) !== gname(c)));
     return pool.slice(0, n);
@@ -176,7 +178,7 @@
   const ga = (c) => { const t = nm(c).replace(/\s*\([^)]*\)\s*$/, "").trim(), ch = t.charCodeAt(t.length - 1); return ch >= 0xAC00 && ch <= 0xD7A3 ? ((ch - 0xAC00) % 28 ? "이" : "가") : "이(가)"; };
   const charTags = (c) => '<a href="character.html?id=' + encodeURIComponent(c.id) + '" target="_blank" rel="noopener">' + esc(nm(c)) + "</a>";
 
-  const NUMN = (d) => (d === 3 ? 4 : 3);
+  const NUMN = (d) => (d === 3 ? 6 : 3); // 상: 오답 6개 (보기 7개)
   const TYPES = [];
   const T = (id, level, tag, make) => TYPES.push({ id, level, tag, make });
 
@@ -210,6 +212,13 @@
     const cap = d === 1 ? 4 : d === 2 ? 8 : 14;
     const g = pick(GUILD_NAMES.filter((n) => { const k = CHARS.filter((x) => gname(x) === n).length; return k >= 2 && k <= cap; })); if (!g) return null;
     return multi("<b>" + esc(g) + "</b> 소속 인물들을 서술하시오", "다음 중 <b>" + esc(g) + "</b> 소속인 인물을 <b>모두</b> 고르시오", CHARS.filter((x) => gname(x) === g), g, d);
+  });
+
+  T("ownerChars", 1, "주인의 캐릭터", (d) => {
+    const cap = d === 1 ? 6 : d === 2 ? 8 : 12;
+    const owners = uniq(CHARS.map((x) => x.owner).filter(Boolean)).filter((o) => { const k = CHARS.filter((x) => x.owner === o).length; return k >= 2 && k <= Math.max(cap, 12); });
+    const o = pick(owners); if (!o) return null;
+    return multi("<b>" + esc(o) + "</b>의 캐릭터를 나열해보세요!", "다음 중 <b>" + esc(o) + "</b>의 캐릭터를 <b>모두</b> 고르시오", CHARS.filter((x) => x.owner === o), o + "의 캐릭터", d);
   });
 
   // ── 중 ──
@@ -247,8 +256,8 @@
   });
   const numQ = (key, unit, spread, labelQ) => (d) => {
     const c = pick(CHARS.filter((x) => !isNaN(num(info(x, key))))); if (!c) return null;
-    const a = num(info(c, key)), fake = new Set(); let guard = 0;
-    while (fake.size < NUMN(d) && guard++ < 200) { const v = a + (rnd(2) ? 1 : -1) * (1 + rnd(spread)); if (v !== a && v > 0) fake.add(v); }
+    const a = num(info(c, key)), fake = new Set(); let guard = 0; const sp = d === 3 ? Math.ceil(spread / 2) : spread; // 상: 정답과 더 비슷한 숫자
+    while (fake.size < NUMN(d) && guard++ < 200) { const v = a + (rnd(2) ? 1 : -1) * (1 + rnd(sp)); if (v !== a && v > 0) fake.add(v); }
     return build(esc(nm(c)) + labelQ, S(a + unit), [...fake].map((v) => S(v + unit)), { subj: c, norm: "num", accept: [String(a)], media: { kind: "img", c, small: true }, explain: "<b class='v'>" + a + unit + "</b>" });
   };
   T("nameHeight", 2, "키", numQ("키", "cm", 12, "의 키는? (cm)"));
@@ -256,13 +265,13 @@
   T("nameWeapon", 2, "무기", (d) => {
     const c = pick(CHARS.filter((x) => info(x, "무기"))); if (!c) return null;
     const v = info(c, "무기");
-    return build(esc(nm(c)) + "의 무기는?", S(v), others(CHARS.map((x) => info(x, "무기")).filter(Boolean), v, 3).map(S), { subj: c, media: { kind: "img", c, small: true }, explain: "<b class='v'>" + esc(v) + "</b>" });
+    return build(esc(nm(c)) + "의 무기는?", S(v), others(CHARS.map((x) => info(x, "무기")).filter(Boolean), v, NUMN(d)).map(S), { subj: c, media: { kind: "img", c, small: true }, explain: "<b class='v'>" + esc(v) + "</b>" });
   });
   T("nameJob", 2, "직업", (d) => {
     const c = pick(CHARS.filter((x) => info(x, "직업"))); if (!c) return null;
     const v = info(c, "직업"), used = CHARS.map((x) => info(x, "직업")).filter(Boolean);
     const pool = uniq(used.concat(["요리사", "경찰관", "교사", "화가", "의사", "소방관", "작가", "군인", "바리스타", "사서"]));
-    return build("이 캐릭터의 직업은?", S(v), others(pool.filter((p) => p === v || !used.includes(p)), v, 3).map(S), { subj: c, media: { kind: "img", c, small: true }, explain: esc(nm(c)) + "의 직업은 <b class='v'>" + esc(v) + "</b>" });
+    return build("이 캐릭터의 직업은?", S(v), others(pool.filter((p) => p === v || !used.includes(p)), v, NUMN(d)).map(S), { subj: c, media: { kind: "img", c, small: true }, explain: esc(nm(c)) + "의 직업은 <b class='v'>" + esc(v) + "</b>" });
   });
   T("guildDesc", 2, "길드", (d) => {
     const g = pick(App.GUILDS.filter((x) => x.id !== "extra" && String(x.desc || "").length >= 20 && GUILD_NAMES.includes(x.name))); if (!g) return null;
@@ -432,7 +441,7 @@
   // 여러 명 답하기 (주관식: 적기 / 객관식: 여러 개 고르기)
   function multi(subText, objText, members, title, d) {
     const non = shuffle(CHARS.filter((x) => !members.includes(x)));
-    const nm4 = Math.min(members.length, 4), nn = Math.min(non.length, Math.max(3, 7 - nm4));
+    const hard = d === 3, nm4 = Math.min(members.length, hard ? 5 : 4), nn = Math.min(non.length, hard ? 5 : Math.max(3, 7 - nm4)); // 상: 보기 많고 오답 인물도 더 많이
     const cands = shuffle(shuffle(members).slice(0, nm4).concat(non.slice(0, nn)));
     return { kind: "multi", text: subText, objText, members, cands, title, subj: { id: "multi:" + title, name: title },
       explain: "<b class='v'>" + members.map((x) => esc(nm(x))).join(", ") + "</b>" };
@@ -440,6 +449,7 @@
 
   // ───────── 문제 뽑기 ─────────
   function makeQuiz(diff, count, mode) {
+    curD = diff;
     const pool = TYPES.filter((t) => (diff === 1 ? t.level === 1 : diff === 2 ? t.level >= 1 && t.level <= 2 : t.level >= 2));
     const bag = []; pool.forEach((t) => { for (let i = 0; i < (t.level === diff ? 3 : 1); i++) bag.push(t); });
     const out = [], seen = new Set(), typeCnt = {}, subjCnt = {};
