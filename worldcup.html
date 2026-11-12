@@ -22,6 +22,16 @@
   .wc-stats td:nth-child(2) { text-align: left; }
   .wc-stats a { color: var(--text); }
   .wc-note { font-size: 13px; color: var(--muted); margin: 0; }
+  .wc-setup label.wc-chk { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+  .wc-chk input { width: 18px; height: 18px; flex: none; }
+  .wc-chk small { color: var(--muted); }
+  .wc-reason { margin-top: 14px; padding: 12px; background: var(--panel); border: 1px solid var(--accent); display: grid; gap: 8px; }
+  .wc-reason label { display: grid; gap: 6px; font-size: 14px; }
+  .wc-reason label small { color: var(--muted); }
+  .wc-reason textarea { padding: 10px 12px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); font: inherit; width: 100%; box-sizing: border-box; resize: vertical; }
+  .wc-reason .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .wc-why { margin-left: 0; color: var(--muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+  #wc-cap-out img { max-width: 100%; margin-top: 12px; border-radius: 10px; }
 
   .wc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 20px; }
   .wc-round { font-size: 22px; font-weight: 700; color: var(--accent); }
@@ -98,6 +108,7 @@
     <label>라운드
       <select id="wc-size"></select>
     </label>
+    <label class="wc-chk"><input type="checkbox" id="wc-reason"> 고를 때마다 이유 적기 <small>(비워도 넘어가요 · 결과에서 모아서 볼 수 있어요)</small></label>
     <p class="wc-note" id="wc-note"></p>
     <button type="button" class="btn btn-primary" id="wc-start">시작하기</button>
     <button type="button" class="btn" id="wc-showstats">이 주제의 내 누적 순위 보기</button>
@@ -203,6 +214,7 @@
   if (saved.pool && [...$("wc-pool").options].some((o) => o.value === saved.pool && !o.disabled)) $("wc-pool").value = saved.pool;
   if (saved.topic && TOPICS.some((t) => t.id === saved.topic)) $("wc-topic").value = saved.topic;
   if (saved.title) $("wc-title").value = saved.title;
+  $("wc-reason").checked = !!saved.reason;
   loadTopic();
   refreshSizes(saved.size);
   $("wc-topic").addEventListener("change", loadTopic);
@@ -210,14 +222,14 @@
   $("wc-size").addEventListener("change", () => refreshSizes($("wc-size").value));
 
   // ── 게임 상태 ──
-  let cur, nxt, idx, elim, hist, busy, total, played, topic, part, size0, base, pre, preRound;
+  let cur, nxt, idx, elim, hist, busy, total, played, topic, part, size0, base, pre, preRound, reasonsOn = false, reasons = [], pending = null, lastRes = null;
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   function start() {
     const pool = poolList($("wc-pool").value);
     const size = +$("wc-size").value;
     topic = curTopic();
-    try { localStorage.setItem(KEY, JSON.stringify({ pool: $("wc-pool").value, size: size, topic: $("wc-topic").value, title: $("wc-title").value })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ pool: $("wc-pool").value, size: size, topic: $("wc-topic").value, title: $("wc-title").value, reason: $("wc-reason").checked })); } catch (e) {}
     const dm = readJ(DKEY); dm[$("wc-topic").value] = $("wc-desc").value; writeJ(DKEY, dm);
     const all = shuffle(pool.slice()).slice(0, size).map((c) => c.id);
     part = all.slice(); size0 = size;
@@ -231,6 +243,7 @@
       nxt = all.slice(2 * x);            // 부전승 (바로 P강으로)
     } else { cur = all; nxt = []; }
     idx = 0; elim = []; hist = []; busy = false; played = 0; total = size - 1;
+    reasonsOn = $("wc-reason").checked; reasons = []; pending = null;
     $("wc-setup").hidden = true; $("wc-end").hidden = true; $("wc-play").hidden = false;
     drawMatch();
   }
@@ -254,7 +267,7 @@
   }
 
   function drawMatch() {
-    busy = false;
+    busy = false; pending = null;
     const a = cur[idx], b = cur[idx + 1];
     $("wc-play").innerHTML = topicBox() +
       '<div class="wc-top"><span class="wc-round">' + (pre ? "예선" : roundName(cur.length)) + '</span><span class="wc-count">' +
@@ -262,40 +275,65 @@
       '<div class="wc-bar"><span style="width:' + (played / total * 100) + '%"></span></div>' +
       '<div class="wc-vs">' + card(a, 0) + card(b, 1) + "</div>" +
       '<div class="wc-ctrl"><button type="button" class="btn" id="wc-undo"' + (hist.length ? "" : " disabled") + '>← 되돌리기</button>' +
+      '<button type="button" class="btn" id="wc-refresh">🔄 새로고침</button>' +
       '<button type="button" class="btn" id="wc-quit">그만하기</button></div>' +
       '<p class="wc-hint">카드를 누르거나, 키보드 ← → (또는 1 · 2) 로 골라요</p>';
     $("wc-play").querySelectorAll(".wc-card").forEach((el) => {
       el.addEventListener("click", (e) => { if (e.target.closest(".prof")) return; pick(+el.dataset.side); });
     });
     $("wc-undo").addEventListener("click", undo);
+    $("wc-refresh").addEventListener("click", refresh);
     $("wc-quit").addEventListener("click", quit);
   }
 
   function pick(side) {
-    if (busy) return; busy = true;
+    if (busy) return; busy = true; pending = side;
     const cards = $("wc-play").querySelectorAll(".wc-card");
     cards[side].classList.add("win"); cards[1 - side].classList.add("lose");
-    setTimeout(() => {
-      hist.push({ cur: cur.slice(), nxt: nxt.slice(), idx: idx, el: elim.length, played: played, pre: pre });
-      const w = cur[idx + side], l = cur[idx + 1 - side];
-      elim.push({ id: l, round: pre ? preRound : cur.length, pre: pre });
-      nxt.push(w); idx += 2; played++;
-      if (idx >= cur.length) {
-        if (nxt.length === 1) return finish(nxt[0]);
-        cur = pre ? shuffle(nxt) : nxt;   // 예선이 끝나면 부전승 + 예선 승자를 섞어서 P강 대진
-        pre = false; nxt = []; idx = 0;
-      }
-      drawMatch();
-    }, 380);
+    if (reasonsOn) return askReason(side);
+    setTimeout(() => commit(side, ""), 380);
   }
-
-  function undo() {
-    if (busy || !hist.length) return;
-    const s = hist.pop();
-    cur = s.cur; nxt = s.nxt; idx = s.idx; played = s.played; pre = s.pre; elim.length = s.el;
+  // 이유 적기: 고른 뒤 이유 칸이 열려요 (비워도 다음으로 넘어가요)
+  function askReason(side) {
+    const w = byId[cur[idx + side]];
+    const box = document.createElement("div"); box.className = "wc-reason"; box.id = "wc-reasonbox";
+    box.innerHTML = '<label><span><b>' + esc(w.label || w.name) + '</b>을(를) 고른 이유 <small>(비워도 돼요 · Ctrl+Enter 로 다음)</small></span>' +
+      '<textarea id="wc-why" rows="2" maxlength="200" placeholder="예: 이 능력이 더 쓸모 있어서"></textarea></label>' +
+      '<div class="row"><button type="button" class="btn btn-primary" id="wc-next">다음 →</button><button type="button" class="btn" id="wc-rechoose">다시 고르기</button></div>';
+    $("wc-play").querySelector(".wc-vs").after(box);
+    const ta = $("wc-why"); ta.focus();
+    $("wc-next").addEventListener("click", () => commit(side, ta.value.trim()));
+    $("wc-rechoose").addEventListener("click", drawMatch);
+    ta.addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); commit(side, ta.value.trim()); } });
+  }
+  function commit(side, why) {
+    if (pending === null) return; pending = null;
+    hist.push({ cur: cur.slice(), nxt: nxt.slice(), idx: idx, el: elim.length, played: played, pre: pre, rs: reasons.length });
+    const w = cur[idx + side], l = cur[idx + 1 - side];
+    if (why) reasons.push({ w: w, l: l, round: pre ? "예선" : roundName(cur.length), text: why });
+    elim.push({ id: l, round: pre ? preRound : cur.length, pre: pre });
+    nxt.push(w); idx += 2; played++;
+    if (idx >= cur.length) {
+      if (nxt.length === 1) return finish(nxt[0]);
+      cur = pre ? shuffle(nxt) : nxt;   // 예선이 끝나면 부전승 + 예선 승자를 섞어서 P강 대진
+      pre = false; nxt = []; idx = 0;
+    }
     drawMatch();
   }
 
+  function undo() {
+    if ((busy && pending === null) || !hist.length) return;
+    if (pending !== null) pending = null;
+    const s = hist.pop();
+    cur = s.cur; nxt = s.nxt; idx = s.idx; played = s.played; pre = s.pre; elim.length = s.el; reasons.length = s.rs || 0;
+    drawMatch();
+  }
+
+  // 🔄 새로고침: 같은 설정으로 참가자 · 대진을 새로 뽑아서 처음부터 다시 해요
+  function refresh() {
+    if (played && !confirm("새로고침할까요? 지금까지 고른 결과는 사라지고, 대진이 새로 짜여요.")) return;
+    start();
+  }
   function quit() {
     if (!confirm("그만할까요? 지금까지의 결과는 사라져요.")) return;
     $("wc-play").hidden = true; $("wc-setup").hidden = false;
@@ -354,6 +392,7 @@
       if (e.pre) preLosers.push(e.id); else (rest[e.round] = rest[e.round] || []).push(e.id);
     });
     const restKeys = Object.keys(rest).map(Number).sort((a, b) => a - b);
+    lastRes = { champ: champ, finalist: finalist, semis: semis, rest: rest, restKeys: restKeys, preLosers: preLosers, reasons: reasons.slice() };
 
     $("wc-end").innerHTML = '<div class="wc-final">' +
       "<h2>🏆 우승!</h2><div class=\"muted\">" + esc(topic.title) + " · " + esc(sizeLabel(size0)) + "</div>" +
@@ -365,21 +404,26 @@
       (restKeys.length || preLosers.length ? '<details class="wc-all"><summary>나머지 순위 보기</summary>' + restKeys.map((k) =>
         '<div class="grp"><b>' + esc(place(k)) + "</b>" + rest[k].map(link).join(", ") + "</div>").join("") +
         (preLosers.length ? '<div class="grp"><b>' + esc(place(preRound, true)) + "</b>" + preLosers.map(link).join(", ") + "</div>" : "") + "</details>" : "") +
+      (reasons.length ? '<details class="wc-all" open><summary>내가 쓴 이유 (' + reasons.length + ')</summary>' + reasons.map((r) =>
+        '<div class="grp"><b>' + esc(r.round) + "</b>" + link(r.w) + " ✓ vs " + link(r.l) + '<div class="wc-why">' + esc(r.text) + "</div></div>").join("") + "</details>" : "") +
       '<details class="wc-all" id="wc-mystats"><summary>이 주제의 내 누적 순위 보기</summary><div id="wc-mystats-box"></div></details>' +
       '<div class="wc-final-ctrl"><button type="button" class="btn btn-primary" id="wc-again">같은 설정으로 다시</button>' +
+      '<button type="button" class="btn" id="wc-cap">🖼 순위 캡쳐</button>' +
       '<button type="button" class="btn" id="wc-copy">결과 복사</button>' +
-      '<button type="button" class="btn" id="wc-reset">설정 바꾸기</button></div></div>';
+      '<button type="button" class="btn" id="wc-reset">설정 바꾸기</button></div><div id="wc-cap-out"></div></div>';
 
     $("wc-mystats").addEventListener("toggle", () => {
       const box = $("wc-mystats-box");
       if ($("wc-mystats").open) { box.innerHTML = statsHTML(topic.key); bindClear(box, topic.key); }
     });
     $("wc-again").addEventListener("click", start);
+    $("wc-cap").addEventListener("click", capture);
     $("wc-reset").addEventListener("click", () => { $("wc-end").hidden = true; $("wc-setup").hidden = false; });
     $("wc-copy").addEventListener("click", () => {
       const nm = (id) => byId[id].label || byId[id].name;
       const text = "🏆 " + topic.title + " (" + sizeLabel(size0) + ")\n1위 " + nm(champ) + "\n2위 " + nm(finalist) +
-        "\n공동 3위 " + semis.map(nm).join(", ");
+        "\n공동 3위 " + semis.map(nm).join(", ") +
+        (reasons.length ? "\n\n[이유]\n" + reasons.map((r) => r.round + " " + nm(r.w) + " > " + nm(r.l) + ": " + r.text).join("\n") : "");
       const done = () => { $("wc-copy").textContent = "복사됐어요!"; setTimeout(() => ($("wc-copy").textContent = "결과 복사"), 1500); };
       try { navigator.clipboard.writeText(text).then(done, () => prompt("복사해서 쓰세요", text)); }
       catch (e) { prompt("복사해서 쓰세요", text); }
@@ -387,8 +431,89 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+
+  // ───────── 순위 캡쳐 (이미지로 저장) ─────────
+  const FONT = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+  const fu = (p) => String(p == null ? "" : p).replace(/[%#?]/g, (c) => encodeURIComponent(c));
+  const loadImg = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+  const wrapLn = (ctx, text, maxW) => {
+    const out = [];
+    String(text).split("\n").forEach((para) => { let line = ""; [...para].forEach((ch) => { if (line && ctx.measureText(line + ch).width > maxW) { out.push(line); line = ch; } else line += ch; }); out.push(line); });
+    return out;
+  };
+  const nmOf = (id) => byId[id].label || byId[id].name;
+  function coverDraw(x, im, dx, dy, dw, dh) {
+    const r = Math.max(dw / im.width, dh / im.height), sw = dw / r, sh = dh / r;
+    x.drawImage(im, (im.width - sw) / 2, (im.height - sh) * 0.15, sw, sh, dx, dy, dw, dh);
+  }
+  function drawFace(x, id, imgs, dx, dy, w, h, round) {
+    const c = byId[id], im = imgs[id];
+    x.save(); x.beginPath(); round ? x.arc(dx + w / 2, dy + h / 2, w / 2, 0, Math.PI * 2) : x.rect(dx, dy, w, h); x.clip();
+    if (im) coverDraw(x, im, dx, dy, w, h);
+    else { x.fillStyle = App.guildOf(c).color; x.fillRect(dx, dy, w, h); x.fillStyle = "#fff"; x.textAlign = "center"; x.textBaseline = "middle"; x.font = "800 " + Math.round(Math.min(w, h) * 0.45) + "px " + FONT; x.fillText([...c.name][0], dx + w / 2, dy + h / 2); }
+    x.restore();
+  }
+  // draw=false 면 높이만 재요
+  function layoutRes(x, R, imgs, W, draw) {
+    const P = 24, IW = W - P * 2; let y = 26;
+    x.textBaseline = "middle"; x.textAlign = "left";
+    const text = (t, px, wt, col, xx, yy) => { if (draw) { x.font = wt + " " + px + "px " + FONT; x.fillStyle = col; x.fillText(t, xx, yy); } };
+    const wrap = (t, px, wt, col, xx, maxW, lh) => { x.font = wt + " " + px + "px " + FONT; const ls = wrapLn(x, t, maxW); ls.forEach((l, k) => text(l, px, wt, col, xx, y + lh / 2 + k * lh)); y += ls.length * lh; };
+    x.font = "800 24px " + FONT; text(topic.title, 24, 800, "#fff", P, y + 12); y += 30;
+    text(sizeLabel(size0) + " · " + (SITE.title || "헌터 세계관"), 13, 400, "#98a2b6", P, y + 8); y += 30;
+    // 우승
+    const cw = 200, ch = 266, cx = (W - cw) / 2, c = byId[R.champ];
+    if (draw) { x.fillStyle = "#e8b923"; x.fillRect(cx - 3, y - 3, cw + 6, ch + 6); drawFace(x, R.champ, imgs, cx, y, cw, ch, false); }
+    y += ch + 22;
+    x.textAlign = "center";
+    if (draw) { x.font = "800 28px " + FONT; x.fillStyle = "#fff"; x.fillText("🏆 " + nmOf(R.champ), W / 2, y + 12); }
+    y += 32;
+    if (draw) { x.font = "400 14px " + FONT; x.fillStyle = "#98a2b6"; x.fillText([c.owner, App.guildOf(c).name].filter(Boolean).join(" · "), W / 2, y + 8); }
+    y += 34; x.textAlign = "left";
+    // 2위 / 공동 3위
+    const rows = [["2위", R.finalist]].concat(R.semis.map((id) => ["공동 3위", id]));
+    rows.forEach((r) => {
+      if (draw) { x.fillStyle = "#1b1f2b"; x.fillRect(P, y, IW, 60); drawFace(x, r[1], imgs, P + 8, y + 8, 44, 44, true); }
+      text(r[0], 14, 700, "#e8b923", P + 64, y + 30); text(nmOf(r[1]), 17, 600, "#fff", P + 64 + (r[0].length > 2 ? 78 : 44), y + 30);
+      y += 68;
+    });
+    // 나머지
+    const grp = R.restKeys.map((k) => [place(k), R.rest[k]]).concat(R.preLosers.length ? [[place(preRound, true), R.preLosers]] : []);
+    if (grp.length) { y += 6; text("나머지 순위", 14, 700, "#98a2b6", P, y + 10); y += 28; grp.forEach((g) => { wrap(g[0] + ": " + g[1].map(nmOf).join(", "), 13, 400, "#c9cfdd", P, IW, 20); y += 6; }); }
+    // 이유
+    if (R.reasons.length) {
+      y += 10; text("내가 쓴 이유", 14, 700, "#98a2b6", P, y + 10); y += 30;
+      R.reasons.forEach((r) => {
+        wrap(r.round + " · " + nmOf(r.w) + " ✓ vs " + nmOf(r.l), 14, 600, "#fff", P, IW, 21);
+        wrap(r.text, 13, 400, "#9aa3b8", P + 12, IW - 12, 19); y += 10;
+      });
+    }
+    return y + 26;
+  }
+  async function capture() {
+    const R = lastRes; if (!R) return;
+    const btn = $("wc-cap"), W = 640, U = 2; btn.disabled = true; btn.textContent = "만드는 중…";
+    try {
+      const ids = [R.champ, R.finalist].concat(R.semis), imgs = {};
+      await Promise.all(ids.map(async (id) => { const c = byId[id]; if (c && c.image) imgs[id] = await loadImg(fu(c.image)); }));
+      const build = (use) => {
+        const m = document.createElement("canvas").getContext("2d"), H = layoutRes(m, R, use, W, false);
+        const cv = document.createElement("canvas"); cv.width = W * U; cv.height = Math.round(H * U);
+        const x = cv.getContext("2d"); x.scale(U, U); x.fillStyle = "#12141c"; x.fillRect(0, 0, W, H);
+        layoutRes(x, R, use, W, true);
+        return cv.toDataURL("image/png");   // 사진이 다른 곳 주소면 여기서 막힐 수 있어요
+      };
+      let url, note = "";
+      try { url = build(imgs); } catch (e) { url = build({}); note = " (사진은 브라우저 보안 때문에 빼고 만들었어요)"; }
+      const a = document.createElement("a"); a.href = url; a.download = "월드컵-순위.png"; document.body.appendChild(a); a.click(); a.remove();
+      $("wc-cap-out").innerHTML = '<img src="' + url + '" alt="월드컵 순위 이미지"><p class="muted small">자동으로 저장되지 않았다면 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.' + note + "</p>";
+    } catch (err) { $("wc-cap-out").textContent = "저장하지 못했어요. (" + err.message + ")"; }
+    btn.disabled = false; btn.textContent = "🖼 순위 캡쳐";
+  }
+
   document.addEventListener("keydown", (e) => {
     if ($("wc-play").hidden) return;
+    if (e.target && /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
     if (e.key === "ArrowLeft" || e.key === "1") pick(0);
     else if (e.key === "ArrowRight" || e.key === "2") pick(1);
   });

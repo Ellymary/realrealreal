@@ -77,7 +77,7 @@
 <main class="wrap">
   <a class="back" href="playground.html">← 놀이터</a>
   <h1 class="page-title">캐릭터 퀴즈</h1>
-  <p class="muted">캐릭터 정보(이름 · 길드 · 능력 · 색 · 생일 …)에서 문제가 랜덤으로 나와요. 난이도 · 문제 수 · 객관식/주관식을 골라요!</p>
+  <p class="muted">캐릭터 정보(이름 · 길드 · 능력 · 색 · 생일 …)에서 문제가 랜덤으로 나와요. 난이도(하 / 중 / 상 / 색깔) · 문제 수 · 객관식/주관식을 골라요!</p>
 
   <section class="tq-box" id="s-setup"></section>
   <section class="tq-box" id="s-play" hidden></section>
@@ -91,6 +91,7 @@
 <script src="data/gallery.js"></script>
 <script src="data/comics.js"></script>
 <script src="data/world.js"></script>
+<script src="data/couples.js"></script>
 <script src="app.js"></script>
 <script src="data/music.js"></script>
 <script src="player.js"></script>
@@ -120,7 +121,13 @@
   }
   // 이름 답으로 인정되는 것들 (이름 / 구분 이름 / 성 뺀 이름)
   const lastTok = (n) => { const t = String(n).trim().split(/\s+/); return t.length > 1 && t[t.length - 1].length >= 2 ? t[t.length - 1] : ""; };
-  const charAcc = (c) => uniq([c.name, nm(c), lastTok(c.name)].filter(Boolean));
+  // 정답으로 인정되는 이름: 전체 이름 · 구분 이름 · 띄어쓰기로 나뉜 각 부분 ("죠마 문" → 죠마 / 문 둘 다)
+  //   (다른 캐릭터와 겹치는 부분 · 예: 여러 명이 같이 쓰는 성 · 은 인정하지 않아요)
+  const tokOf = (c) => String(c.name).trim().split(/\s+/).filter(Boolean);
+  const FULLN = new Set(CHARS.map((x) => x.name));
+  const MTOK = {}; CHARS.forEach((x) => { const t = tokOf(x); if (t.length > 1) uniq(t).forEach((k) => (MTOK[k] = (MTOK[k] || 0) + 1)); });
+  const tokOk = (c, t) => !(FULLN.has(t) && t !== c.name) && MTOK[t] === 1;
+  const charAcc = (c) => uniq([c.name, nm(c), lastTok(c.name)].concat(tokOf(c).length > 1 ? tokOf(c).filter((t) => tokOk(c, t)) : []).filter(Boolean));
   const whoAcc = (c, pred) => uniq([c].concat(CHARS.filter(pred)).flatMap(charAcc));
 
   // ───────── 주관식 채점 ─────────
@@ -166,11 +173,13 @@
   // ───────── 문제 만들기 ─────────
   // 문제: { type, tag, text, media, explain, subj, kind:"choice"|"multi", mode:"obj"|"sub", ... }
   // choice: choices[{label,char}], answer(index), accept[], norm      /   multi: members[], cands[]
+  // "유튜버, 스트리머" 처럼 쉼표 · 슬래시로 나뉜 정답은 하나만 적어도 맞게 해요
+  const partsOf = (label) => uniq([String(label)].concat(String(label).split(/\s*[,，、\/·]\s*/).map((t) => t.trim()).filter((t) => t.length >= 2)));
   function build(prompt, correct, wrongs, extra) {
     if (wrongs.length < 2) return null;
     const list = shuffle([{ label: correct.label, char: correct.char, ok: true }].concat(wrongs.map((w) => ({ label: w.label, char: w.char }))));
     return Object.assign({ kind: "choice", text: prompt, choices: list, answer: list.findIndex((x) => x.ok),
-      accept: correct.char ? charAcc(correct.char) : [correct.label], norm: "text" }, extra || {});
+      accept: correct.char ? charAcc(correct.char) : partsOf(correct.label), norm: "text" }, extra || {});
   }
   const S = (v) => ({ label: v });
   const C = (c) => ({ label: nm(c), char: c });
@@ -211,14 +220,65 @@
   T("guildMembers", 1, "길드 구성원", (d) => {
     const cap = d === 1 ? 4 : d === 2 ? 8 : 14;
     const g = pick(GUILD_NAMES.filter((n) => { const k = CHARS.filter((x) => gname(x) === n).length; return k >= 2 && k <= cap; })); if (!g) return null;
-    return multi("<b>" + esc(g) + "</b> 소속 인물들을 서술하시오", "다음 중 <b>" + esc(g) + "</b> 소속인 인물을 <b>모두</b> 고르시오", CHARS.filter((x) => gname(x) === g), g, d);
+    return multi("<b>" + esc(g) + "</b>의 캐릭터를 나열하시오", "다음 중 <b>" + esc(g) + "</b> 소속인 인물을 <b>모두</b> 고르시오", CHARS.filter((x) => gname(x) === g), g, d);
   });
 
+  T("nameOshi", 1, "오시마크", (d) => {
+    const c = pick(CHARS.filter((x) => info(x, "오시마크"))); if (!c) return null;
+    const v = info(c, "오시마크");
+    return build(esc(nm(c)) + "의 오시마크는?", S(v), others(CHARS.map((x) => info(x, "오시마크")).filter(Boolean), v, 3).map(S), { subj: c, objOnly: true, media: { kind: "img", c, small: true }, explain: "<b class='v'>" + esc(v) + "</b>" });
+  });
+  T("oshiWho", 1, "오시마크", (d) => {
+    const c = pick(CHARS.filter((x) => info(x, "오시마크"))); if (!c) return null;
+    const v = info(c, "오시마크");
+    const w = otherChars(c, 3, (x) => info(x, "오시마크") && info(x, "오시마크") !== v);
+    return build("이 오시마크는 누구의 것일까요?", C(c), w.map(C), { subj: c, accept: whoAcc(c, (x) => info(x, "오시마크") === v), media: { kind: "quote", text: v }, explain: "<b class='v'>" + esc(nm(c)) + "</b>" });
+  });
   T("ownerChars", 1, "주인의 캐릭터", (d) => {
     const cap = d === 1 ? 6 : d === 2 ? 8 : 12;
     const owners = uniq(CHARS.map((x) => x.owner).filter(Boolean)).filter((o) => { const k = CHARS.filter((x) => x.owner === o).length; return k >= 2 && k <= Math.max(cap, 12); });
     const o = pick(owners); if (!o) return null;
-    return multi("<b>" + esc(o) + "</b>의 캐릭터를 나열해보세요!", "다음 중 <b>" + esc(o) + "</b>의 캐릭터를 <b>모두</b> 고르시오", CHARS.filter((x) => x.owner === o), o + "의 캐릭터", d);
+    return multi("<b>" + esc(o) + "</b>의 캐릭터를 나열하시오", "다음 중 <b>" + esc(o) + "</b>의 캐릭터를 <b>모두</b> 고르시오", CHARS.filter((x) => x.owner === o), o + "의 캐릭터", d);
+  });
+
+  // ── 애인 (data/couples.js 의 COUPLES 기준 · 2차 커플링은 빼요) ──
+  let LOVERS = null;
+  function lovers() {
+    if (LOVERS) return LOVERS;
+    LOVERS = new Map();
+    const add = (a, b) => { if (a === b) return; if (!LOVERS.has(a)) LOVERS.set(a, []); if (!LOVERS.get(a).includes(b)) LOVERS.get(a).push(b); };
+    (window.COUPLES || []).forEach((cp) => {
+      const grp = (cp.members || []).map((m) => (typeof m === "string" ? [m] : m.ids || []).map((id) => App.byId[id]).filter((c) => c && CHARS.includes(c)));
+      for (let i = 0; i < grp.length - 1; i++) grp[i].forEach((a) => grp[i + 1].forEach((b) => { add(a, b); add(b, a); }));
+    });
+    return LOVERS;
+  }
+  T("loverList", 2, "애인", (d) => {
+    const L = [...lovers().keys()]; if (L.length < 2) return null;
+    return multi("<b>애인이 있는</b> 캐릭터들을 나열하시오", "다음 중 <b>애인이 있는</b> 캐릭터를 <b>모두</b> 고르시오", L, "애인이 있는 캐릭터", d);
+  });
+  T("loverWho", 2, "애인", (d) => {
+    const L = [...lovers().keys()]; if (!L.length) return null;
+    const a = pick(L), ps = lovers().get(a), c = pick(ps);
+    const w = otherChars(c, NUMN(d), (x) => x !== a && !ps.includes(x));
+    return build(esc(nm(a)) + "의 " + (ps.length > 1 ? "애인들 중 한 명은?" : "애인은?"), C(c), w.map(C), {
+      subj: a, accept: uniq(ps.flatMap(charAcc)), media: { kind: "img", c: a, small: true },
+      explain: "<b class='v'>" + ps.map((x) => esc(nm(x))).join(", ") + "</b>" });
+  });
+
+  // ── 이름 글자 수 (외자 · 2 · 3 · 4글자 / 성 제외 · 성 포함) ──
+  const noParen = (c) => String(c.name).replace(/\([^)]*\)/g, "").trim();
+  const givenOf = (c) => { const t = noParen(c).split(/\s+/); return t[t.length - 1] || ""; };
+  const fullOf = (c) => noParen(c).replace(/\s+/g, "");
+  T("nameLen", 3, "이름 글자 수", (d) => {
+    const opts = [];
+    [1, 2, 3, 4].forEach((n) => ["given", "full"].forEach((v) => {
+      const mem = CHARS.filter((x) => [...(v === "given" ? givenOf(x) : fullOf(x))].length === n);
+      if (mem.length >= 2 && mem.length <= 14) opts.push({ n, v, mem });
+    }));
+    const o = pick(opts); if (!o) return null;
+    const what = o.n === 1 ? "<b>1글자(외자)</b>" : "<b>" + o.n + "글자</b>", how = o.v === "given" ? "성 제외" : "성 포함";
+    return multi("이름이 " + what + "인 캐릭터들을 나열하시오 (<b>" + how + "</b>)", "다음 중 이름이 " + what + "인 캐릭터를 <b>모두</b> 고르시오 (<b>" + how + "</b>)", o.mem, o.n + "글자 " + how, d);
   });
 
   // ── 중 ──
@@ -289,7 +349,8 @@
   const REL = {
     dislike: { who: "싫어하는", set: ["혐오", "싫어함", "불편", "성가셔", "존못에 노잼."] },
     fear: { who: "무서워하는", set: ["무섭다", "무서워", "쫄았어요", "무섭지만 어리네", "경계"] },
-    like: { who: "좋아하는", set: ["♥", "호감", "짝사랑", "잘생겼어♥", "귀엽네", "박력있다", "존경", "팬", "팬(집착)"] },
+    crush: { who: "짝사랑하는", noun: "대상", set: ["짝사랑"] },
+    like: { who: "긍정적으로 평가하는", set: ["♥", "호감", "짝사랑", "잘생겼어♥", "귀엽네", "박력있다", "존경", "팬", "팬(집착)"] },
   };
   let EDGES = null;
   function edges() {
@@ -319,13 +380,14 @@
     if (d >= 2) pool = pool.filter((x) => linked.has(x)).concat(pool.filter((x) => !linked.has(x)));
     const w = pool.slice(0, NUMN(d));
     const rels = uniq(E.filter((e) => e.from === a && e.to === c).map((e) => e.rel)).join(", ");
-    return build(esc(nm(a)) + ga(a) + " <b>" + R.who + "</b> 사람은?", C(c), w.map(C), {
+    return build(esc(nm(a)) + ga(a) + " <b>" + R.who + "</b> " + (tgt.length > 1 ? (R.noun || "사람") + "들 중 한 명은?" : (R.noun || "사람") + "은?"), C(c), w.map(C), {
       subj: a, accept: uniq(tgt.flatMap(charAcc)), media: { kind: "img", c: a, small: true },
       explain: "<b class='v'>" + tgt.map((x) => esc(nm(x))).join(", ") + "</b> (" + esc(rels) + ")",
     });
   };
   T("relDislike", 2, "관계", relQ("dislike"));
   T("relLike", 2, "관계", relQ("like"));
+  T("relCrush", 2, "관계", relQ("crush"));
   T("relFear", 3, "관계", relQ("fear"));
 
   // ── 한자 표기 ──
@@ -339,7 +401,7 @@
       for (let k = 0; k < n; k++) { const i = rnd(t.length), alt = SIM[t[i]] ? SIM[t[i]] : GEN; t[i] = pick([...alt]); }
       const s2 = t.join(""); if (s2 !== v) fake.add(s2);
     }
-    return build(esc(nm(c)) + "의 한자 표기는?", S(v), [...fake].map(S), { subj: c, norm: "exact", media: { kind: "img", c, small: true }, explain: "<b class='v'>" + esc(v) + "</b>" });
+    return build(esc(nm(c)) + "의 한자 표기는?", S(v), [...fake].map(S), { subj: c, norm: "exact", objOnly: true, media: { kind: "img", c, small: true }, explain: "<b class='v'>" + esc(v) + "</b>" });
   });
 
   // ── 상 ──
@@ -385,13 +447,13 @@
     const w = otherChars(c, NUMN(d), () => true, true);
     return build("이 능력 설명은 누구의 능력에 대한 걸까요?", C(c), w.map(C), { subj: c, media: { kind: "quote", text: noteOf(c) }, explain: "<b class='v'>" + esc(nm(c)) + "</b>의 능력 <b>" + esc(info(c, "능력")) + "</b>" });
   });
-  T("notMember", 3, "길드", (d) => {
+  T("notMember", 2, "길드", (d) => {
     const g = pick(GUILD_NAMES.filter((n) => CHARS.filter((x) => gname(x) === n).length >= NUMN(d)));
     if (!g) return null;
     const mem = shuffle(CHARS.filter((x) => gname(x) === g)).slice(0, NUMN(d)), out = pick(CHARS.filter((x) => gname(x) !== g));
     return build("다음 중 <b>" + esc(g) + "</b> 소속이 <b>아닌</b> 캐릭터는?", C(out), mem.map(C), { subj: out, objOnly: true, explain: "<b class='v'>" + esc(nm(out)) + "</b>은(는) " + esc(gname(out)) + " 소속이에요." });
   });
-  T("abilityDesc", 3, "능력", (d) => {
+  T("abilityDesc", 2, "능력", (d) => {
     const c = pick(CHARS.filter((x) => info(x, "능력") && info(x, "등급"))); if (!c) return null;
     const v = info(c, "능력"), same = (x) => info(x, "능력") === v && info(x, "등급") === info(c, "등급") && gname(x) === gname(c);
     const w = otherChars(c, NUMN(d), (x) => info(x, "능력") && info(x, "능력") !== v, true);
@@ -448,9 +510,10 @@
   }
 
   // ───────── 문제 뽑기 ─────────
+  const COLOR_IDS = ["hairSwatch", "eyeSwatch", "hairCode", "eyeCode"]; // 색깔 퀴즈 모드에 나오는 문제
   function makeQuiz(diff, count, mode) {
     curD = diff;
-    const pool = TYPES.filter((t) => (diff === 1 ? t.level === 1 : diff === 2 ? t.level >= 1 && t.level <= 2 : t.level >= 2));
+    const pool = TYPES.filter((t) => (diff === 4 ? COLOR_IDS.includes(t.id) : diff === 1 ? t.level === 1 : diff === 2 ? t.level >= 1 && t.level <= 2 : t.level === 3));
     const bag = []; pool.forEach((t) => { for (let i = 0; i < (t.level === diff ? 3 : 1); i++) bag.push(t); });
     const out = [], seen = new Set(), typeCnt = {}, subjCnt = {};
     let tries = 0;
@@ -475,7 +538,7 @@
   let cfg = { diff: 2, count: 10, mode: "obj" }, best = {};
   try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { cfg = Object.assign(cfg, s.cfg || {}); best = s.best || {}; } } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ cfg, best })); } catch (e) {} };
-  const DIFF = { 1: ["하", "이름 · 길드 · 능력 …"], 2: ["중", "색 · 생일 · 관계 · 라인 …"], 3: ["상", "색 코드 · 추리 · 한자 …"] };
+  const DIFF = { 1: ["하", "이름 · 길드 · 능력 · 오시마크 …"], 2: ["중", "색 · 생일 · 관계 · 라인 …"], 3: ["상", "지엽적인 문제 다수^.^"], 4: ["색깔", "머리색 · 눈 색 맞추기 (색 코드 포함)"] };
   const COUNTS = [5, 10, 15, 20, 30];
   const MODES = { obj: ["객관식", "보기 중에서 고르기"], sub: ["주관식", "직접 적기"], mix: ["섞어서", "랜덤으로 섞기"] };
   const fmtN = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -483,7 +546,7 @@
   function showSetup() {
     $("s-play").hidden = true; $("s-end").hidden = true; $("s-setup").hidden = false;
     $("s-setup").innerHTML =
-      "<h2>난이도</h2><div class='tq-opts'>" + [1, 2, 3].map((d) => "<button type='button' class='tq-opt" + (cfg.diff === d ? " on" : "") + "' data-d='" + d + "'>" + DIFF[d][0] + "<small>" + DIFF[d][1] + "</small></button>").join("") + "</div>" +
+      "<h2>난이도</h2><div class='tq-opts'>" + [1, 2, 3, 4].map((d) => "<button type='button' class='tq-opt" + (cfg.diff === d ? " on" : "") + "' data-d='" + d + "'>" + DIFF[d][0] + "<small>" + DIFF[d][1] + "</small></button>").join("") + "</div>" +
       "<h2 style='margin-top:18px'>문제 방식</h2><div class='tq-opts'>" + Object.keys(MODES).map((m) => "<button type='button' class='tq-opt" + (cfg.mode === m ? " on" : "") + "' data-m='" + m + "'>" + MODES[m][0] + "<small>" + MODES[m][1] + "</small></button>").join("") + "</div>" +
       "<h2 style='margin-top:18px'>문제 수</h2><div class='tq-opts'>" + COUNTS.map((n) => "<button type='button' class='tq-opt" + (cfg.count === n ? " on" : "") + "' data-n='" + n + "'>" + n + "문제</button>").join("") + "</div>" +
       "<button type='button' class='btn btn-primary tq-go' id='go'>시작하기</button><div class='tq-best' id='best'></div>";
@@ -519,7 +582,7 @@
   const HINT = { num: "숫자로 적어요", date: "예: 6월 25일", grade: "예: S, A, B …", mbti: "예: INTJ", exact: "한자로 적어요" };
   function showQ() {
     const q = Q[idx]; locked = false; selected = new Set();
-    const showPics = cfg.diff <= 2 && q.type !== "imgName";
+    const showPics = (cfg.diff <= 2 || (cfg.diff === 4 && /Swatch$/.test(q.type))) && q.type !== "imgName";
     let body = "";
     if (q.kind === "multi") {
       if (q.mode === "obj") {
@@ -529,7 +592,7 @@
     } else if (q.mode === "obj") {
       body = "<div class='tq-choices'>" + q.choices.map((c, i) => "<button type='button' class='tq-c' data-i='" + i + "'><span class='n'>" + (i + 1) + "</span>" + (showPics && c.char ? "<span class='pic'>" + App.avatar(c.char) + "</span>" : "") + "<span class='t'>" + esc(c.label) + "</span></button>").join("") + "</div>";
     } else {
-      body = "<input class='tq-in' id='ans' autocomplete='off' placeholder='정답을 적어요'><div class='tq-hint'>" + (HINT[q.norm] || "이름 · 값을 그대로 적어요") + "</div><div class='tq-row'><button type='button' class='btn btn-primary' id='submit'>확인</button><button type='button' class='btn' id='skip'>모르겠어요</button></div>";
+      body = "<input class='tq-in' id='ans' autocomplete='off' placeholder='정답을 적어요'><div class='tq-hint'>" + (HINT[q.norm] || "이름 · 값을 그대로 적어요 (정답이 여러 개면 하나만 적어도 돼요)") + "</div><div class='tq-row'><button type='button' class='btn btn-primary' id='submit'>확인</button><button type='button' class='btn' id='skip'>모르겠어요</button></div>";
     }
     $("s-play").innerHTML =
       "<div class='tq-head'><span>" + (idx + 1) + " / " + Q.length + " <span class='tq-tag'>" + esc(q.tag) + "</span> <span class='tq-tag'>" + (q.kind === "multi" ? (q.mode === "obj" ? "여러 개 고르기" : "서술형") : q.mode === "obj" ? "객관식" : "주관식") + "</span></span><span>점수 " + fmtN(score) + "</span></div>" +
@@ -610,27 +673,82 @@
     else if ((e.key === "Enter" || e.key === " ") && locked && document.activeElement && document.activeElement.id !== "next") { e.preventDefault(); next(); }
   });
 
+  let lastEnd = null;
   function showEnd() {
     $("s-play").hidden = true; $("s-end").hidden = false;
     const n = Q.length, pct = score / n, bk = cfg.diff + "-" + cfg.count + "-" + cfg.mode;
     const isBest = n === cfg.count && (best[bk] == null || score > best[bk] + 1e-9);
     if (isBest) { best[bk] = Math.round(score * 10) / 10; save(); }
     const cmt = pct >= .999 ? "🏆 만점! 캐릭터 박사님이에요" : pct >= .8 ? "👏 거의 다 알고 있어요!" : pct >= .5 ? "🙂 꽤 잘 알고 있어요" : pct >= .3 ? "🤔 조금 더 알아가 봐요" : "🌱 이제부터 알아가면 돼요!";
+    const rows = log.map((l) => {
+      const q = l.q, plain = (q.kind === "multi" && q.mode === "obj" ? q.objText : q.text).replace(/<[^>]+>/g, "");
+      const ans = q.kind === "multi" ? q.members.map(nm).join(", ") : q.explain.replace(/<[^>]+>/g, "").replace(/^정답은\s*/, "");
+      return { ok: l.ok, text: plain, ans, mine: l.mine || "", pts: l.pts2 ? l.pts2[0] + "/" + l.pts2[1] : "", hex: q.media && q.media.hex || "", code: q.media && q.media.kind === "code" ? q.media.text : "" };
+    });
+    const sub = "난이도 " + DIFF[cfg.diff][0] + " · " + MODES[cfg.mode][0] + " · " + n + "문제";
+    lastEnd = { score: fmtN(Math.round(score * 10) / 10), n, cmt, sub, rows };
     $("s-end").innerHTML =
       "<div class='tq-score'><div class='big'>" + fmtN(Math.round(score * 10) / 10) + " <small>/ " + n + "</small></div><div class='cmt'>" + cmt + "</div>" +
       "<div class='muted' style='margin-top:4px'>난이도 " + DIFF[cfg.diff][0] + " · " + MODES[cfg.mode][0] + (isBest ? " · 🎉 최고 기록!" : "") + "</div></div>" +
-      "<ol class='tq-rev'>" + log.map((l, k) => {
-        const q = l.q, plain = (q.kind === "multi" && q.mode === "obj" ? q.objText : q.text).replace(/<[^>]+>/g, "");
-        const ans = q.kind === "multi" ? q.members.map(nm).join(", ") : q.explain.replace(/<[^>]+>/g, "").replace(/^정답은\s*/, "");
-        return "<li class='" + (l.ok ? "ok" : "no") + "'><b>" + (k + 1) + ".</b> " + esc(plain) + (q.media && q.media.hex ? " <i class='tq-dot' style='background:" + esc(q.media.hex) + "'></i>" + (q.media.kind === "code" ? " <span class='m'>(" + esc(q.media.text) + ")</span>" : "") : "") +
-          "<br><span class='m'>정답:</span> " + esc(ans) + (l.ok ? "" : " <span class='m'>· 내 답:</span> " + esc(l.mine || "") + (l.pts2 ? " <span class='m'>(" + l.pts2[0] + "/" + l.pts2[1] + ")</span>" : "")) + "</li>";
-      }).join("") + "</ol>" +
-      "<div class='tq-end'><button type='button' class='btn btn-primary' id='again'>같은 설정으로 다시</button><button type='button' class='btn' id='setup'>설정 바꾸기</button></div>";
+      "<ol class='tq-rev'>" + rows.map((r, k) =>
+        "<li class='" + (r.ok ? "ok" : "no") + "'><b>" + (k + 1) + ".</b> " + esc(r.text) + (r.hex ? " <i class='tq-dot' style='background:" + esc(r.hex) + "'></i>" + (r.code ? " <span class='m'>(" + esc(r.code) + ")</span>" : "") : "") +
+        "<br><span class='m'>정답:</span> " + esc(r.ans) + (r.ok ? "" : " <span class='m'>· 내 답:</span> " + esc(r.mine) + (r.pts ? " <span class='m'>(" + r.pts + ")</span>" : "")) + "</li>"
+      ).join("") + "</ol>" +
+      "<div class='tq-end'><button type='button' class='btn btn-primary' id='again'>같은 설정으로 다시</button><button type='button' class='btn' id='setup'>설정 바꾸기</button><button type='button' class='btn' id='capture'>🖼 결과 캡쳐</button></div>" +
+      "<div id='cap-out' style='margin-top:14px'></div>";
     window.scrollTo({ top: 0 });
+  }
+
+  // ───────── 결과 캡쳐 (이미지로 저장) ─────────
+  const FONT = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif';
+  function wrapText(ctx, text, maxW) {
+    const lines = []; let cur = "";
+    for (const ch of String(text)) { const t = cur + ch; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = ch; } else cur = t; }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  function capture() {
+    const E = lastEnd; if (!E) return;
+    const U = 2, W = 640, P = 22, LH = 20, IW = W - P * 2 - 30;
+    const m = document.createElement("canvas").getContext("2d");
+    m.font = "500 14px " + FONT;
+    const items = E.rows.map((r, k) => {
+      const q = wrapText(m, (k + 1) + ". " + r.text + (r.code ? " (" + r.code + ")" : ""), IW - (r.hex ? 26 : 0));
+      const a = wrapText(m, "정답: " + r.ans + (r.ok ? "" : "  ·  내 답: " + (r.mine || "(없음)") + (r.pts ? " (" + r.pts + ")" : "")), IW);
+      return { r, q, a, h: (q.length + a.length) * LH + 14 };
+    });
+    const HEAD = 150, H = HEAD + items.reduce((t, i) => t + i.h + 8, 0) + 36;
+    const cv = document.createElement("canvas"); cv.width = W * U; cv.height = H * U;
+    const x = cv.getContext("2d"); x.scale(U, U);
+    x.fillStyle = "#12141c"; x.fillRect(0, 0, W, H);
+    x.textBaseline = "middle"; x.textAlign = "left";
+    x.fillStyle = "#98a2b6"; x.font = "500 14px " + FONT; x.fillText((window.SITE && SITE.title) || "헌터 세계관", P, 28);
+    x.fillStyle = "#fff"; x.font = "800 44px " + FONT; x.fillText(E.score, P, 70);
+    const sw = x.measureText(E.score).width;
+    x.fillStyle = "#98a2b6"; x.font = "600 20px " + FONT; x.fillText("/ " + E.n, P + sw + 10, 76);
+    x.fillStyle = "#e8ebf4"; x.font = "600 16px " + FONT; x.fillText(E.cmt, P, 108);
+    x.fillStyle = "#98a2b6"; x.font = "400 13px " + FONT; x.fillText("캐릭터 퀴즈 · " + E.sub, P, 130);
+    let y = HEAD;
+    items.forEach((it) => {
+      x.fillStyle = "#1b1f2b"; x.beginPath(); x.roundRect ? x.roundRect(P, y, W - P * 2, it.h, 8) : x.rect(P, y, W - P * 2, it.h); x.fill();
+      x.fillStyle = it.r.ok ? "#3fb27f" : "#e5586b"; x.fillRect(P, y + 4, 4, it.h - 8);
+      let ty = y + 7 + LH / 2;
+      x.font = "600 14px " + FONT; x.fillStyle = "#fff";
+      it.q.forEach((ln) => { x.fillText(ln, P + 14, ty); ty += LH; });
+      if (it.r.hex) { x.fillStyle = it.r.hex; x.beginPath(); x.arc(W - P - 18, y + 7 + LH / 2, 8, 0, Math.PI * 2); x.fill(); x.strokeStyle = "rgba(255,255,255,.5)"; x.lineWidth = 1; x.stroke(); }
+      x.font = "400 14px " + FONT; x.fillStyle = it.r.ok ? "#9fdcc0" : "#f0a0ab";
+      it.a.forEach((ln) => { x.fillText(ln, P + 14, ty); ty += LH; });
+      y += it.h + 8;
+    });
+    x.fillStyle = "#5d667a"; x.textAlign = "right"; x.font = "400 11px " + FONT; x.fillText((window.SITE && SITE.title) || "헌터 세계관", W - P, H - 16);
+    const url = cv.toDataURL("image/png");
+    const a = document.createElement("a"); a.href = url; a.download = "캐릭터퀴즈-결과.png"; document.body.appendChild(a); a.click(); a.remove();
+    $("cap-out").innerHTML = '<img src="' + url + '" alt="퀴즈 결과 이미지" style="max-width:100%;border-radius:10px"><p class="muted small">자동으로 저장되지 않았다면 그림을 꾹 눌러서(또는 오른쪽 클릭) 저장해요.</p>';
   }
   $("s-end").addEventListener("click", (e) => {
     if (e.target.closest("#again")) start();
     else if (e.target.closest("#setup")) showSetup();
+    else if (e.target.closest("#capture")) capture();
   });
 
   showSetup();
