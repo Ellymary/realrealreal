@@ -1065,4 +1065,19 @@ window.COMICS = [
     tags: [],
     series: true,
   },
+  {
+    id: "hihihohoh",
+    title: "pupjjo",
+    artist: "연우",
+    date: "2026-11-14",
+    cover: "images/comics/hihihohoh/34_20261107015039.webp",
+    pages: [
+      "images/comics/hihihohoh/34_20261107015039.webp",
+      "images/comics/hihihohoh/33_20261107015101.webp",
+      "images/comics/hihihohoh/32_20261107013709.webp",
+    ],
+    characters: ["sihyeon-lanhwa","yeonwoo-muk"],
+    tags: [],
+    series: true,
+  },
 ];
