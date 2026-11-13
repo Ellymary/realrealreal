@@ -1122,4 +1122,12 @@ window.GALLERY = [
     characters: ["sihyeon-lulu"],
     tags: [],
   },
+  {
+    file: "images/gallery/KakaoTalk_20261107_004411862.png",
+    title: "KakaoTalk_20261107_004411862",
+    artist: "연우",
+    date: "2026-11-14",
+    characters: ["yeonwoo-ruan"],
+    tags: ["프로필"],
+  },
 ];
