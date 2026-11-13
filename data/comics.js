@@ -1108,4 +1108,19 @@ window.COMICS = [
     tags: ["카피페"],
     series: true,
   },
+  {
+    id: "y8ttoffk11",
+    title: "yududjd11",
+    artist: "시은",
+    date: "2026-11-14",
+    cover: "images/comics/y8ttoffk11/KakaoTalk_20261108_194048032.jpg",
+    pages: [
+      "images/comics/y8ttoffk11/KakaoTalk_20261108_194048032.jpg",
+      "images/comics/y8ttoffk11/KakaoTalk_20261108_194048032_01.jpg",
+      "images/comics/y8ttoffk11/KakaoTalk_20261108_194048032_02.jpg",
+    ],
+    characters: ["sieun-macao","eun"],
+    tags: [],
+    series: true,
+  },
 ];
