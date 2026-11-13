@@ -1050,4 +1050,19 @@ window.COMICS = [
     characters: ["sieun-mina"],
     tags: [],
   },
+  {
+    id: "jojjpjo",
+    title: "ojpjoj",
+    artist: "시현",
+    date: "2026-11-14",
+    cover: "images/comics/jojjpjo/1794152795853.webp",
+    pages: [
+      "images/comics/jojjpjo/1794152795853.webp",
+      "images/comics/jojjpjo/1794152795984.webp",
+      "images/comics/jojjpjo/1794152796095.webp",
+    ],
+    characters: ["sihyeon-lanhwa"],
+    tags: [],
+    series: true,
+  },
 ];
