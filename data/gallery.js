@@ -1114,4 +1114,12 @@ window.GALLERY = [
     characters: ["sieun-vanilla"],
     tags: [],
   },
+  {
+    file: "images/gallery/1794582604753.webp",
+    title: "1794582604753",
+    artist: "시현",
+    date: "2026-11-14",
+    characters: ["sihyeon-lulu"],
+    tags: [],
+  },
 ];
