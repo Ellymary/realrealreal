@@ -1074,4 +1074,12 @@ window.GALLERY = [
     characters: ["yena-jangcheongil","sihyeon-lanhwa","harin-dobu","harin-mun"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1pZ15h8XGgNTXXz_TAIMNTXPTxDzN7Vod/view?usp=sharing",
+    title: "코브라",
+    artist: "시현",
+    date: "2026-11-15",
+    characters: ["sieun-macao"],
+    tags: [],
+  },
 ];
