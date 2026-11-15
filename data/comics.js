@@ -1146,4 +1146,18 @@ window.COMICS = [
     tags: ["카피페"],
     series: true,
   },
+  {
+    id: "ddgd",
+    title: "ww",
+    artist: "예나",
+    date: "2026-11-15",
+    cover: "images/comics/ddgd/KakaoTalk_20261112_230013628.png",
+    pages: [
+      "images/comics/ddgd/KakaoTalk_20261112_230013628.png",
+      "images/comics/ddgd/KakaoTalk_20261112_230022173.png",
+    ],
+    characters: ["yena-jiruciel","andrei","sihyeon-lulu","rimina","yeonwoo-leon","harin-mun"],
+    tags: ["카피페"],
+    series: true,
+  },
 ];
