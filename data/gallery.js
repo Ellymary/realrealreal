@@ -1066,4 +1066,12 @@ window.GALLERY = [
     characters: ["sieun-vanilla"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1S0h9jDi_0MRvJ3C2GlP-CNxz7pJ2SvwJ/view?usp=drive_link",
+    title: "웨스턴쇼",
+    artist: "예나",
+    date: "2026-11-15",
+    characters: ["yena-jangcheongil","sihyeon-lanhwa","harin-dobu","harin-mun"],
+    tags: [],
+  },
 ];
