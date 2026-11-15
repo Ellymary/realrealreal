@@ -1082,4 +1082,12 @@ window.GALLERY = [
     characters: ["sieun-macao"],
     tags: [],
   },
+  {
+    video: "https://drive.google.com/file/d/1_r2QUlu8aPnZDs2omdyxldAEkQeSy7fO/view?usp=sharing",
+    title: "편의점송",
+    artist: "시현",
+    date: "2026-11-15",
+    characters: ["yena-jiruciel","yena-jiien","andrei","sieun-f","sieun-macao","hoyeon","sihyeon-lanhwa","sihyeon-lulu","sihyeon-dong","rimina","yeonwoo-gongyuan","yeonwoo-ethan","harin-mun","harin-yangyu"],
+    tags: [],
+  },
 ];
